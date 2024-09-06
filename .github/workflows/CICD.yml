@@ -58,10 +58,10 @@ jobs:
         uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
 
       - name: Run tests
-        run: ./gradlew test -i
+        run: ./gradlew test -i -Dspring.profiles.active=test
 
       - name: Clean Build with Gradle Wrapper
-        run: ./gradlew clean build -x test
+        run: ./gradlew clean build -x test -Dspring.profiles.active=test
 
       - name: Make Zip File
         run: zip -qq -r ./$GITHUB_SHA.zip .
@@ -92,11 +92,11 @@ jobs:
       contents: write
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
+      - uses: actions/checkout@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
 
     # Generates and submits a dependency graph, enabling Dependabot Alerts for all project dependencies.
