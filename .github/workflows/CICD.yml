@@ -44,7 +44,7 @@ jobs:
       - name: make application-dep.yml
         run: |
           touch ./src/main/resources/application-dep.yml
-          echo "${{ secrets.APPLICATION }}" > ./src/main/resources/application-dep.yml
+          echo "${{ secrets.APPLICATION }}" | base64 --decode > ./src/main/resources/application-dep.yml
 
       - name: make logback-dep.xml
         run: |
