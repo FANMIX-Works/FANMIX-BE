@@ -46,10 +46,10 @@ jobs:
           touch ./src/main/resources/application-dep.yml
           echo "${{ secrets.APPLICATION }}" > ./src/main/resources/application-dep.yml
 
-      - name: make logback-spring.xml
+      - name: make logback-dep.xml
         run: |
-          touch ./src/main/resources/logback-spring.xml
-          echo "${{ secrets.LOGBACK }}" | base64 --decode > ./src/main/resources/logback-spring.xml
+          touch ./src/main/resources/logback-dep.xml
+          echo "${{ secrets.LOGBACK }}" | base64 --decode > ./src/main/resources/logback-dep.xml
 
       - name: Run chmod to make gradlew executable
         run: chmod +x ./gradlew
