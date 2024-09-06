@@ -1,0 +1,14 @@
+version: 0.0
+os: linux
+
+files:
+  - source: /
+    destination: /home/ubuntu/fanmix
+permissions:
+  - object: /home/ubuntu/fanmix/
+    owner: ubuntu
+    group: ubuntu
+hooks:
+  AfterInstall:
+    - location: scripts/deploy.sh
+      timeout: 60
