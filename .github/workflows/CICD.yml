@@ -1,0 +1,102 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+# This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-gradle
+
+name: Spring Boot & Gradle & EC2 & S3 & CodeDeploy CI/CD
+
+on:
+  push:
+    branches: [ "main" ]
+
+env:
+  PROJECT_NAME: fanmix
+  BUCKET_NAME: fanmix-cicd-bucket-1
+  CODE_DEPLOY_APP_NAME: FANMIX-CODE-DEPLOY
+  DEPLOYMENT_GROUP_NAME: FANMIX-CODE-DEPLOY-GROUP
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Gradle Caching
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: make application-dep.yml
+        run: |
+          touch ./src/main/resources/application-dep.yml
+          echo "${{ secrets.APPLICATION }}" > ./src/main/resources/application-dep.yml
+
+      - name: make logback-spring.xml
+        run: |
+          touch ./src/main/resources/logback-spring.xml
+          echo "${{ secrets.LOGBACK }}" | base64 --decode > ./src/main/resources/logback-spring.xml
+
+      - name: Run chmod to make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
+
+      - name: Run tests
+        run: ./gradlew test -i
+
+      - name: Clean Build with Gradle Wrapper
+        run: ./gradlew clean build -x test
+
+      - name: Make Zip File
+        run: zip -qq -r ./$GITHUB_SHA.zip .
+        shell: bash
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Upload to S3
+        run: aws s3 cp ./$GITHUB_SHA.zip s3://$BUCKET_NAME/$PROJECT_NAME/$GITHUB_SHA.zip
+
+      - name: Code Deploy To EC2 instance
+        run: |
+          aws deploy create-deployment \
+            --application-name $CODE_DEPLOY_APP_NAME \
+            --deployment-config-name CodeDeployDefault.AllAtOnce \
+            --deployment-group-name $DEPLOYMENT_GROUP_NAME \
+            --s3-location bucket=$BUCKET_NAME,bundleType=zip,key=$PROJECT_NAME/$GITHUB_SHA.zip
+
+  dependency-submission:
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    # Generates and submits a dependency graph, enabling Dependabot Alerts for all project dependencies.
