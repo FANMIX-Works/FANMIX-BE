@@ -6,8 +6,8 @@ files:
     destination: /home/ubuntu/fanmix
 permissions:
   - object: /home/ubuntu/fanmix/
-    owner: ubuntu
-    group: ubuntu
+    owner: root
+    group: root
 hooks:
   AfterInstall:
     - location: scripts/deploy.sh
