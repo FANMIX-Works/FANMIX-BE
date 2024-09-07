@@ -15,7 +15,7 @@ NEW_VERSION=$((current_version + 1))
 echo "$NEW_VERSION" > "$VERSION_FILE"
 DEPLOY_VERSION="1.0.$NEW_VERSION"
 export DEPLOY_VERSION
-envsubst < ~/template.json > /opt/aws/amazon-cloudwatch-agent/etc/cloudwatch-config.json
+envsubst < ~/template.json > /opt/aws/amazon-cloudwatch-agent/etc/cloudwatch-agent.json
 sudo service amazon-cloudwatch-agent restart
 
 echo "===== 배포 시작 : $(date +%c) =====" >> $DEPLOY_LOG_PATH
