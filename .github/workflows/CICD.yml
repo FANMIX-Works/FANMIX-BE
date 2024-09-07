@@ -41,15 +41,15 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: make application-dep.yml
+      - name: make application-prod.yml
         run: |
-          touch ./src/main/resources/application-dep.yml
-          echo "${{ secrets.APPLICATION }}" | base64 --decode > ./src/main/resources/application-dep.yml
+          touch ./src/main/resources/application-prod.yml
+          echo "${{ secrets.APPLICATION }}" | base64 --decode > ./src/main/resources/application-prod.yml
 
-      - name: make logback-dep.xml
+      - name: make logback-spring.xml
         run: |
-          touch ./src/main/resources/logback-dep.xml
-          echo "${{ secrets.LOGBACK }}" | base64 --decode > ./src/main/resources/logback-dep.xml
+          touch ./src/main/resources/logback-spring.xml
+          echo "${{ secrets.LOGBACK }}" | base64 --decode > ./src/main/resources/logback-spring.xml
 
       - name: Run chmod to make gradlew executable
         run: chmod +x ./gradlew
