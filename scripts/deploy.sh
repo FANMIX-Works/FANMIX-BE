@@ -9,6 +9,15 @@ APPLICATION_LOG_PATH="/home/ubuntu/$PROJECT_NAME/application.log"
 BUILD_JAR=$(ls $JAR_PATH)
 JAR_NAME=$(basename $BUILD_JAR)
 
+VERSION_FILE=~/version.txt
+CURRENT_VERSION=$(cat "$VERSION_FILE")
+NEW_VERSION=$((current_version + 1))
+echo "$NEW_VERSION" > "$VERSION_FILE"
+DEPLOY_VERSION="1.0.$NEW_VERSION"
+export DEPLOY_VERSION
+envsubst < ~/template.json > /opt/aws/amazon-cloudwatch-agent/etc/cloudwatch-config.json
+sudo service amazon-cloudwatch-agent restart
+
 echo "===== 배포 시작 : $(date +%c) =====" >> $DEPLOY_LOG_PATH
 
 echo "> build 파일명: $JAR_NAME" >> $DEPLOY_LOG_PATH
