@@ -4,9 +4,11 @@ import com.fanmix.api.domain.common.Role;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @NoArgsConstructor
 @Getter
+@Setter
 /**
  * 자체로그인 회원가입 API의 RequestBody로 사용
  */
@@ -22,5 +24,5 @@ public class MemberSignUpDto {
 	private Character gender;            //'M', 'W'
 	private int birthYear;               //탄생년도. 나이는 오늘날짜로부터 계산
 	private String nationality;          //국적
-	private Role role;
+	private Role role;                   //회원권한
 }
