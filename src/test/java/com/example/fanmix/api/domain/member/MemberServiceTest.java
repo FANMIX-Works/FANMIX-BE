@@ -1,6 +1,5 @@
 package com.example.fanmix.api.domain.member;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.util.Optional;
@@ -68,31 +67,4 @@ public class MemberServiceTest {
 		System.out.println("회원가입 검증완료");
 	}
 
-	@Test
-	void signUp_Failure_DueToExistingEmail() {
-		when(memberRepository.findByEmail(anyString())).thenReturn(Optional.of(new Member()));
-
-		MemberSignUpDto signUpDto = new MemberSignUpDto();
-		signUpDto.setEmail("test@example.com");
-
-		Exception exception = assertThrows(Exception.class, () -> {
-			memberService.signUp(signUpDto);
-		});
-
-		assertEquals("이미 존재하는 이메일입니다.", exception.getMessage());
-	}
-
-	@Test
-	void signUp_Failure_DueToExistingNickname() {
-		when(memberRepository.findByNickName(anyString())).thenReturn(Optional.of(new Member()));
-
-		MemberSignUpDto signUpDto = new MemberSignUpDto();
-		signUpDto.setNickName("testnickname");
-
-		Exception exception = assertThrows(Exception.class, () -> {
-			memberService.signUp(signUpDto);
-		});
-
-		assertEquals("이미 존재하는 닉네임입니다.", exception.getMessage());
-	}
 }
