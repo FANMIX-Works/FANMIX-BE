@@ -17,8 +17,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
 import com.fanmix.api.FanmixApplication;
-import com.fanmix.api.domain.member.Member;
-import com.fanmix.api.domain.member.MemberRepository;
+import com.fanmix.api.domain.member.entity.Member;
+import com.fanmix.api.domain.member.repository.MemberRepository;
 
 @SpringBootTest(classes = FanmixApplication.class)
 @ActiveProfiles("test")  // test 프로파일을 활성화하여 application-test.yml을 참조
@@ -74,7 +74,7 @@ class DatabaseConnectionTest {
 	void testJpaRepository() {
 		// JPA를 통해 데이터 삽입 및 조회 테스트
 		//given
-		Member member = new Member("TEST로넣은유저2");
+		Member member = new Member("entity로넣은유저");
 
 		//when
 		memberRepository.save(member);
@@ -82,6 +82,6 @@ class DatabaseConnectionTest {
 		//then
 		Member foundMember = memberRepository.findById(member.getId()).orElse(null);
 		assertThat(foundMember).isNotNull();
-		assertThat(foundMember.getName()).isEqualTo("TEST로넣은유저2");
+		assertThat(foundMember.getName()).isEqualTo("entity로넣은유저");
 	}
 }
