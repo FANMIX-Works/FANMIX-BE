@@ -51,4 +51,12 @@ public class Community {
 		this.name = name;
 		this.isShow = isShow;
 	}
+
+	// 게시물 수정
+	public void update(int influencerId, String name, boolean isShow) {
+		this.influencerId = influencerId;
+		this.name = name;
+		this.isShow = isShow;
+	}
+
 }

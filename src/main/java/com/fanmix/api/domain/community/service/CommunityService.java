@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 import com.fanmix.api.domain.community.dto.AddCommunityRequest;
+import com.fanmix.api.domain.community.dto.UpdateCommunityRequest;
 import com.fanmix.api.domain.community.entity.Community;
 import com.fanmix.api.domain.community.repository.CommunityRepository;
 
@@ -30,5 +31,15 @@ public class CommunityService {
 	public Community findById(int id) {
 		return communityRepository.findById(id)
 			.orElseThrow(() -> new IllegalArgumentException("게시물이 존재하지 않습니다."));
+	}
+
+	// 커뮤니티 수정
+	public Community update(int id, UpdateCommunityRequest request) {
+		Community community = communityRepository.findById(id)
+			.orElseThrow(() -> new IllegalArgumentException("게시물이 존재하지 않습니다"));
+
+		community.update(request.getInfluencerId(), request.getName(), request.isShow());
+
+		return community;
 	}
 }
