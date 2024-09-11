@@ -42,4 +42,9 @@ public class CommunityService {
 
 		return community;
 	}
+
+	// 커뮤니티 삭제
+	public void delete(int id) {
+		communityRepository.deleteById(id);
+	}
 }
