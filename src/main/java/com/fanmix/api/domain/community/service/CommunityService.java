@@ -1,5 +1,7 @@
 package com.fanmix.api.domain.community.service;
 
+import java.util.List;
+
 import org.springframework.http.RequestEntity;
 import org.springframework.stereotype.Service;
 
@@ -17,5 +19,10 @@ public class CommunityService {
 	// 커뮤니티 추가
 	public Community save(AddCommunityRequest request) {
 		return communityRepository.save(request.toEntity());
+	}
+
+	// 커뮤니티 목록 조회
+	public List<Community> findAll() {
+		return communityRepository.findAll();
 	}
 }
