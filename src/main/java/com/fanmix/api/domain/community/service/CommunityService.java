@@ -1,13 +1,14 @@
 package com.fanmix.api.domain.community.service;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
 import com.fanmix.api.domain.community.dto.AddCommunityRequest;
 import com.fanmix.api.domain.community.dto.UpdateCommunityRequest;
 import com.fanmix.api.domain.community.entity.Community;
+import com.fanmix.api.domain.community.exception.CommunityErrorCode;
+import com.fanmix.api.domain.community.exception.CommunityException;
 import com.fanmix.api.domain.community.repository.CommunityRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,9 @@ public class CommunityService {
 
 	// 커뮤니티 추가
 	public Community save(AddCommunityRequest request) {
+		checkInfluencerId(request);
+		checkName(request);
+
 		return communityRepository.save(request.toEntity());
 	}
 
@@ -46,5 +50,19 @@ public class CommunityService {
 	// 커뮤니티 삭제
 	public void delete(int id) {
 		communityRepository.deleteById(id);
+	}
+
+	// 인플루언서 아이디 중복체크
+	public void checkInfluencerId(AddCommunityRequest request) {
+		if(communityRepository.findByInfluencerId(request.getInfluencer_id()).isPresent()) {
+			throw new CommunityException(CommunityErrorCode.INFLUENCER_ID_DUPLICATION);
+		}
+	}
+
+	// 커뮤니티명 중복체크
+	public void checkName(AddCommunityRequest request) {
+		if(communityRepository.findByName(request.getName()).isPresent()) {
+			throw new CommunityException(CommunityErrorCode.NAME_DUPLICATION);
+		}
 	}
 }
