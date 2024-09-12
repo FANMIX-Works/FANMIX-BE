@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>User Profile</title>
+</head>
+<body>
+<h1>User Profile</h1>
+<div th:if="${member != null}">
+    <p>NickName: <span th:text="${member.nickName}"></span></p>
+    <p>Email: <span th:text="${member.email}"></span></p>
+    <img th:src="${member.profileImgUrl}" alt="Profile Picture"/>
+</div>
+<div th:if="${member == null}">
+    <p>No user information available.</p>
+</div>
+</body>
+</html>

@@ -1,8 +1,11 @@
 package com.fanmix.api.domain.member.entity;
 
+import java.time.LocalDate;
+
 import com.fanmix.api.domain.common.Role;
 import com.fanmix.api.domain.common.SocialType;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -11,14 +14,14 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
-@Getter
-@Setter
+@Data
 @Builder
 @AllArgsConstructor
+@NoArgsConstructor
 public class Member {
 
 	@Id
@@ -26,7 +29,7 @@ public class Member {
 	private Long id;
 	private String loginId;
 	private String loginPw;
-	
+
 	private String name;
 	private String profileImgUrl;         //프로필 이미지 경로
 	private String introduce;             //자기소개
@@ -46,11 +49,28 @@ public class Member {
 	private String socialId; // 로그인한 소셜 타입의 식별자 값 (일반 자체 로그인인 경우 null)
 	private String refreshToken; // 리프레시 토큰. JWT를 사용하여 로그인성공시 AccessToken, RefreshToken을 발행할 예정
 
-	public Member() {
-	}
+	@Column(columnDefinition = "BOOLEAN DEFAULT FALSE")
+	private boolean firstLoginYn;
+	private int crMember;
+	private LocalDate crDate;
+	private int uMember;
+	private LocalDate uDate;
 
 	public Member(String name) {
 		this.name = name;
+	}
+
+	@Builder
+	public Member(
+		String email,
+		String socialId,
+		SocialType socialtype,
+		String refreshToken
+	) {
+		this.email = email;
+		this.socialId = socialId;
+		this.socialType = socialtype;
+		this.refreshToken = refreshToken;
 	}
 
 	// 유저 권한 설정 메소드
