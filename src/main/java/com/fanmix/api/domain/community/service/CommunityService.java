@@ -20,9 +20,9 @@ public class CommunityService {
 
 	// 커뮤니티 추가
 	public Community save(AddCommunityRequest request) {
-		checkInfluencerId(request);
-		checkName(request);
-
+		if(communityRepository.existsByName(request.getName())) {
+ 			throw new CommunityException(CommunityErrorCode.NAME_DUPLICATION);
+		}
 		return communityRepository.save(request.toEntity());
 	}
 
@@ -52,17 +52,8 @@ public class CommunityService {
 		communityRepository.deleteById(id);
 	}
 
-	// 인플루언서 아이디 중복체크
-	public void checkInfluencerId(AddCommunityRequest request) {
-		if(communityRepository.findByInfluencerId(request.getInfluencer_id()).isPresent()) {
-			throw new CommunityException(CommunityErrorCode.INFLUENCER_ID_DUPLICATION);
-		}
-	}
-
 	// 커뮤니티명 중복체크
-	public void checkName(AddCommunityRequest request) {
-		if(communityRepository.findByName(request.getName()).isPresent()) {
-			throw new CommunityException(CommunityErrorCode.NAME_DUPLICATION);
-		}
+	public boolean existsByName(AddCommunityRequest request) {
+		return communityRepository.existsByName(request.getName());
 	}
 }

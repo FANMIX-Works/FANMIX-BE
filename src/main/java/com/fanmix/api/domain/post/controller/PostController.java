@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -55,10 +56,19 @@ public class PostController {
 
 	// 게시물 수정
 	@PutMapping("/posts/{id}")
-	public ResponseEntity<Post> udpatePost(@PathVariable int id, @RequestBody UpdatePostRequest request) {
+	public ResponseEntity<Post> updatePost(@PathVariable int id, @RequestBody UpdatePostRequest request) {
 		Post post = postService.update(id, request);
 
 		return ResponseEntity.ok()
 			.body(post);
+	}
+
+	// 게시물 삭제
+	@DeleteMapping("/posts/{id}")
+	public ResponseEntity<Void> deletePost(@PathVariable int id) {
+		postService.delete(id);
+
+		return ResponseEntity.ok()
+			.build();
 	}
 }
