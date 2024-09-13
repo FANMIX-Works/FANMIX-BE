@@ -12,6 +12,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -55,6 +56,8 @@ public class Member {
 	private LocalDate crDate;
 	private int uMember;
 	private LocalDate uDate;
+	@Transient
+	private String jwt;    //db에 저장안하고 메모리에서만 사용
 
 	public Member(String name) {
 		this.name = name;

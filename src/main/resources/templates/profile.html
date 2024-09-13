@@ -5,12 +5,14 @@
 </head>
 <body>
 <h1>User Profile</h1>
-<div th:if="${member != null}">
-    <p>NickName: <span th:text="${member.nickName}"></span></p>
-    <p>Email: <span th:text="${member.email}"></span></p>
-    <img th:src="${member.profileImgUrl}" alt="Profile Picture"/>
+<div th:if="${authResponse != null}">
+    <p>Name : <span th:text="${authResponse.member.name}"></span></p>
+    <p>NickName: <span th:text="${authResponse.member.nickName}"></span></p>
+    <p>Email: <span th:text="${authResponse.member.email}"></span></p>
+    <img th:src="${authResponse.member.profileImgUrl}" alt="Profile Picture"/>
+    <p>jwt : <span th:text="${authResponse.jwt}"></span></p>
 </div>
-<div th:if="${member == null}">
+<div th:if="${authResponse == null}">
     <p>No user information available.</p>
 </div>
 </body>
