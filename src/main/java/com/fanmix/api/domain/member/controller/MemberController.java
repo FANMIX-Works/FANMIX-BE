@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.fanmix.api.domain.member.dto.AuthResponse;
@@ -40,21 +41,23 @@ public class MemberController {
 	}
 
 	@GetMapping("/oauth2/callback/google")
-	public String googleCallback(@RequestParam String code, RedirectAttributes redirectAttributes) {
+	@ResponseBody
+	public AuthResponse googleCallback(@RequestParam String code, RedirectAttributes redirectAttributes) {
 		String accessToken = null;
 		try {
 			accessToken = googleLoginService.requestAccessToken(code);
 			Member member = googleLoginService.requestOAuthInfo(accessToken);
 			String jwt = googleLoginService.generateJwt(member);
+			return new AuthResponse(member, jwt); // 멤버와 jwt 토큰을 담은 객체
 
-			AuthResponse authResponse = new AuthResponse(member, jwt);    //멤버와 jwt토큰을 담은 객체
-			redirectAttributes.addFlashAttribute("authResponse", authResponse);
+			// AuthResponse authResponse = new AuthResponse(member, jwt);    //멤버와 jwt토큰을 담은 객체
+			// redirectAttributes.addFlashAttribute("authResponse", authResponse);
 
 		} catch (JsonProcessingException e) {
 			throw new RuntimeException(e);
 		}
 
-		return "redirect:/profile";
+		//return "redirect:/profile";
 	}
 
 	@GetMapping("/profile")
