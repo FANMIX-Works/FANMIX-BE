@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>User Profile</title>
+</head>
+<body>
+<h1>User Profile</h1>
+<div th:if="${authResponse != null}">
+    <p>Name : <span th:text="${authResponse.member.name}"></span></p>
+    <p>NickName: <span th:text="${authResponse.member.nickName}"></span></p>
+    <p>Email: <span th:text="${authResponse.member.email}"></span></p>
+    <img th:src="${authResponse.member.profileImgUrl}" alt="Profile Picture"/>
+    <p>jwt : <span th:text="${authResponse.jwt}"></span></p>
+</div>
+<div th:if="${authResponse == null}">
+    <p>No user information available.</p>
+</div>
+</body>
+</html>
