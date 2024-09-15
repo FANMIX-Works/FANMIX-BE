@@ -1,20 +1,36 @@
 package com.fanmix.api.domain.post.dto;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import com.fanmix.api.domain.comment.dto.CommentResponse;
 import com.fanmix.api.domain.post.entity.Post;
 
 import lombok.Getter;
 
 @Getter
 public class PostResponse {
-	private final int id;	// 게시물 Id
-	private final String title;
-	private final String contents;
-	private final String imgURL;
+	private int communityId;
+	private int postId;	// 게시물 Id
+	private String title;
+	private String contents;
+	private String imgURL;
+	private List<CommentResponse> comments;
+	private LocalDateTime cr_date;
+	private LocalDateTime u_date;
 
 	public PostResponse(Post post) {
-		this.id = post.getId();
+		this.communityId = post.getCommunity().getId();
+		this.postId = post.getId();
 		this.title = post.getTitle();
 		this.contents = post.getContent();
 		this.imgURL = post.getImgURL();
+		this.comments = post.getComments()
+			.stream()
+			.map(CommentResponse::new)
+			.collect(Collectors.toList());
+		this.cr_date = post.getCr_date();
+		this.u_date = post.getU_date();
 	}
 }

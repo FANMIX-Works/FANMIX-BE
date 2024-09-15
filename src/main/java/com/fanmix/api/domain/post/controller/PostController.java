@@ -26,32 +26,34 @@ public class PostController {
 	private final PostService postService;
 
 	// 게시물 등록
-	@PostMapping("/post")
-	public ResponseEntity<Post> addPost(@RequestBody AddPostRequest request) {
-		Post post = postService.save(request);
+	@PostMapping("/communities/{communityId}/posts")
+	public ResponseEntity<Post> addPost(
+		@PathVariable int communityId,
+		@RequestBody AddPostRequest request) {
+		Post post = postService.save(communityId, request);
 
 		return ResponseEntity.status(HttpStatus.CREATED)
 			.body(post);
 	}
 
-	// 게시물 조회
-	@GetMapping("/posts/{id}")
-	public ResponseEntity<PostResponse> findPost(@PathVariable int id) {
-		Post post = postService.findById(id);
-
-		return ResponseEntity.ok()
-			.body(new PostResponse(post));
-	}
-
-	@GetMapping("/posts")
-	public ResponseEntity<List<PostResponse>> findAllPost() {
-		List<PostResponse> posts = postService.findAll()
-			.stream()
-			.map(PostResponse::new)
-			.toList();
+	// 게시물 목록 조회
+	@GetMapping("/communities/{communityId}/posts")
+	public ResponseEntity<List<PostResponse>> findAllPost(@PathVariable int communityId) {
+		List<PostResponse> posts = postService.findAll(communityId);
 
 		return ResponseEntity.ok()
 			.body(posts);
+	}
+
+	// 게시물 조회
+	@GetMapping("/communities/{communityId}/posts/{postId}")
+	public ResponseEntity<PostResponse> findPost(
+		@PathVariable int communityId,
+		@PathVariable int postId) {
+		PostResponse post = postService.findById(communityId, postId);
+
+		return ResponseEntity.status(HttpStatus.OK)
+			.body(post);
 	}
 
 	// 게시물 수정

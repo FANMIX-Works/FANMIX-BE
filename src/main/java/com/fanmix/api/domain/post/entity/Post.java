@@ -1,33 +1,47 @@
 package com.fanmix.api.domain.post.entity;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import com.fanmix.api.domain.comment.entity.Comment;
+import com.fanmix.api.domain.community.entity.Community;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import lombok.AccessLevel;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 @AllArgsConstructor
 @Getter
-@EntityListeners(EntityListeners.class)
+@Builder
+@EntityListeners(AuditingEntityListener.class)
 public class Post {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id", nullable = false, updatable = false)
+	@Column(name = "post_id")
 	private int id;						// 게시글 id
+
+	@ManyToOne
+	@JoinColumn(name = "community_id", nullable = false)
+	private Community community;		// 커뮤니티 id
+
 	private String title;				// 제목
 	private String content;				// 내용
 
@@ -46,14 +60,10 @@ public class Post {
 	@LastModifiedDate
 	private LocalDateTime u_date;		// 수정일
 
-	private int post_evaluation;		// 게시글 평가 id
+	@OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE)
+	private List<Comment> comments;        // 댓글
 
-	@Builder
-	public Post (String title, String content, String imgURL) {
-		this.title = title;
-		this.content = content;
-		this.imgURL = imgURL;
-	}
+	private int post_evaluation;		// 게시글 평가 id
 
 	public void update(String title, String content, String imgURL) {
 		this.title = title;
