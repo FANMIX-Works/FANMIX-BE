@@ -1,4 +1,4 @@
-package com.example.fanmix.api.common;
+package com.fanmix.api.common;
 
 import static org.assertj.core.api.Assertions.*;
 

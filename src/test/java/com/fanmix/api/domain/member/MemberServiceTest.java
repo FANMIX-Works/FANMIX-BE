@@ -1,4 +1,4 @@
-package com.example.fanmix.api.domain.member;
+package com.fanmix.api.domain.member;
 
 import static org.mockito.Mockito.*;
 
