@@ -2,6 +2,9 @@ package com.fanmix.api.domain.community.dto;
 
 import com.fanmix.api.domain.community.entity.Community;
 
+import lombok.Getter;
+
+@Getter
 public class CommunityResponse {
 	private int influencerId;
 	private String name;
