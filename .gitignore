@@ -38,3 +38,4 @@ out/
 
 application-prod.yml
 application-local.yml
+application-test.yml
