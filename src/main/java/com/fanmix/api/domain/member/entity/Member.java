@@ -1,6 +1,6 @@
 package com.fanmix.api.domain.member.entity;
 
-import java.time.LocalDate;
+import java.sql.Timestamp;
 
 import com.fanmix.api.domain.common.Role;
 import com.fanmix.api.domain.common.SocialType;
@@ -12,6 +12,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -53,9 +55,9 @@ public class Member {
 	@Column(columnDefinition = "BOOLEAN DEFAULT FALSE")
 	private boolean firstLoginYn;
 	private int crMember;
-	private LocalDate crDate;
+	private Timestamp crDate;
 	private int uMember;
-	private LocalDate uDate;
+	private Timestamp uDate;
 	@Transient
 	private String jwt;    //db에 저장안하고 메모리에서만 사용
 
@@ -88,6 +90,17 @@ public class Member {
 
 	public void updateRefreshToken(String updateRefreshToken) {
 		this.refreshToken = updateRefreshToken;
+	}
+
+	@PrePersist
+	public void prePersist() {
+		this.crDate = new Timestamp(System.currentTimeMillis());
+		this.uDate = new Timestamp(System.currentTimeMillis());
+	}
+
+	@PreUpdate
+	public void preUpdate() {
+		this.uDate = new Timestamp(System.currentTimeMillis());
 	}
 
 }
