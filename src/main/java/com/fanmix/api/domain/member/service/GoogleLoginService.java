@@ -113,7 +113,7 @@ public class GoogleLoginService implements OAuthClient {
 				.firstLoginYn(true)
 				.build());
 
-		if (member.getId() != null) {
+		if (member.getId() != -1) {
 			member.setFirstLoginYn(false);
 		} else {
 			memberRepository.save(member);
