@@ -27,7 +27,7 @@ public class Member {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+	private int id;
 	private String loginId;
 	private String loginPw;
 
