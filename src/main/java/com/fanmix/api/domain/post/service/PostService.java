@@ -3,6 +3,7 @@ package com.fanmix.api.domain.post.service;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fanmix.api.domain.community.entity.Community;
 import com.fanmix.api.domain.community.repository.CommunityRepository;
@@ -34,30 +35,29 @@ public class PostService {
 	}
 
 	// 게시물 목록 조회
-	public List<PostResponse> findAll(int communityId) {
+	public List<Post> findAll(int communityId) {
 		Community community = communityRepository.findById(communityId)
 			.orElseThrow(() -> new IllegalArgumentException("커뮤니티를 찾을 수 없습니다. :" + communityId));
 
-		return postRepository.findByCommunityId(communityId)
-			.stream()
-			.map(post -> new PostResponse(post))
-			.toList();
+		return postRepository.findByCommunityId(communityId);
 	}
 
 	// 게시물 조회
-	public PostResponse findById(int communityId, int postId) {
+	public Post findById(int communityId, int postId) {
+		communityRepository.findById(communityId)
+			.orElseThrow(() -> new IllegalArgumentException("커뮤니티를 찾을 수 없습니다, :" + communityId));
+
+		return postRepository.findById(postId)
+			.orElseThrow(() -> new IllegalArgumentException("게시물을 찾을 수 없습니다. :" + postId));
+	}
+
+	// 게시물 수정
+	@Transactional
+	public Post update(int communityId, int postId, UpdatePostRequest request) {
 		communityRepository.findById(communityId)
 			.orElseThrow(() -> new IllegalArgumentException("커뮤니티를 찾을 수 없습니다, :" + communityId));
 
 		Post post = postRepository.findById(postId)
-			.orElseThrow(() -> new IllegalArgumentException("게시물을 찾을 수 없습니다. :" + postId));
-
-		return new PostResponse(post);
-	}
-
-	// 게시물 수정
-	public Post update(int id, UpdatePostRequest request) {
-		Post post = postRepository.findById(id)
 			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_EXIST));
 
 		post.update(request.getTitle(), request.getContents(), request.getImgURL());

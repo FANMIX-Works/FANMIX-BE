@@ -39,7 +39,10 @@ public class PostController {
 	// 게시물 목록 조회
 	@GetMapping("/communities/{communityId}/posts")
 	public ResponseEntity<List<PostResponse>> findAllPost(@PathVariable int communityId) {
-		List<PostResponse> posts = postService.findAll(communityId);
+		List<PostResponse> posts = postService.findAll(communityId)
+			.stream()
+			.map(PostResponse::new)
+			.toList();
 
 		return ResponseEntity.ok()
 			.body(posts);
@@ -50,16 +53,19 @@ public class PostController {
 	public ResponseEntity<PostResponse> findPost(
 		@PathVariable int communityId,
 		@PathVariable int postId) {
-		PostResponse post = postService.findById(communityId, postId);
+		Post post = postService.findById(communityId, postId);
 
 		return ResponseEntity.status(HttpStatus.OK)
-			.body(post);
+			.body(new PostResponse(post));
 	}
 
 	// 게시물 수정
-	@PutMapping("/posts/{id}")
-	public ResponseEntity<Post> updatePost(@PathVariable int id, @RequestBody UpdatePostRequest request) {
-		Post post = postService.update(id, request);
+	@PutMapping("/communities/{communityId}/posts/{postId}")
+	public ResponseEntity<Post> updatePost(
+		@PathVariable int communityId,
+		@PathVariable int postId,
+		@RequestBody UpdatePostRequest request) {
+		Post post = postService.update(communityId, postId, request);
 
 		return ResponseEntity.ok()
 			.body(post);
