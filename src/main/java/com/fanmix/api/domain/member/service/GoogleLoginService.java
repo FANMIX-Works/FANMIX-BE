@@ -1,6 +1,9 @@
 package com.fanmix.api.domain.member.service;
 
+import static com.fanmix.api.domain.member.exception.MemberErrorCode.*;
+
 import java.util.Date;
+import java.util.Optional;
 import java.util.Random;
 
 import javax.crypto.SecretKey;
@@ -19,6 +22,7 @@ import org.springframework.web.client.RestTemplate;
 import com.fanmix.api.domain.common.Role;
 import com.fanmix.api.domain.common.SocialType;
 import com.fanmix.api.domain.member.entity.Member;
+import com.fanmix.api.domain.member.exception.MemberException;
 import com.fanmix.api.domain.member.repository.MemberRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -61,6 +65,8 @@ public class GoogleLoginService implements OAuthClient {
 
 	@Override
 	public String requestAccessToken(String authorizationCode) throws JsonProcessingException {
+		Optional.ofNullable(authorizationCode)
+			.orElseThrow(() -> new MemberException(BLANK_CODE));
 		RestTemplate restTemplate = new RestTemplate();
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -78,6 +84,9 @@ public class GoogleLoginService implements OAuthClient {
 		ResponseEntity<String> response = restTemplate.postForEntity(url, requestEntity, String.class);    //api요청
 		ObjectMapper objectMapper = new ObjectMapper();
 		JsonNode jsonNode = objectMapper.readTree(response.getBody());
+		if (jsonNode == null) {
+			throw new MemberException(FAIL_GENERATE_ACCESSCODE);
+		}
 		System.out.println("어세스토큰 등 : " + jsonNode);
 		return jsonNode.get("access_token").asText();
 	}
@@ -117,6 +126,10 @@ public class GoogleLoginService implements OAuthClient {
 			member.setFirstLoginYn(false);
 		} else {
 			memberRepository.save(member);
+		}
+
+		if (member == null) {
+			throw new MemberException(FAIL_GET_OAUTHINFO);
 		}
 		System.out.println("member : " + member);
 		return member;

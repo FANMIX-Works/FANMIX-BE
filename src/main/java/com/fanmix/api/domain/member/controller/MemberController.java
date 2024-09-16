@@ -1,6 +1,7 @@
 package com.fanmix.api.domain.member.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,12 +11,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.fanmix.api.common.response.Response;
 import com.fanmix.api.domain.member.dto.AuthResponse;
 import com.fanmix.api.domain.member.dto.MemberSignUpDto;
 import com.fanmix.api.domain.member.entity.Member;
+import com.fanmix.api.domain.member.exception.MemberErrorCode;
 import com.fanmix.api.domain.member.service.GoogleLoginService;
 import com.fanmix.api.domain.member.service.MemberService;
-import com.fasterxml.jackson.core.JsonProcessingException;
 
 @Controller
 public class MemberController {
@@ -41,22 +43,27 @@ public class MemberController {
 
 	@PostMapping("/api/oauth/google")
 	@ResponseBody
-	public AuthResponse googleCallback(@RequestBody String code) {
+	public ResponseEntity<Response> googleCallback(@RequestBody String code) {
 		String accessToken = null;
 		try {
+			System.out.println("넘어온코드 : " + code);
 			accessToken = googleLoginService.requestAccessToken(code);
+			System.out.println("accessToken : " + accessToken);
 			Member member = googleLoginService.requestOAuthInfo(accessToken);
+			System.out.println("member : " + member);
 			String jwt = googleLoginService.generateJwt(member);
-			return new AuthResponse(member, jwt); // 멤버와 jwt 토큰을 담은 객체
+			System.out.println("jwt : " + jwt);
+			AuthResponse authResponse = new AuthResponse(member, jwt);
+			Response response = Response.success(authResponse);
+			return ResponseEntity.ok(response);
 
-			// AuthResponse authResponse = new AuthResponse(member, jwt);    //멤버와 jwt토큰을 담은 객체
-			// redirectAttributes.addFlashAttribute("authResponse", authResponse);
+		} catch (Exception e) {
+			e.printStackTrace();
+			Response response = Response.fail(MemberErrorCode.FAIL_AUTH.getCustomCode(),
+				MemberErrorCode.FAIL_AUTH.getMessage());
+			return ResponseEntity.status(MemberErrorCode.FAIL_AUTH.getHttpStatus()).body(response);
 
-		} catch (JsonProcessingException e) {
-			throw new RuntimeException(e);
 		}
-
-		//return "redirect:/profile";
 	}
 
 	@GetMapping("/profile")
