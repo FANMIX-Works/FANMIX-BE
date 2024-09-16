@@ -66,7 +66,13 @@ public class PostService {
 	}
 
 	// 게시물 삭제
-	public void delete(int id) {
-		postRepository.deleteById(id);
+	public void delete(int communityId, int postId) {
+		communityRepository.findById(communityId)
+				.orElseThrow(() -> new IllegalArgumentException("커뮤니티를 찾을 수 없습니다. :" + communityId));
+
+		postRepository.findById(postId)
+				.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_EXIST));
+
+		postRepository.deleteById(postId);
 	}
 }

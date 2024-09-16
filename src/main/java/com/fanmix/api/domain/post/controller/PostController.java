@@ -72,9 +72,11 @@ public class PostController {
 	}
 
 	// 게시물 삭제
-	@DeleteMapping("/posts/{id}")
-	public ResponseEntity<Void> deletePost(@PathVariable int id) {
-		postService.delete(id);
+	@DeleteMapping("/communities/{communityId}/posts/{postId}")
+	public ResponseEntity<Void> deletePost(
+		@PathVariable int communityId,
+		@PathVariable int postId) {
+		postService.delete(communityId, postId);
 
 		return ResponseEntity.ok()
 			.build();
