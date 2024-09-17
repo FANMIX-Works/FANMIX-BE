@@ -8,6 +8,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fanmix.api.common.image.service.ImageService;
 import com.fanmix.api.domain.community.entity.Community;
+import com.fanmix.api.domain.community.exception.CommunityErrorCode;
+import com.fanmix.api.domain.community.exception.CommunityException;
 import com.fanmix.api.domain.community.repository.CommunityRepository;
 import com.fanmix.api.domain.post.dto.AddPostRequest;
 import com.fanmix.api.domain.post.dto.UpdatePostRequest;
@@ -32,7 +34,7 @@ public class PostService {
 	@Transactional
 	public Post save(int communityId, AddPostRequest request, List<MultipartFile> images) {
 		Community community = communityRepository.findById(communityId)
-			.orElseThrow(() -> new IllegalArgumentException("커뮤니티를 찾을 수 없습니다. :" + communityId));
+			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
 
 		Post post = request.toEntity(community);
 
@@ -47,7 +49,7 @@ public class PostService {
 	// 게시물 목록 조회
 	public List<Post> findAll(int communityId) {
 		Community community = communityRepository.findById(communityId)
-			.orElseThrow(() -> new IllegalArgumentException("커뮤니티를 찾을 수 없습니다. :" + communityId));
+			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
 
 		return postRepository.findByCommunityId(communityId);
 	}
@@ -55,17 +57,17 @@ public class PostService {
 	// 게시물 조회
 	public Post findById(int communityId, int postId) {
 		communityRepository.findById(communityId)
-			.orElseThrow(() -> new IllegalArgumentException("커뮤니티를 찾을 수 없습니다, :" + communityId));
+			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
 
 		return postRepository.findById(postId)
-			.orElseThrow(() -> new IllegalArgumentException("게시물을 찾을 수 없습니다. :" + postId));
+			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_EXIST));
 	}
 
 	// 게시물 수정
 	@Transactional
 	public Post update(int communityId, int postId, UpdatePostRequest request, List<MultipartFile> images) {
 		communityRepository.findById(communityId)
-			.orElseThrow(() -> new IllegalArgumentException("커뮤니티를 찾을 수 없습니다, :" + communityId));
+			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
 
 		Post post = postRepository.findById(postId)
 			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_EXIST));
@@ -80,13 +82,17 @@ public class PostService {
 	}
 
 	// 게시물 삭제
+	@Transactional
 	public void delete(int communityId, int postId) {
 		communityRepository.findById(communityId)
-				.orElseThrow(() -> new IllegalArgumentException("커뮤니티를 찾을 수 없습니다. :" + communityId));
+				.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
 
-		postRepository.findById(postId)
+		Post post = postRepository.findById(postId)
 				.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_EXIST));
 
+		if(post.getCommunity().getId() != communityId) {
+			throw new PostException(PostErrorCode.POST_NOT_BELONG_TO_COMMUNITY);
+		}
 		postRepository.deleteById(postId);
 	}
 }
