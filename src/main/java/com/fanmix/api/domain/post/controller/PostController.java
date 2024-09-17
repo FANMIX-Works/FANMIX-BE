@@ -7,9 +7,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.fanmix.api.common.image.service.ImageService;
 import com.fanmix.api.domain.post.dto.AddPostRequest;
 import com.fanmix.api.domain.post.dto.PostResponse;
+import com.fanmix.api.domain.post.dto.UpdatePostRequest;
 import com.fanmix.api.domain.post.entity.Post;
 import com.fanmix.api.domain.post.service.PostService;
 
@@ -32,7 +33,7 @@ public class PostController {
 	@PostMapping("/communities/{communityId}/posts")
 	public ResponseEntity<Post> addPost(
 		@PathVariable int communityId,
-		@ModelAttribute @Validated AddPostRequest request,
+		@RequestPart @Validated AddPostRequest request,
 		@RequestPart(value = "images", required = false) List<MultipartFile> images) {
 
 		Post post = postService.save(communityId, request, images);
@@ -64,17 +65,19 @@ public class PostController {
 			.body(new PostResponse(post));
 	}
 
-	// // 게시물 수정
-	// @PutMapping("/communities/{communityId}/posts/{postId}")
-	// public ResponseEntity<Post> updatePost(
-	// 	@PathVariable int communityId,
-	// 	@PathVariable int postId,
-	// 	@RequestBody UpdatePostRequest request) {
-	// 	Post post = postService.update(communityId, postId, request);
-	//
-	// 	return ResponseEntity.ok()
-	// 		.body(post);
-	// }
+	// 게시물 수정
+	@PutMapping("/communities/{communityId}/posts/{postId}")
+	public ResponseEntity<Post> updatePost(
+		@PathVariable int communityId,
+		@PathVariable int postId,
+		@RequestPart @Validated UpdatePostRequest request,
+		@RequestPart(value = "images", required = false) List<MultipartFile> images) {
+
+		Post post = postService.update(communityId, postId, request, images);
+
+		return ResponseEntity.ok()
+			.body(post);
+	}
 
 	// 게시물 삭제
 	@DeleteMapping("/communities/{communityId}/posts/{postId}")

@@ -74,10 +74,9 @@ public class Post {
 		this.content = content;
 		this.imgUrls = imgUrls;
 	}
-	public void update(String title, String content, List<String> imgUrls) {
+	public void update(String title, String content) {
 		this.title = title;
 		this.content = content;
-		this.imgUrls = imgUrls;
 	}
 
 	public void addImages(List<String> imgUrls) {

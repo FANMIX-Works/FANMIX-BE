@@ -1,5 +1,7 @@
 package com.fanmix.api.domain.post.dto;
 
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,6 +11,6 @@ import lombok.NoArgsConstructor;
 @Getter
 public class UpdatePostRequest {
 	private String title;
-	private String contents;
-	private String imgURL;
+	private String content;
+	private List<String> imgUrls;
 }

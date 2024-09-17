@@ -10,6 +10,7 @@ import com.fanmix.api.common.image.service.ImageService;
 import com.fanmix.api.domain.community.entity.Community;
 import com.fanmix.api.domain.community.repository.CommunityRepository;
 import com.fanmix.api.domain.post.dto.AddPostRequest;
+import com.fanmix.api.domain.post.dto.UpdatePostRequest;
 import com.fanmix.api.domain.post.entity.Post;
 import com.fanmix.api.domain.post.exception.PostErrorCode;
 import com.fanmix.api.domain.post.exception.PostException;
@@ -60,19 +61,23 @@ public class PostService {
 			.orElseThrow(() -> new IllegalArgumentException("게시물을 찾을 수 없습니다. :" + postId));
 	}
 
-	// // 게시물 수정
-	// @Transactional
-	// public Post update(int communityId, int postId, UpdatePostRequest request) {
-	// 	communityRepository.findById(communityId)
-	// 		.orElseThrow(() -> new IllegalArgumentException("커뮤니티를 찾을 수 없습니다, :" + communityId));
-	//
-	// 	Post post = postRepository.findById(postId)
-	// 		.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_EXIST));
-	//
-	// 	post.update(request.getTitle(), request.getContents(), request.getImgURL());
-	//
-	// 	return post;
-	// }
+	// 게시물 수정
+	@Transactional
+	public Post update(int communityId, int postId, UpdatePostRequest request, List<MultipartFile> images) {
+		communityRepository.findById(communityId)
+			.orElseThrow(() -> new IllegalArgumentException("커뮤니티를 찾을 수 없습니다, :" + communityId));
+
+		Post post = postRepository.findById(postId)
+			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_EXIST));
+
+		if(images != null && !images.isEmpty()) {
+			List<String> imgUrls = imageService.saveImagesAndReturnUrls(images);
+			post.addImages(imgUrls);
+		}
+		post.update(request.getTitle(), request.getContent());
+
+		return post;
+	}
 
 	// 게시물 삭제
 	public void delete(int communityId, int postId) {
