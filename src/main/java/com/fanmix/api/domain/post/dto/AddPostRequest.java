@@ -14,14 +14,12 @@ public class AddPostRequest {
 	private int communityId;
 	private String title;
 	private String content;
-	private String imgURL;
 
 	public Post toEntity(Community community) {
 		return Post.builder()
 			.community(community)
 			.title(title)
 			.content(content)
-			.imgURL(imgURL)
 			.build();
 	}
 }

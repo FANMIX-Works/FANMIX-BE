@@ -15,7 +15,7 @@ public class PostResponse {
 	private int postId;	// 게시물 Id
 	private String title;
 	private String contents;
-	private String imgURL;
+	private List<String> imgUrls;
 	private List<CommentResponse> comments;
 	private LocalDateTime cr_date;
 	private LocalDateTime u_date;
@@ -25,7 +25,7 @@ public class PostResponse {
 		this.postId = post.getId();
 		this.title = post.getTitle();
 		this.contents = post.getContent();
-		this.imgURL = post.getImgURL();
+		this.imgUrls = post.getImgUrls();
 		this.comments = post.getComments()
 			.stream()
 			.map(CommentResponse::new)
