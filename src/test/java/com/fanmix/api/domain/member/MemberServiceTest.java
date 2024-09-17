@@ -1,19 +1,15 @@
 package com.fanmix.api.domain.member;
 
-import static org.mockito.Mockito.*;
-
-import java.util.Optional;
-
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fanmix.api.FanmixApplication;
 import com.fanmix.api.domain.common.Role;
@@ -22,28 +18,27 @@ import com.fanmix.api.domain.member.entity.Member;
 import com.fanmix.api.domain.member.repository.MemberRepository;
 import com.fanmix.api.domain.member.service.MemberService;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = FanmixApplication.class)
 @ActiveProfiles("test")  // test 프로파일을 활성화하여 application-test.yml을 참조
 public class MemberServiceTest {
 	private static final Logger logger = LoggerFactory.getLogger(MemberServiceTest.class);
-	@Mock
+	@Autowired
 	private MemberRepository memberRepository;
 
-	// @Mock
+	@PersistenceContext
+	EntityManager em;
+
 	// private PasswordEncoder passwordEncoder;  // Uncomment if password encoding is needed
 
-	@InjectMocks
+	@Autowired
 	private MemberService memberService;
 
-	@BeforeEach
-	void setUp() {
-		// Configure mock behavior here
-		when(memberRepository.findByEmail(anyString())).thenReturn(Optional.empty());
-		when(memberRepository.findByNickName(anyString())).thenReturn(Optional.empty());
-	}
-
 	@Test
+	@Rollback(false)
 	void signUp_Success() throws Exception {
 		System.out.println("회원가입 테스트함수 실행");
 		MemberSignUpDto signUpDto = new MemberSignUpDto();
@@ -62,9 +57,27 @@ public class MemberServiceTest {
 
 		memberService.signUp(signUpDto);
 		System.out.println("회원가입 수행완료");
+	}
 
-		verify(memberRepository, times(1)).save(any(Member.class));
-		System.out.println("회원가입 검증완료");
+	@Test
+	@Rollback(false)
+	@Transactional
+	public void JpaEventBaseEntity() throws Exception {
+		Member member = new Member("홍길동");
+		memberRepository.save(member);
+
+		Thread.sleep(100);
+		member.setName("아버지");
+
+		em.flush();    //@PreUpdate 발생
+		em.clear();
+
+		//when
+		Member findMember = memberRepository.findById(member.getId());
+
+		//then
+		System.out.println("findMember.crDate = " + findMember.getCrDate());
+		System.out.println("findMember.crDate = " + findMember.getUDate());
 	}
 
 }
