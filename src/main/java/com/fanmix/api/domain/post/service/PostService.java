@@ -59,8 +59,13 @@ public class PostService {
 		communityRepository.findById(communityId)
 			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
 
-		return postRepository.findById(postId)
+		Post post = postRepository.findById(postId)
 			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_EXIST));
+
+		if(post.getCommunity().getId() != communityId) {
+			throw new PostException(PostErrorCode.POST_NOT_BELONG_TO_COMMUNITY);
+		}
+		return post;
 	}
 
 	// 게시물 수정
@@ -71,6 +76,10 @@ public class PostService {
 
 		Post post = postRepository.findById(postId)
 			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_EXIST));
+
+		if(post.getCommunity().getId() != communityId) {
+			throw new PostException(PostErrorCode.POST_NOT_BELONG_TO_COMMUNITY);
+		}
 
 		if(images != null && !images.isEmpty()) {
 			List<String> imgUrls = imageService.saveImagesAndReturnUrls(images);
