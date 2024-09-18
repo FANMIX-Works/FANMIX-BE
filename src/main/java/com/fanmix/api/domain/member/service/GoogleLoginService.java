@@ -59,7 +59,7 @@ public class GoogleLoginService implements OAuthClient {
 	}
 
 	@Override
-	public SocialType SOCIAL_TYPE() {
+	public SocialType social_type() {
 		return SocialType.GOOGLE;
 	}
 

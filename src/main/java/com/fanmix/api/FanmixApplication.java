@@ -26,7 +26,8 @@ public class FanmixApplication {
 	@Bean
 	public AuditorAware<String> auditorProvider() {
 		return () -> {
-			HttpServletRequest request = ((ServletRequestAttributes)RequestContextHolder.currentRequestAttributes()).getRequest();
+			HttpServletRequest request = ((ServletRequestAttributes)
+				RequestContextHolder.currentRequestAttributes()).getRequest();
 			HttpSession session = request.getSession();
 			AuthResponse authResponse = (AuthResponse)session.getAttribute("authResponse");
 			if (authResponse != null) {

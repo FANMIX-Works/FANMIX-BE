@@ -9,7 +9,7 @@ public interface OAuthClient {
 	 * Client 의 타입 반환
 	 * @returnSocialType 이 인터페이스를 구현하는 클라이언트의 소셜 타입.
 	 */
-	SocialType SOCIAL_TYPE();
+	SocialType social_type();
 
 	/**
 	 * Authorization Code를 사용하여 인증 API에 요청하고 Access Token을 획득합니다.

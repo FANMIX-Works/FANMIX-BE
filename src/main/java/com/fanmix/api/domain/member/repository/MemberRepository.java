@@ -2,6 +2,8 @@ package com.fanmix.api.domain.member.repository;
 
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.fanmix.api.domain.common.SocialType;
@@ -24,5 +26,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 	 */
 	Optional<Member> findBySocialTypeAndSocialId(SocialType socialType, String socialId);
 
-	Member findById(int id);
+	Optional<Member> findById(int id);
+
+	Page<Member> findAll(Pageable pageable);
 }

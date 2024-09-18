@@ -1,5 +1,7 @@
 package com.fanmix.api.domain.member;
 
+import java.util.Optional;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
@@ -62,7 +64,7 @@ public class MemberServiceTest {
 	@Test
 	@Rollback(false)
 	@Transactional
-	public void JpaEventBaseEntity() throws Exception {
+	public void jpaEventBaseEntity() throws Exception {
 		Member member = new Member("홍길동");
 		memberRepository.save(member);
 
@@ -73,11 +75,12 @@ public class MemberServiceTest {
 		em.clear();
 
 		//when
-		Member findMember = memberRepository.findById(member.getId());
+		Optional<Member> findMember = memberRepository.findById(member.getId());
+		Member member2 = findMember.orElseThrow(() -> new RuntimeException("회원 정보가 존재하지 않습니다."));
 
 		//then
-		System.out.println("findMember.crDate = " + findMember.getCrDate());
-		System.out.println("findMember.crDate = " + findMember.getUDate());
+		System.out.println("findMember.crDate = " + member2.getCrDate());
+		System.out.println("findMember.crDate = " + member2.getUDate());
 	}
 
 }
