@@ -1,5 +1,8 @@
 package com.fanmix.api.domain.member;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.Arrays;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -8,6 +11,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -81,6 +87,29 @@ public class MemberServiceTest {
 		//then
 		System.out.println("findMember.crDate = " + member2.getCrDate());
 		System.out.println("findMember.crDate = " + member2.getUDate());
+	}
+
+	@Test
+	public void getMembersTest() {
+		// Given
+		Member member1 = new Member("member1");
+		Member member2 = new Member("member2");
+		Member member3 = new Member("member3");
+
+		memberRepository.saveAll(Arrays.asList(member1, member2, member3));
+
+		Pageable pageable = PageRequest.of(0, 10);
+
+		// When
+		Page<Member> members = memberService.getMembers(pageable);
+
+		// Then
+		assertEquals(3, members.getTotalElements());
+		assertEquals(1, members.getTotalPages());
+		assertEquals(10, members.getSize());
+		assertTrue(members.getContent().contains(member1));
+		assertTrue(members.getContent().contains(member2));
+		assertTrue(members.getContent().contains(member3));
 	}
 
 }

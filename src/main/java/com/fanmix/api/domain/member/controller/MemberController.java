@@ -23,6 +23,7 @@ import com.fanmix.api.domain.member.service.GoogleLoginService;
 import com.fanmix.api.domain.member.service.MemberService;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @RestController
@@ -99,49 +100,55 @@ public class MemberController {
 
 	// 회원의 프로필 이미지를 업데이트하는 API
 	@PatchMapping("/{id}/profile-image")
-	public ResponseEntity<Member> updateProfileImage(@PathVariable int id, @RequestBody String profileImgUrl) {
+	public ResponseEntity<Member> updateProfileImage(@PathVariable int id,
+		@RequestBody @Parameter(description = "프로필이미지url") String profileImgUrl) {
 		Member member = memberService.updateProfileImage(id, profileImgUrl);
 		return ResponseEntity.ok(member);
 	}
 
 	// 회원의 자기소개를 업데이트하는 API
 	@PatchMapping("/{id}/introduce")
-	public ResponseEntity<Member> updateIntroduce(@PathVariable int id, @RequestBody String introduce) {
+	public ResponseEntity<Member> updateIntroduce(@PathVariable int id,
+		@RequestBody @Parameter(description = "소개글") String introduce) {
 		Member member = memberService.updateIntroduce(id, introduce);
 		return ResponseEntity.ok(member);
 	}
 
 	// 회원의 닉네임을 업데이트하는 API
 	@PatchMapping("/{id}/nickname")
-	public ResponseEntity<Member> updateNickname(@PathVariable int id, @RequestBody String nickname) {
+	public ResponseEntity<Member> updateNickname(@PathVariable int id,
+		@RequestBody @Parameter(description = "닉네임") String nickname) {
 		Member member = memberService.updateNickname(id, nickname);
 		return ResponseEntity.ok(member);
 	}
 
 	// 회원의 성별을 업데이트하는 API
 	@PatchMapping("/{id}/gender")
-	public ResponseEntity<Member> updateGender(@PathVariable int id, @RequestBody Character gender) {
+	public ResponseEntity<Member> updateGender(@PathVariable int id,
+		@RequestBody @Parameter(description = "성별 (M, W)") Character gender) {
 		Member member = memberService.updateGender(id, gender);
 		return ResponseEntity.ok(member);
 	}
 
 	// 회원의 출생년도를 업데이트하는 API
 	@PatchMapping("/{id}/birth-year")
-	public ResponseEntity<Member> updateBirthYear(@PathVariable int id, @RequestBody int birthYear) {
+	public ResponseEntity<Member> updateBirthYear(@PathVariable int id,
+		@RequestBody @Parameter(description = "출생년도(4자리숫자)") int birthYear) {
 		Member member = memberService.updateBirthYear(id, birthYear);
 		return ResponseEntity.ok(member);
 	}
 
 	// 회원의 국적을 업데이트하는 API
 	@PatchMapping("/{id}/nationality")
-	public ResponseEntity<Member> updateNationality(@PathVariable int id, @RequestBody String nationality) {
+	public ResponseEntity<Member> updateNationality(@PathVariable int id,
+		@RequestBody @Parameter(description = "국적") String nationality) {
 		Member member = memberService.updateNationality(id, nationality);
 		return ResponseEntity.ok(member);
 	}
 
 	// 새로운 회원을 생성하는 API
 	@PostMapping
-	public ResponseEntity<Member> createMember(@RequestBody Member member) {
+	public ResponseEntity<Member> createMember(@RequestBody @Parameter(description = "회원 데이터") Member member) {
 		Member createdMember = memberService.createMember(member);
 		return ResponseEntity.ok(createdMember);
 	}
