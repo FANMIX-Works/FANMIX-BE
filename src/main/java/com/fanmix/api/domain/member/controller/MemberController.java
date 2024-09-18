@@ -4,30 +4,31 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
 
-import com.fanmix.api.common.response.Response;
 import com.fanmix.api.domain.member.dto.AuthResponse;
 import com.fanmix.api.domain.member.entity.Member;
 import com.fanmix.api.domain.member.exception.MemberErrorCode;
+import com.fanmix.api.domain.member.exception.MemberException;
 import com.fanmix.api.domain.member.service.GoogleLoginService;
 import com.fanmix.api.domain.member.service.MemberService;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@RestController
-@RequestMapping("/api/members")
+@Controller
 public class MemberController {
 
 	@Autowired
@@ -38,68 +39,93 @@ public class MemberController {
 	public MemberController() {
 	}
 
-	@PostMapping("/oauth/google")
+	@PostMapping("/api/members/oauth/google")
 	@ResponseBody
 	@Operation(summary = "Google OAuth Login", description = "구글 OAUTH 소셜로그인 API")
-	public ResponseEntity<Response> googleAuthLogin(
+	public ResponseEntity<AuthResponse> googleAuthLogin(
 		@RequestBody @Schema(description = "구글 인가 Code") String code) {
 		String accessToken = null;
+		//code는 JSON형태에 "code"라는 키에 담겨서 넘어오기로 인터페이스 정함
 		try {
-			System.out.println("넘어온코드 : " + code);
-			accessToken = googleLoginService.requestAccessToken(code);
+			// JSON에서 코드 추출
+			ObjectMapper mapper = new ObjectMapper();
+			JsonNode jsonNode = mapper.readTree(code);
+			String codeStr = jsonNode.get("code").asText();
+
+			accessToken = googleLoginService.requestAccessToken(codeStr);
 			System.out.println("accessToken : " + accessToken);
 			Member member = googleLoginService.requestOAuthInfo(accessToken);
 			System.out.println("member : " + member);
 			String jwt = googleLoginService.generateJwt(member);
 			System.out.println("jwt : " + jwt);
 			AuthResponse authResponse = new AuthResponse(member, jwt);
-			Response response = Response.success(authResponse);
-			return ResponseEntity.ok(response);
+			return ResponseEntity.ok(authResponse);
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			Response response = Response.fail(MemberErrorCode.FAIL_AUTH.getCustomCode(),
-				MemberErrorCode.FAIL_AUTH.getMessage());
-			return ResponseEntity.status(MemberErrorCode.FAIL_AUTH.getHttpStatus()).body(response);
-
+			throw new MemberException(MemberErrorCode.FAIL_AUTH);
 		}
 	}
 
-	@GetMapping("/auth/validate-token")
+	@GetMapping("/api/members/auth/validate-token")
+	@ResponseBody
 	public boolean validateToken(@RequestParam String jwt) {
 		return googleLoginService.validateToken(jwt);
 	}
 
-	@GetMapping("/auth/refresh-token")
+	@GetMapping("/login")
+	public String login() {
+		System.out.println("로그인화면 리턴");
+		return "login";
+	}
+
+	@GetMapping("/auth/redirect")
+	public String auth_redirect() {
+		System.out.println("구글로그인 버튼승인후 리턴");
+		return "auth/redirect";
+	}
+
+	@GetMapping("/profile")
+	public String profile() {
+		return "profile";
+	}
+
+	@GetMapping("/api/members/auth/refresh-token")
+	@ResponseBody
 	public String getAccessTokenUsingrefreshToken(@RequestParam String refreshToken) {
 		return googleLoginService.getAccessTokenUsingrefreshToken(refreshToken);
 	}
 
 	// 전체 회원리스트를 페이징 처리하여 가져오는 API
-	@GetMapping
-	public ResponseEntity<Page<Member>> getMembers(@RequestParam(defaultValue = "0") int page,
+	@GetMapping("/api/members")
+	@ResponseBody
+	public ResponseEntity<PagedModel<Member>> getMembers(@RequestParam(defaultValue = "0") int page,
 		@RequestParam(defaultValue = "10") int size) {
 		Pageable pageable = PageRequest.of(page, size);
 		Page<Member> members = memberService.getMembers(pageable);
-		return ResponseEntity.ok(members);
+		PagedModel<Member> pagedModel = new PagedModel<>(members);
+		return ResponseEntity.ok(pagedModel);
 	}
 
 	// 특정 회원의 정보를 가져오는 API
-	@GetMapping("/{id}")
+	@GetMapping("/api/members/{id}")
+	@ResponseBody
 	public ResponseEntity<Member> getMember(@PathVariable int id) {
 		Member member = memberService.getMemberById(id);
 		return ResponseEntity.ok(member);
 	}
 
 	// 현재 로그인한 회원의 정보를 가져오는 API
-	@GetMapping("/me")
+	@GetMapping("/api/members/me")
+	@ResponseBody
 	public ResponseEntity<Member> getMyInfo() {
 		Member member = memberService.getMyInfo();
 		return ResponseEntity.ok(member);
 	}
 
 	// 회원의 프로필 이미지를 업데이트하는 API
-	@PatchMapping("/{id}/profile-image")
+	@PatchMapping("/api/members/{id}/profile-image")
+	@ResponseBody
 	public ResponseEntity<Member> updateProfileImage(@PathVariable int id,
 		@RequestBody @Parameter(description = "프로필이미지url") String profileImgUrl) {
 		Member member = memberService.updateProfileImage(id, profileImgUrl);
@@ -107,7 +133,8 @@ public class MemberController {
 	}
 
 	// 회원의 자기소개를 업데이트하는 API
-	@PatchMapping("/{id}/introduce")
+	@PatchMapping("/api/members/{id}/introduce")
+	@ResponseBody
 	public ResponseEntity<Member> updateIntroduce(@PathVariable int id,
 		@RequestBody @Parameter(description = "소개글") String introduce) {
 		Member member = memberService.updateIntroduce(id, introduce);
@@ -115,7 +142,8 @@ public class MemberController {
 	}
 
 	// 회원의 닉네임을 업데이트하는 API
-	@PatchMapping("/{id}/nickname")
+	@PatchMapping("/api/members/{id}/nickname")
+	@ResponseBody
 	public ResponseEntity<Member> updateNickname(@PathVariable int id,
 		@RequestBody @Parameter(description = "닉네임") String nickname) {
 		Member member = memberService.updateNickname(id, nickname);
@@ -123,7 +151,8 @@ public class MemberController {
 	}
 
 	// 회원의 성별을 업데이트하는 API
-	@PatchMapping("/{id}/gender")
+	@PatchMapping("/api/members/{id}/gender")
+	@ResponseBody
 	public ResponseEntity<Member> updateGender(@PathVariable int id,
 		@RequestBody @Parameter(description = "성별 (M, W)") Character gender) {
 		Member member = memberService.updateGender(id, gender);
@@ -131,7 +160,8 @@ public class MemberController {
 	}
 
 	// 회원의 출생년도를 업데이트하는 API
-	@PatchMapping("/{id}/birth-year")
+	@PatchMapping("/api/members/{id}/birth-year")
+	@ResponseBody
 	public ResponseEntity<Member> updateBirthYear(@PathVariable int id,
 		@RequestBody @Parameter(description = "출생년도(4자리숫자)") int birthYear) {
 		Member member = memberService.updateBirthYear(id, birthYear);
@@ -139,7 +169,8 @@ public class MemberController {
 	}
 
 	// 회원의 국적을 업데이트하는 API
-	@PatchMapping("/{id}/nationality")
+	@PatchMapping("/api/members/{id}/nationality")
+	@ResponseBody
 	public ResponseEntity<Member> updateNationality(@PathVariable int id,
 		@RequestBody @Parameter(description = "국적") String nationality) {
 		Member member = memberService.updateNationality(id, nationality);
@@ -147,7 +178,9 @@ public class MemberController {
 	}
 
 	// 새로운 회원을 생성하는 API
-	@PostMapping
+
+	@PostMapping("/api/members")
+	@ResponseBody
 	public ResponseEntity<Member> createMember(@RequestBody @Parameter(description = "회원 데이터") Member member) {
 		Member createdMember = memberService.createMember(member);
 		return ResponseEntity.ok(createdMember);

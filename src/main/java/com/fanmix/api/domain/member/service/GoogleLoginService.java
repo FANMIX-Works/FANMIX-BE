@@ -67,9 +67,17 @@ public class GoogleLoginService implements OAuthClient {
 	public String requestAccessToken(String authorizationCode) throws JsonProcessingException {
 		Optional.ofNullable(authorizationCode)
 			.orElseThrow(() -> new MemberException(BLANK_CODE));
+
+		System.out.println("어세스토큰 발급받기 위해 넘겨줄 인가코드 : " + authorizationCode);
+		// 인가코드 형식 확인
+		// if (!authorizationCode.matches("^[a-zA-Z0-9_/-]+$")) {
+		// 	System.out.println("정규식위배");
+		// 	throw new MemberException(INVALID_AUTHORIZATION_CODE);
+		// }
 		RestTemplate restTemplate = new RestTemplate();
 		HttpHeaders httpHeaders = new HttpHeaders();
 		httpHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+		System.out.println("헤더세팅 완료");
 
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 		params.add("code", authorizationCode);
@@ -78,17 +86,21 @@ public class GoogleLoginService implements OAuthClient {
 		params.add("client_secret", clientSecret);
 		params.add("grant_type", "authorization_code");
 
+		System.out.println("params: " + params);
+
 		HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(params, httpHeaders);
 		String url = "https://oauth2.googleapis.com/token";
 
+		System.out.println("어세스토큰 발급 API요청 직전. requestEntity : " + requestEntity);
 		ResponseEntity<String> response = restTemplate.postForEntity(url, requestEntity, String.class);    //api요청
+		System.out.println("어세스토큰 발급 API요청 직후");
 		ObjectMapper objectMapper = new ObjectMapper();
-		JsonNode jsonNode = objectMapper.readTree(response.getBody());
-		if (jsonNode == null) {
+		JsonNode responseNode = objectMapper.readTree(response.getBody());
+		if (responseNode == null || !responseNode.has("access_token")) {
 			throw new MemberException(FAIL_GENERATE_ACCESSCODE);
 		}
-		System.out.println("어세스토큰 등 : " + jsonNode);
-		return jsonNode.get("access_token").asText();
+		System.out.println("어세스토큰 등 : " + responseNode);
+		return responseNode.get("access_token").asText();
 	}
 
 	@Override

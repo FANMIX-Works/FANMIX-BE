@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>인가코드로 받아온 데이터들</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+<body>
+
+<h1>인가코드</h1>
+<p>Authorization Code: <span th:text="${param.code}"></span></p>
+<p id="authCode"></p>
+<p>jwt : <div id="jwt"></div></p>
+<p>member : <div id="member"></div></p>
+<p id="response"></p>
+
+
+<script>
+    // Assuming you have the authorization code in a variable
+    const urlParams = new URLSearchParams(window.location.search);
+    let authCode = urlParams.get('code');
+
+    document.addEventListener('DOMContentLoaded', () => {
+    axios.post('/api/members/oauth/google', { code: authCode })
+        .then(response => {
+            console.log("response : ", response);
+            console.log(response.data);
+            console.log(response.data.jwt);
+            console.log(response.data.member.nickName);
+
+            document.getElementById('authCode').innerText = authCode;
+            document.getElementById('jwt').innerText = response.data.jwt; // No need for JSON.stringify here
+            document.getElementById('member').innerText = response.data.member.nickName; // No need for JSON.stringify here
+        })
+        .catch(error => {
+            console.error(error);
+            document.getElementById('response').innerText = 'Error: ' + error.message;
+        });
+    });
+</script>
+</body>
+</html>
