@@ -8,12 +8,16 @@ import java.util.Random;
 
 import javax.crypto.SecretKey;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -44,6 +48,7 @@ public class GoogleLoginService implements OAuthClient {
 	private final String redirectUri;
 	private final SecretKey jwtKey;
 	private final Random random = new Random();
+	private static final Logger logger = LoggerFactory.getLogger(GoogleLoginService.class);
 
 	public GoogleLoginService(MemberRepository memberRepository, @Value("${oauth.google.client-id}") String clientId,
 		@Value("${oauth.google.client-secret}") String clientSecret,
@@ -71,13 +76,13 @@ public class GoogleLoginService implements OAuthClient {
 			Optional.ofNullable(authorizationCode)
 				.orElseThrow(() -> new MemberException(BLANK_CODE));
 
-			System.out.println("어세스토큰 발급받기 위해 넘겨줄 인가코드 : " + authorizationCode);
+			logger.debug("어세스토큰 발급받기 위해 넘겨줄 인가코드 : " + authorizationCode);
 
 			// RestTemplate 설정 및 요청
 			RestTemplate restTemplate = new RestTemplate();
 			HttpHeaders httpHeaders = new HttpHeaders();
 			httpHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-			System.out.println("헤더세팅 완료");
+			logger.debug("헤더세팅 완료");
 
 			MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 			params.add("code", authorizationCode);
@@ -86,17 +91,17 @@ public class GoogleLoginService implements OAuthClient {
 			params.add("client_secret", clientSecret);
 			params.add("grant_type", "authorization_code");
 
-			System.out.println("params: " + params);
+			logger.debug("params: " + params);
 
 			HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(params, httpHeaders);
 			String url = "https://oauth2.googleapis.com/token";
 
-			System.out.println("어세스토큰 발급 API요청 직전. requestEntity : " + requestEntity);
+			logger.debug("어세스토큰 발급 API요청 직전. requestEntity : " + requestEntity);
 
 			// API 요청
 			ResponseEntity<String> response = restTemplate.postForEntity(url, requestEntity, String.class);
 
-			System.out.println("어세스토큰 발급 API요청 직후");
+			logger.debug("어세스토큰 발급 API요청 직후");
 
 			// 응답 처리
 			ObjectMapper objectMapper = new ObjectMapper();
@@ -106,7 +111,7 @@ public class GoogleLoginService implements OAuthClient {
 				throw new MemberException(FAIL_GENERATE_ACCESSCODE);
 			}
 
-			System.out.println("어세스토큰 등 : " + responseNode);
+			logger.debug("어세스토큰 등 : " + responseNode);
 
 			return responseNode.get("access_token").asText();
 
@@ -114,14 +119,36 @@ public class GoogleLoginService implements OAuthClient {
 			// JSON 처리 중 발생한 예외 처리
 			e.printStackTrace();
 			throw new MemberException(JSON_PROCESSING_ERROR);
+		} catch (
+			JpaSystemException e) {    //InvalidDataAccessResourceUsageException은 SQLGrammarException를 래핑하고 JpaSystemException 내부예외임
+			logger.debug("멤버 테이블 없음");
+			e.printStackTrace();
+			throw new MemberException(SQL_ERROR);
 		} catch (RestClientException e) {
 			// REST 요청 중 발생한 예외 처리
 			e.printStackTrace();
-			throw new MemberException(REST_CLIENT_ERROR);
+			if (e.getRootCause() instanceof InvalidDataAccessResourceUsageException) {
+				logger.debug("멤버 테이블 없음");
+				e.printStackTrace();
+				throw new MemberException(SQL_ERROR);
+			} else {
+				e.printStackTrace();
+				// 기타 예외 처리
+				throw new MemberException(FAIL_AUTH);
+			}
 		} catch (Exception e) {
 			// 기타 예외 처리
 			e.printStackTrace();
-			throw new MemberException(FAIL_AUTH);
+			if (e instanceof JpaSystemException
+				&& ((JpaSystemException)e).getRootCause() instanceof InvalidDataAccessResourceUsageException) {
+				logger.debug("멤버 테이블 없음");
+				e.printStackTrace();
+				throw new MemberException(SQL_ERROR);
+			} else {
+				e.printStackTrace();
+				// 기타 예외 처리
+				throw new MemberException(FAIL_AUTH);
+			}
 		}
 	}
 
@@ -143,7 +170,7 @@ public class GoogleLoginService implements OAuthClient {
 			ObjectMapper objectMapper = new ObjectMapper();
 			JsonNode jsonNode = objectMapper.readTree(response.getBody());
 
-			System.out.println("사용자정보 :  " + jsonNode);
+			logger.debug("사용자정보 :  " + jsonNode);
 
 			String email = jsonNode.get("email").asText();
 			String name = jsonNode.get("name").asText();
@@ -168,21 +195,43 @@ public class GoogleLoginService implements OAuthClient {
 				memberRepository.save(member);
 			}
 
-			System.out.println("member : " + member);
+			logger.debug("member : " + member);
 			return member;
 
 		} catch (JsonProcessingException e) {
 			// JSON 처리 중 발생한 예외 처리
 			e.printStackTrace();
 			throw new MemberException(JSON_PROCESSING_ERROR);
+		} catch (
+			JpaSystemException e) {    //InvalidDataAccessResourceUsageException은 SQLGrammarException를 래핑하고 JpaSystemException 내부예외임
+			logger.debug("멤버테이블없음 2");
+			e.printStackTrace();
+			throw new MemberException(SQL_ERROR);
 		} catch (RestClientException e) {
 			// REST 요청 중 발생한 예외 처리
 			e.printStackTrace();
-			throw new MemberException(REST_CLIENT_ERROR);
+			if (e.getRootCause() instanceof InvalidDataAccessResourceUsageException) {
+				logger.debug("멤버 테이블 없음");
+				e.printStackTrace();
+				throw new MemberException(SQL_ERROR);
+			} else {
+				e.printStackTrace();
+				// 기타 예외 처리
+				throw new MemberException(FAIL_GET_OAUTHINFO);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			// 기타 예외 처리
-			throw new MemberException(FAIL_GET_OAUTHINFO);
+			if (e instanceof JpaSystemException
+				&& ((JpaSystemException)e).getRootCause() instanceof InvalidDataAccessResourceUsageException) {
+				logger.debug("멤버 테이블 없음");
+				e.printStackTrace();
+				throw new MemberException(SQL_ERROR);
+			} else {
+				e.printStackTrace();
+				// 기타 예외 처리
+				throw new MemberException(FAIL_GET_OAUTHINFO);
+			}
 		}
 	}
 
