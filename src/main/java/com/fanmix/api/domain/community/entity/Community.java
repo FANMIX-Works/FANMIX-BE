@@ -25,7 +25,7 @@ import lombok.NoArgsConstructor;
 public class Community {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id", nullable = false, updatable = false)
+	@Column(name = "community_id", nullable = false, updatable = false)
 	private int id;					// 커뮤니티 id
 
 	@Column(name = "influencer_id")

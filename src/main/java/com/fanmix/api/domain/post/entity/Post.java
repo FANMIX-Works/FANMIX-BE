@@ -63,7 +63,7 @@ public class Post {
 	@LastModifiedDate
 	private LocalDateTime u_date;		// 수정일
 
-	@OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE)
+	@OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE, orphanRemoval = true)
 	private List<Comment> comments;        // 댓글
 
 	private int post_evaluation;		// 게시글 평가 id

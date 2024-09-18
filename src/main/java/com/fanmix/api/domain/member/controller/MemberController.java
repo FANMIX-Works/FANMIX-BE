@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.fanmix.api.domain.member.dto.AuthResponse;
 import com.fanmix.api.domain.member.dto.MemberSignUpDto;
@@ -40,9 +39,9 @@ public class MemberController {
 		return "login";
 	}
 
-	@GetMapping("/oauth2/callback/google")
+	@PostMapping("/api/oauth/google")
 	@ResponseBody
-	public AuthResponse googleCallback(@RequestParam String code, RedirectAttributes redirectAttributes) {
+	public AuthResponse googleCallback(@RequestBody String code) {
 		String accessToken = null;
 		try {
 			accessToken = googleLoginService.requestAccessToken(code);
