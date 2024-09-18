@@ -40,9 +40,6 @@ public class Member extends BaseEntity {
 	private String nationality;          //국적
 	private int totalPoint;
 
-	@Enumerated(EnumType.STRING)
-	private Role role;
-
 	//소셜로그인 관련
 	@Enumerated(EnumType.STRING)
 	private SocialType socialType; // KAKAO, NAVER, GOOGLE

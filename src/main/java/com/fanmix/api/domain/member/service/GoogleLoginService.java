@@ -24,7 +24,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import com.fanmix.api.domain.common.Role;
 import com.fanmix.api.domain.common.SocialType;
 import com.fanmix.api.domain.member.entity.Member;
 import com.fanmix.api.domain.member.exception.MemberException;
@@ -184,7 +183,6 @@ public class GoogleLoginService implements OAuthClient {
 					.name(name)
 					.nickName(nickName)
 					.profileImgUrl(picture)
-					.role(Role.USER)
 					.socialType(SocialType.GOOGLE)
 					.firstLoginYn(true)
 					.build());
