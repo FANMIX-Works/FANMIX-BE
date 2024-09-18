@@ -1,7 +1,5 @@
 package com.fanmix.api.domain.member.dto;
 
-import com.fanmix.api.domain.common.Role;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -24,5 +22,4 @@ public class MemberSignUpDto {
 	private Character gender;            //'M', 'W'
 	private int birthYear;               //탄생년도. 나이는 오늘날짜로부터 계산
 	private String nationality;          //국적
-	private Role role;                   //회원권한
 }

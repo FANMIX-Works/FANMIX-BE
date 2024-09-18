@@ -5,7 +5,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fanmix.api.domain.common.Role;
 import com.fanmix.api.domain.member.dto.MemberSignUpDto;
 import com.fanmix.api.domain.member.entity.Member;
 import com.fanmix.api.domain.member.repository.MemberRepository;
@@ -41,7 +40,6 @@ public class MemberService {
 			.gender(memberSignUpDto.getGender())
 			.birthYear(memberSignUpDto.getBirthYear())
 			.nationality(memberSignUpDto.getNationality())
-			.role(Role.MANAGER)
 			.build();
 
 		//Member.passwordEncode(passwordEncoder);

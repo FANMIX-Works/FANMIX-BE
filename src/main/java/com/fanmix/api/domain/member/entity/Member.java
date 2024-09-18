@@ -1,6 +1,5 @@
 package com.fanmix.api.domain.member.entity;
 
-import com.fanmix.api.domain.common.Role;
 import com.fanmix.api.domain.common.SocialType;
 import com.fanmix.api.domain.common.entity.BaseEntity;
 
@@ -66,11 +65,6 @@ public class Member extends BaseEntity {
 		this.socialId = socialId;
 		this.socialType = socialtype;
 		this.refreshToken = refreshToken;
-	}
-
-	// 유저 권한 설정 메소드
-	public void authorizeUser() {
-		this.role = Role.USER;
 	}
 
 	// 비밀번호 암호화 메소드
