@@ -16,7 +16,9 @@ public enum MemberErrorCode implements ErrorCode {
 	FAIL_GENERATE_ACCESSCODE(HttpStatus.UNAUTHORIZED, "2-003", "ACCESS_TOKEN 받아오는것에 실패하였습니다. 인가코드의 값이 틀렸습니다."),
 	FAIL_GET_OAUTHINFO(HttpStatus.INTERNAL_SERVER_ERROR, "2-004", "유저정보 받아오기에 실패하였습니다."),
 	FAIL_AUTH(HttpStatus.INTERNAL_SERVER_ERROR, "2-005", "Google OAuth 인증에 실패했습니다."),
-	INVALID_AUTHORIZATION_CODE(HttpStatus.BAD_REQUEST, "2-006", "인가코드의 값이 유효하지 않습니다.");
+	JSON_PROCESSING_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "2-007", "JSON파싱 에러"),
+	REST_CLIENT_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "2-008", "서버에서 구글로 API요청시 에러. 유효하지 않은 인증코드"),
+	UNKNOWN_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "2-009", "서버에서 예상치 못한 에러");
 
 	private final HttpStatus httpStatus;
 	private final String customCode;

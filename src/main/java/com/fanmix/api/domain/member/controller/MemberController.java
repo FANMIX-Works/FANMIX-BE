@@ -63,7 +63,7 @@ public class MemberController {
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			throw new MemberException(MemberErrorCode.FAIL_AUTH);
+			throw new MemberException(MemberErrorCode.UNKNOWN_ERROR);
 		}
 	}
 

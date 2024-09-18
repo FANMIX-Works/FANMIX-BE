@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import com.fanmix.api.domain.common.Role;
@@ -64,87 +65,125 @@ public class GoogleLoginService implements OAuthClient {
 	}
 
 	@Override
-	public String requestAccessToken(String authorizationCode) throws JsonProcessingException {
-		Optional.ofNullable(authorizationCode)
-			.orElseThrow(() -> new MemberException(BLANK_CODE));
+	public String requestAccessToken(String authorizationCode) {
+		try {
+			// Null 체크
+			Optional.ofNullable(authorizationCode)
+				.orElseThrow(() -> new MemberException(BLANK_CODE));
 
-		System.out.println("어세스토큰 발급받기 위해 넘겨줄 인가코드 : " + authorizationCode);
-		// 인가코드 형식 확인
-		// if (!authorizationCode.matches("^[a-zA-Z0-9_/-]+$")) {
-		// 	System.out.println("정규식위배");
-		// 	throw new MemberException(INVALID_AUTHORIZATION_CODE);
-		// }
-		RestTemplate restTemplate = new RestTemplate();
-		HttpHeaders httpHeaders = new HttpHeaders();
-		httpHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-		System.out.println("헤더세팅 완료");
+			System.out.println("어세스토큰 발급받기 위해 넘겨줄 인가코드 : " + authorizationCode);
 
-		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-		params.add("code", authorizationCode);
-		params.add("redirect_uri", redirectUri);
-		params.add("client_id", clientId);
-		params.add("client_secret", clientSecret);
-		params.add("grant_type", "authorization_code");
+			// RestTemplate 설정 및 요청
+			RestTemplate restTemplate = new RestTemplate();
+			HttpHeaders httpHeaders = new HttpHeaders();
+			httpHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+			System.out.println("헤더세팅 완료");
 
-		System.out.println("params: " + params);
+			MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+			params.add("code", authorizationCode);
+			params.add("redirect_uri", redirectUri);
+			params.add("client_id", clientId);
+			params.add("client_secret", clientSecret);
+			params.add("grant_type", "authorization_code");
 
-		HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(params, httpHeaders);
-		String url = "https://oauth2.googleapis.com/token";
+			System.out.println("params: " + params);
 
-		System.out.println("어세스토큰 발급 API요청 직전. requestEntity : " + requestEntity);
-		ResponseEntity<String> response = restTemplate.postForEntity(url, requestEntity, String.class);    //api요청
-		System.out.println("어세스토큰 발급 API요청 직후");
-		ObjectMapper objectMapper = new ObjectMapper();
-		JsonNode responseNode = objectMapper.readTree(response.getBody());
-		if (responseNode == null || !responseNode.has("access_token")) {
-			throw new MemberException(FAIL_GENERATE_ACCESSCODE);
+			HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(params, httpHeaders);
+			String url = "https://oauth2.googleapis.com/token";
+
+			System.out.println("어세스토큰 발급 API요청 직전. requestEntity : " + requestEntity);
+
+			// API 요청
+			ResponseEntity<String> response = restTemplate.postForEntity(url, requestEntity, String.class);
+
+			System.out.println("어세스토큰 발급 API요청 직후");
+
+			// 응답 처리
+			ObjectMapper objectMapper = new ObjectMapper();
+			JsonNode responseNode = objectMapper.readTree(response.getBody());
+
+			if (responseNode == null || !responseNode.has("access_token")) {
+				throw new MemberException(FAIL_GENERATE_ACCESSCODE);
+			}
+
+			System.out.println("어세스토큰 등 : " + responseNode);
+
+			return responseNode.get("access_token").asText();
+
+		} catch (JsonProcessingException e) {
+			// JSON 처리 중 발생한 예외 처리
+			e.printStackTrace();
+			throw new MemberException(JSON_PROCESSING_ERROR);
+		} catch (RestClientException e) {
+			// REST 요청 중 발생한 예외 처리
+			e.printStackTrace();
+			throw new MemberException(REST_CLIENT_ERROR);
+		} catch (Exception e) {
+			// 기타 예외 처리
+			e.printStackTrace();
+			throw new MemberException(FAIL_AUTH);
 		}
-		System.out.println("어세스토큰 등 : " + responseNode);
-		return responseNode.get("access_token").asText();
 	}
 
 	@Override
-	public Member requestOAuthInfo(String accessToken) throws JsonProcessingException {
-		RestTemplate restTemplate = new RestTemplate();
-		String userInfoEndpoint = "https://www.googleapis.com/oauth2/v3/userinfo";
+	public Member requestOAuthInfo(String accessToken) {
+		try {
+			// RestTemplate 설정 및 요청
+			RestTemplate restTemplate = new RestTemplate();
+			String userInfoEndpoint = "https://www.googleapis.com/oauth2/v3/userinfo";
 
-		HttpHeaders headers = new HttpHeaders();
-		headers.setBearerAuth(accessToken);
-		HttpEntity<?> entity = new HttpEntity<>(headers);
+			HttpHeaders headers = new HttpHeaders();
+			headers.setBearerAuth(accessToken);
+			HttpEntity<?> entity = new HttpEntity<>(headers);
 
-		ResponseEntity<String> response = restTemplate.exchange(userInfoEndpoint, HttpMethod.GET, entity, String.class);
-		ObjectMapper objectMapper = new ObjectMapper();
-		JsonNode jsonNode = objectMapper.readTree(response.getBody());
-		System.out.println("사용자정보 :  " + jsonNode);
+			ResponseEntity<String> response = restTemplate.exchange(userInfoEndpoint, HttpMethod.GET, entity,
+				String.class);
 
-		String email = jsonNode.get("email").asText();
-		String name = jsonNode.get("name").asText();
-		String nickName = generateRandomNickName();    //임시로부여될 닉네임 생성. 2024.09.13 같은것을 뽑을 확률 100만분의 1 이상
-		String picture = jsonNode.get("picture").asText();
+			// 응답 처리
+			ObjectMapper objectMapper = new ObjectMapper();
+			JsonNode jsonNode = objectMapper.readTree(response.getBody());
 
-		//db에 해당 이메일이 없으면 구글에서준 데이터로 세팅
-		Member member = memberRepository.findByEmail(email)
-			.orElse(Member.builder()
-				.email(email)
-				.name(name)
-				.nickName(nickName)
-				.profileImgUrl(picture)
-				.role(Role.USER)
-				.socialType(SocialType.GOOGLE)
-				.firstLoginYn(true)
-				.build());
+			System.out.println("사용자정보 :  " + jsonNode);
 
-		if (member.getId() != -1) {
-			member.setFirstLoginYn(false);
-		} else {
-			memberRepository.save(member);
-		}
+			String email = jsonNode.get("email").asText();
+			String name = jsonNode.get("name").asText();
+			String nickName = generateRandomNickName();    //임시로부여될 닉네임 생성. 2024.09.13 같은것을 뽑을 확률 100만분의 1 이상
+			String picture = jsonNode.get("picture").asText();
 
-		if (member == null) {
+			// DB에 해당 이메일이 없으면 구글에서 준 데이터로 세팅
+			Member member = memberRepository.findByEmail(email)
+				.orElse(Member.builder()
+					.email(email)
+					.name(name)
+					.nickName(nickName)
+					.profileImgUrl(picture)
+					.role(Role.USER)
+					.socialType(SocialType.GOOGLE)
+					.firstLoginYn(true)
+					.build());
+
+			if (member.getId() != -1) {
+				member.setFirstLoginYn(false);
+			} else {
+				memberRepository.save(member);
+			}
+
+			System.out.println("member : " + member);
+			return member;
+
+		} catch (JsonProcessingException e) {
+			// JSON 처리 중 발생한 예외 처리
+			e.printStackTrace();
+			throw new MemberException(JSON_PROCESSING_ERROR);
+		} catch (RestClientException e) {
+			// REST 요청 중 발생한 예외 처리
+			e.printStackTrace();
+			throw new MemberException(REST_CLIENT_ERROR);
+		} catch (Exception e) {
+			e.printStackTrace();
+			// 기타 예외 처리
 			throw new MemberException(FAIL_GET_OAUTHINFO);
 		}
-		System.out.println("member : " + member);
-		return member;
 	}
 
 	@Override
