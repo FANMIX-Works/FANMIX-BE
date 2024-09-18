@@ -20,7 +20,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fanmix.api.FanmixApplication;
-import com.fanmix.api.domain.common.Role;
 import com.fanmix.api.domain.member.dto.MemberSignUpDto;
 import com.fanmix.api.domain.member.entity.Member;
 import com.fanmix.api.domain.member.repository.MemberRepository;
@@ -61,7 +60,6 @@ public class MemberServiceTest {
 		signUpDto.setGender('M');
 		signUpDto.setBirthYear(1990);
 		signUpDto.setNationality("KR");
-		signUpDto.setRole(Role.MANAGER);
 
 		memberService.signUp(signUpDto);
 		System.out.println("회원가입 수행완료");
