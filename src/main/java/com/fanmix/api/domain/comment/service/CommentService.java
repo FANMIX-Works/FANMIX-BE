@@ -44,10 +44,10 @@ public class CommentService {
 		Member member = memberRepository.findById(request.getCr_member())
 			.orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다: " + request.getCr_member()));
 
-		// commentRepository.findById(request.getParentId())
-			// .orElseThrow(() -> new CommentException(CommentErrorCode.PARENT_ID_NOT_EXIST));
+		Comment comment = commentRepository.findById(request.getParentId())
+			.orElseThrow(() -> new CommentException(CommentErrorCode.PARENT_ID_NOT_EXIST));
 
-		return commentRepository.save(request.toEntity(community, post, member));
+		return commentRepository.save(request.toEntity(community, post, member, comment));
 	}
 
 	// 전체 댓글 목록
@@ -107,31 +107,8 @@ public class CommentService {
 			throw new CommentException(CommentErrorCode.COMMENT_NOT_EXIST);
 		}
 
-		comment.update(request.isDelete(), request.getContents());
+		comment.update(request.getIsDelete(), request.getContents());
 
 		return comment;
-	}
-
-	// 댓글 삭제
-	@Transactional
-	public void delete(int communityId, int postId, int id) {
-		communityRepository.findById(communityId)
-			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
-
-		Post post = postRepository.findById(postId)
-			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_EXIST));
-
-		if(post.getCommunity().getId() != communityId) {
-			throw new PostException(PostErrorCode.POST_NOT_BELONG_TO_COMMUNITY);
-		}
-
-		Comment comment = commentRepository.findById(id)
-			.orElseThrow(() -> new CommentException(CommentErrorCode.COMMENT_NOT_EXIST));
-
-		if(comment.getPost().getId() != postId) {
-			throw new CommentException((CommentErrorCode.COMMENT_NOT_EXIST));
-		}
-
-		commentRepository.deleteById(id);
 	}
 }

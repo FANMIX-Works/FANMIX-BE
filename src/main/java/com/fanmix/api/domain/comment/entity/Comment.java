@@ -58,7 +58,7 @@ public class Comment {
 	private int orderNum;					// 댓글 순서
 
 	@Column(name = "delete_yn")
-	private boolean isDelete;				// 삭제 여부
+	private Boolean isDelete;				// 삭제 여부
 
 	@OneToMany(mappedBy = "parentId", orphanRemoval = true)
 	private List<Comment> comments = new ArrayList<>();
@@ -78,7 +78,7 @@ public class Comment {
 
 	@Builder
 	public Comment(Community community, Post post, Member cr_member, Comment parentId,
-		String contents, boolean isDelete) {
+		String contents, Boolean isDelete) {
 		this.community = community;
 		this.post = post;
 		this.cr_member = cr_member;
@@ -87,7 +87,7 @@ public class Comment {
 		this.isDelete = isDelete;
 	}
 
-	public void update(boolean isDelete, String contents) {
+	public void update(Boolean isDelete, String contents) {
 		this.isDelete = isDelete;
 		this.contents = contents;
 	}
