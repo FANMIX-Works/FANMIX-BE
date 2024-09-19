@@ -1,5 +1,7 @@
 package com.fanmix.api.domain.member.entity;
 
+import java.time.LocalDateTime;
+
 import com.fanmix.api.domain.common.SocialType;
 import com.fanmix.api.domain.common.entity.BaseEntity;
 
@@ -47,6 +49,11 @@ public class Member extends BaseEntity {
 
 	@Column(columnDefinition = "BOOLEAN DEFAULT FALSE")
 	private boolean firstLoginYn;
+	private int crMember;
+	private LocalDateTime crDate;
+	private int uMember;
+	private LocalDateTime uDate;
+
 	@Transient
 	private String jwt;    //db에 저장안하고 메모리에서만 사용
 
