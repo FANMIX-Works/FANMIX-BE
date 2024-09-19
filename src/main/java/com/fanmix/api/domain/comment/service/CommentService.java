@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fanmix.api.domain.comment.dto.AddCommentRequest;
+import com.fanmix.api.domain.comment.dto.UpdateCommentRequest;
 import com.fanmix.api.domain.comment.entity.Comment;
 import com.fanmix.api.domain.comment.exception.CommentErrorCode;
 import com.fanmix.api.domain.comment.exception.CommentException;
@@ -66,7 +67,29 @@ public class CommentService {
 
 	// 댓글 조회
 	@Transactional(readOnly = true)
-	public List<Comment> findComments(int communityId, int postId, int id) {
+	public Comment findComments(int communityId, int postId, int id) {
+		Community community = communityRepository.findById(communityId)
+			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
+
+		Post post = postRepository.findById(postId)
+			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_EXIST));
+
+		if(post.getCommunity().getId() != communityId) {
+			throw new PostException(PostErrorCode.POST_NOT_BELONG_TO_COMMUNITY);
+		}
+		Comment comment = commentRepository.findById(id)
+			.orElseThrow(() -> new CommentException(CommentErrorCode.COMMENT_NOT_EXIST));
+
+		if(comment.getPost().getId() != postId) {
+			throw new CommentException(CommentErrorCode.COMMENT_NOT_EXIST);
+		}
+
+		return comment;
+	}
+
+	// 댓글 수정
+	@Transactional
+	public Comment update(int communityId, int postId, int id, UpdateCommentRequest request) {
 		communityRepository.findById(communityId)
 			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
 
@@ -76,9 +99,16 @@ public class CommentService {
 		if(post.getCommunity().getId() != communityId) {
 			throw new PostException(PostErrorCode.POST_NOT_BELONG_TO_COMMUNITY);
 		}
-		commentRepository.findById(id)
+
+		Comment comment = commentRepository.findById(id)
 			.orElseThrow(() -> new CommentException(CommentErrorCode.COMMENT_NOT_EXIST));
 
-		return post.getComments();
+		if(comment.getPost().getId() != postId) {
+			throw new CommentException(CommentErrorCode.COMMENT_NOT_EXIST);
+		}
+
+		comment.update(request.isDelete(), request.getContents());
+
+		return comment;
 	}
 }

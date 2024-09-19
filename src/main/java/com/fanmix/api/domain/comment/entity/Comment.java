@@ -86,4 +86,9 @@ public class Comment {
 		this.contents = contents;
 		this.isDelete = isDelete;
 	}
+
+	public void update(boolean isDelete, String contents) {
+		this.isDelete = isDelete;
+		this.contents = contents;
+	}
 }

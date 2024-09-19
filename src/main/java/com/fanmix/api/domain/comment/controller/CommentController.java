@@ -7,11 +7,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fanmix.api.domain.comment.dto.AddCommentRequest;
 import com.fanmix.api.domain.comment.dto.CommentResponse;
+import com.fanmix.api.domain.comment.dto.UpdateCommentRequest;
 import com.fanmix.api.domain.comment.entity.Comment;
 import com.fanmix.api.domain.comment.service.CommentService;
 import com.fanmix.api.domain.post.service.PostService;
@@ -37,7 +39,7 @@ public class CommentController {
 	}
 
 	// 댓글 목록 조회
-	@GetMapping("communities/{communityId}/posts/{postId}/comments")
+	@GetMapping("/communities/{communityId}/posts/{postId}/comments")
 	public ResponseEntity<List<CommentResponse>> findAllComment(
 		@PathVariable int communityId,
 		@PathVariable int postId
@@ -52,18 +54,28 @@ public class CommentController {
 	}
 
 	// 선택한 게시물의 댓글 조회
-	@GetMapping("communities/{communityId}/posts/{postId}/comments/{id}")
-	public ResponseEntity<List<CommentResponse>> findComments(
+	@GetMapping("/communities/{communityId}/posts/{postId}/comments/{id}")
+	public ResponseEntity<CommentResponse> findComments(
 		@PathVariable int communityId,
 		@PathVariable int postId,
 		@PathVariable int id) {
 
-		List<CommentResponse> comments = commentService.findComments(communityId, postId, id)
-			.stream()
-			.map(CommentResponse::new)
-			.toList();
+		Comment comments = commentService.findComments(communityId, postId, id);
 
 		return ResponseEntity.ok()
-			.body(comments);
+			.body(new CommentResponse(comments));
+	}
+
+	// 댓글 수정
+	@PutMapping("/communities/{communityId}/posts/{postId}/comments/{id}")
+	public ResponseEntity<CommentResponse> updateComment(
+		@PathVariable int communityId,
+		@PathVariable int postId,
+		@PathVariable int id,
+		@RequestBody UpdateCommentRequest request) {
+		Comment comment = commentService.update(communityId, postId, id, request);
+
+		return ResponseEntity.ok()
+			.body(new CommentResponse(comment));
 	}
 }
