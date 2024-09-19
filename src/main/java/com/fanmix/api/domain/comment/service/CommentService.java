@@ -111,4 +111,27 @@ public class CommentService {
 
 		return comment;
 	}
+
+	// 댓글 삭제
+	@Transactional
+	public void delete(int communityId, int postId, int id) {
+		communityRepository.findById(communityId)
+			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
+
+		Post post = postRepository.findById(postId)
+			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_EXIST));
+
+		if(post.getCommunity().getId() != communityId) {
+			throw new PostException(PostErrorCode.POST_NOT_BELONG_TO_COMMUNITY);
+		}
+
+		Comment comment = commentRepository.findById(id)
+			.orElseThrow(() -> new CommentException(CommentErrorCode.COMMENT_NOT_EXIST));
+
+		if(comment.getPost().getId() != postId) {
+			throw new CommentException((CommentErrorCode.COMMENT_NOT_EXIST));
+		}
+
+		commentRepository.deleteById(id);
+	}
 }
