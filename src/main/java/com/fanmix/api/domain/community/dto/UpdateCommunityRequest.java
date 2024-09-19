@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 public class UpdateCommunityRequest {
 	private int influencerId;
 	private String name;
-	private boolean isShow;
+	private Boolean isShow;
 }

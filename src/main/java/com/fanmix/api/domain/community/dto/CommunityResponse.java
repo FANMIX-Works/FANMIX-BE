@@ -8,11 +8,11 @@ import lombok.Getter;
 public class CommunityResponse {
 	private int influencerId;
 	private String name;
-	private boolean isShow;
+	private Boolean isShow;
 
 	public CommunityResponse(Community community) {
 		this.influencerId = community.getInfluencerId();
 		this.name = community.getName();
-		this.isShow = community.isShow();
+		this.isShow = community.getIsShow();
 	}
 }

@@ -37,7 +37,7 @@ public class Community {
 	private int priv;				// 권한
 
 	@Column(name = "show_yn")
-	private boolean isShow;			// 노출 여부
+	private Boolean isShow;			// 노출 여부
 
 	private int cr_member;			// 생성자
 	private int u_member;			// 수정자
@@ -48,7 +48,7 @@ public class Community {
 	private LocalDateTime u_date;	// 수정일
 
 	@Builder
-	public Community(int influencerId, String name, boolean isShow) {
+	public Community(int influencerId, String name, Boolean isShow) {
 		this.influencerId = influencerId;
 		this.name = name;
 		this.isShow = isShow;
@@ -56,7 +56,7 @@ public class Community {
 	}
 
 	// 게시물 수정
-	public void update(int influencerId, String name, boolean isShow) {
+	public void update(int influencerId, String name, Boolean isShow) {
 		this.influencerId = influencerId;
 		this.name = name;
 		this.isShow = isShow;

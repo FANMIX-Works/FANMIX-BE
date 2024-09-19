@@ -42,7 +42,7 @@ public class CommunityService {
 		Community community = communityRepository.findById(id)
 			.orElseThrow(() -> new IllegalArgumentException("게시물이 존재하지 않습니다"));
 
-		community.update(request.getInfluencerId(), request.getName(), request.isShow());
+		community.update(request.getInfluencerId(), request.getName(), request.getIsShow());
 
 		return community;
 	}

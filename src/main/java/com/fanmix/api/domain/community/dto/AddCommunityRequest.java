@@ -12,14 +12,14 @@ import lombok.NoArgsConstructor;
 public class AddCommunityRequest {
 	private int influencerId;
 	private String name;
-	private boolean show_yn;
+	private Boolean isShow;
 
 	// 엔티티 변환
 	public Community toEntity() {
 		return Community.builder()
 			.influencerId(influencerId)
 			.name(name)
-			.isShow(show_yn)
+			.isShow(isShow)
 			.build();
 	}
 }
