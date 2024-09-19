@@ -27,9 +27,9 @@ public class BaseEntity {
 
 	@CreatedBy
 	@Column(updatable = false)
-	private String crMember;
+	private int crMember;
 
 	@LastModifiedBy
-	private String uMember;
+	private int uMember;
 
 }
