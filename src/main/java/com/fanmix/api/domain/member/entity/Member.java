@@ -1,9 +1,7 @@
 package com.fanmix.api.domain.member.entity;
 
-import java.time.LocalDate;
-
-import com.fanmix.api.domain.common.Role;
 import com.fanmix.api.domain.common.SocialType;
+import com.fanmix.api.domain.common.entity.BaseEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -23,11 +21,11 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Member {
+public class Member extends BaseEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+	private int id;
 	private String loginId;
 	private String loginPw;
 
@@ -41,9 +39,6 @@ public class Member {
 	private String nationality;          //국적
 	private int totalPoint;
 
-	@Enumerated(EnumType.STRING)
-	private Role role;
-
 	//소셜로그인 관련
 	@Enumerated(EnumType.STRING)
 	private SocialType socialType; // KAKAO, NAVER, GOOGLE
@@ -52,10 +47,6 @@ public class Member {
 
 	@Column(columnDefinition = "BOOLEAN DEFAULT FALSE")
 	private boolean firstLoginYn;
-	private int crMember;
-	private LocalDate crDate;
-	private int uMember;
-	private LocalDate uDate;
 	@Transient
 	private String jwt;    //db에 저장안하고 메모리에서만 사용
 
@@ -74,11 +65,6 @@ public class Member {
 		this.socialId = socialId;
 		this.socialType = socialtype;
 		this.refreshToken = refreshToken;
-	}
-
-	// 유저 권한 설정 메소드
-	public void authorizeUser() {
-		this.role = Role.USER;
 	}
 
 	// 비밀번호 암호화 메소드

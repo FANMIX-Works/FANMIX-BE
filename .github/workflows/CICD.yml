@@ -44,7 +44,12 @@ jobs:
       - name: make application-prod.yml
         run: |
           touch ./src/main/resources/application-prod.yml
-          echo "${{ secrets.APPLICATION }}" | base64 --decode > ./src/main/resources/application-prod.yml
+          echo "${{ secrets.APPLICATION_PROD }}" | base64 --decode > ./src/main/resources/application-prod.yml
+
+      - name: make application-test.yml
+        run: |
+          touch ./src/main/resources/application-test.yml
+          echo "${{ secrets.APPLICATION_TEST }}" | base64 --decode > ./src/main/resources/application-test.yml
 
       - name: make logback-spring.xml
         run: |

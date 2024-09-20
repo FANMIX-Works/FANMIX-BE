@@ -108,8 +108,15 @@ public class ImageService {
 	 * 나중에 삭제될 수 있음
 	 */
 	public ImageResponseDto getImageInfo(String fileName) {
+		if (!isFileExists(fileName)) {
+			throw new ImageException(NOT_FOUND_IMAGE_BY_URL);
+		}
 		S3Resource resource = s3Operations.download(bucketName, fileName);
 		String filename = resource.getFilename();
 		return ImageResponseDto.of(fileName, resource.getDescription(), cloudfrontUrl + filename);
+	}
+
+	private boolean isFileExists(String fileName) {
+		return s3Operations.objectExists(bucketName, fileName);
 	}
 }
