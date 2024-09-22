@@ -1,7 +1,18 @@
 package com.fanmix.api.domain.member.service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,10 +25,23 @@ import lombok.RequiredArgsConstructor;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class MemberService {
+public class MemberService implements UserDetailsService {
 
 	private final MemberRepository memberRepository;
-	//private final PasswordEncoder passwordEncoder;
+	private final PasswordEncoder passwordEncoder;
+
+	@Override
+	//오버라이드한 함수라 함수이름을 변경할수 없지만 이메일로 식별
+	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+		return memberRepository.findByEmail(username)
+			.orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + username));
+	}
+
+	private List<GrantedAuthority> getAuthorities(String role) {
+		List<GrantedAuthority> authorities = new ArrayList<>();
+		authorities.add(new SimpleGrantedAuthority(role));
+		return authorities;
+	}
 
 	public void signUp(MemberSignUpDto memberSignUpDto) throws Exception {
 
@@ -42,7 +66,7 @@ public class MemberService {
 			.nationality(memberSignUpDto.getNationality())
 			.build();
 
-		//Member.passwordEncode(passwordEncoder);
+		member.setLoginPw(passwordEncoder.encode(member.getLoginPw()));
 		memberRepository.save(member);
 	}
 
@@ -56,8 +80,22 @@ public class MemberService {
 	}
 
 	public Member getMyInfo() {
-		// TODO: 현재 로그인한 회원의 정보를 가져오는 로직을 구현해야 함
-		throw new UnsupportedOperationException("Not implemented yet");
+		try {
+			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+			if (authentication == null || authentication.getPrincipal() == null) {
+				throw new RuntimeException("로그인한 사용자가 없습니다.");
+			}
+			String email = (String)authentication.getPrincipal();
+			Member member = memberRepository.findByEmail(email)
+				.orElseThrow(() -> new RuntimeException("회원 정보가 존재하지 않습니다."));
+			if (!member.getEmail().equals(email)) {
+				throw new RuntimeException("권한이 없습니다.");
+			}
+			return member;
+		} catch (RuntimeException e) {
+			throw new RuntimeException("회원 정보를 가져오는 중 오류가 발생했습니다.", e);
+		}
+
 	}
 
 	public Member updateProfileImage(int id, String profileImgUrl) {

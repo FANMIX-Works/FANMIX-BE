@@ -1,7 +1,14 @@
 package com.fanmix.api.domain.member.entity;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.Collections;
 
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import com.fanmix.api.domain.common.Role;
 import com.fanmix.api.domain.common.SocialType;
 import com.fanmix.api.domain.common.entity.BaseEntity;
 
@@ -23,7 +30,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Member extends BaseEntity {
+public class Member extends BaseEntity implements UserDetails {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -49,6 +56,9 @@ public class Member extends BaseEntity {
 
 	@Column(columnDefinition = "BOOLEAN DEFAULT FALSE")
 	private boolean firstLoginYn;
+	@Enumerated(EnumType.STRING)
+	private Role role; // GUEST, MEMBER, COMMUNITY, ADMIN
+
 	private int crMember;
 	private LocalDateTime crDate;
 	private int uMember;
@@ -66,21 +76,52 @@ public class Member extends BaseEntity {
 		String email,
 		String socialId,
 		SocialType socialtype,
-		String refreshToken
+		String refreshToken,
+		Role role
 	) {
 		this.email = email;
 		this.socialId = socialId;
 		this.socialType = socialtype;
 		this.refreshToken = refreshToken;
+		this.role = role != null ? role : Role.MEMBER; // 기본 역할 설정
 	}
-
-	// 비밀번호 암호화 메소드
-	// public void passwordEncode(PasswordEncoder passwordEncoder) {
-	// 	this.password = passwordEncoder.encode(this.password);
-	// }
 
 	public void updateRefreshToken(String updateRefreshToken) {
 		this.refreshToken = updateRefreshToken;
 	}
 
+	@Override
+	public Collection<? extends GrantedAuthority> getAuthorities() {
+		return Collections.singletonList(new SimpleGrantedAuthority(this.role.name()));
+	}
+
+	@Override
+	public String getPassword() {
+		return loginPw;
+	}
+
+	@Override
+	public String getUsername() {
+		return this.email;
+	}
+
+	@Override
+	public boolean isAccountNonExpired() {
+		return true;
+	}
+
+	@Override
+	public boolean isAccountNonLocked() {
+		return true;
+	}
+
+	@Override
+	public boolean isCredentialsNonExpired() {
+		return true;
+	}
+
+	@Override
+	public boolean isEnabled() {
+		return true;
+	}
 }

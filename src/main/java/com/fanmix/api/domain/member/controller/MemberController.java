@@ -1,11 +1,14 @@
 package com.fanmix.api.domain.member.controller;
 
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -26,6 +29,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Controller
@@ -127,7 +131,11 @@ public class MemberController {
 	@PatchMapping("/api/members/{id}/profile-image")
 	@ResponseBody
 	public ResponseEntity<Member> updateProfileImage(@PathVariable int id,
-		@RequestBody @Parameter(description = "프로필이미지url") String profileImgUrl) {
+		@RequestBody Map<String, String> body) {
+		String profileImgUrl = body.get("profileImgUrl");
+		if (profileImgUrl == null || profileImgUrl.isEmpty()) {
+			throw new IllegalArgumentException("Invalid profileImgUrl value");
+		}
 		Member member = memberService.updateProfileImage(id, profileImgUrl);
 		return ResponseEntity.ok(member);
 	}
@@ -136,7 +144,11 @@ public class MemberController {
 	@PatchMapping("/api/members/{id}/introduce")
 	@ResponseBody
 	public ResponseEntity<Member> updateIntroduce(@PathVariable int id,
-		@RequestBody @Parameter(description = "소개글") String introduce) {
+		@RequestBody Map<String, String> body) {
+		String introduce = body.get("introduce");
+		if (introduce == null) {
+			throw new IllegalArgumentException("Invalid introduce value");
+		}
 		Member member = memberService.updateIntroduce(id, introduce);
 		return ResponseEntity.ok(member);
 	}
@@ -144,9 +156,18 @@ public class MemberController {
 	// 회원의 닉네임을 업데이트하는 API
 	@PatchMapping("/api/members/{id}/nickname")
 	@ResponseBody
-	public ResponseEntity<Member> updateNickname(@PathVariable int id,
-		@RequestBody @Parameter(description = "닉네임") String nickname) {
-		Member member = memberService.updateNickname(id, nickname);
+	@Operation(summary = "회원 닉네임 업데이트", description = "회원의 닉네임을 업데이트합니다.")
+	public ResponseEntity<Member> updateNickname(
+		@Parameter(description = "회원 ID") @PathVariable int id,
+		@Parameter(description = "새 닉네임 정보",
+			content = @Content(schema = @Schema(example = "{\"nickname\": \"새로운닉네임\"}")))
+		@RequestBody Map<String, String> body) {
+		String nickName = body.get("nickName");
+		if (nickName == null || nickName.length() != 1) {
+			throw new IllegalArgumentException("Invalid nickName value");
+		}
+		char gender = nickName.charAt(0);
+		Member member = memberService.updateNickname(id, nickName);
 		return ResponseEntity.ok(member);
 	}
 
@@ -154,16 +175,26 @@ public class MemberController {
 	@PatchMapping("/api/members/{id}/gender")
 	@ResponseBody
 	public ResponseEntity<Member> updateGender(@PathVariable int id,
-		@RequestBody @Parameter(description = "성별 (M, W)") Character gender) {
+		@RequestBody Map<String, String> body) {
+		String genderStr = body.get("gender");
+		if (genderStr == null || genderStr.length() != 1) {
+			throw new IllegalArgumentException("Invalid gender value");
+		}
+		char gender = genderStr.charAt(0);
 		Member member = memberService.updateGender(id, gender);
 		return ResponseEntity.ok(member);
 	}
 
 	// 회원의 출생년도를 업데이트하는 API
+	@PreAuthorize("hasRole('MEMBER')")
 	@PatchMapping("/api/members/{id}/birth-year")
 	@ResponseBody
 	public ResponseEntity<Member> updateBirthYear(@PathVariable int id,
-		@RequestBody @Parameter(description = "출생년도(4자리숫자)") int birthYear) {
+		@RequestBody Map<String, Object> body) {
+		Integer birthYear = (Integer)body.get("birthYear");
+		if (birthYear == null) {
+			throw new IllegalArgumentException("Invalid birthYear value");
+		}
 		Member member = memberService.updateBirthYear(id, birthYear);
 		return ResponseEntity.ok(member);
 	}
@@ -172,13 +203,16 @@ public class MemberController {
 	@PatchMapping("/api/members/{id}/nationality")
 	@ResponseBody
 	public ResponseEntity<Member> updateNationality(@PathVariable int id,
-		@RequestBody @Parameter(description = "국적") String nationality) {
+		@RequestBody Map<String, String> body) {
+		String nationality = body.get("nationality");
+		if (nationality == null || nationality.isEmpty()) {
+			throw new IllegalArgumentException("Invalid nationality value");
+		}
 		Member member = memberService.updateNationality(id, nationality);
 		return ResponseEntity.ok(member);
 	}
 
-	// 새로운 회원을 생성하는 API
-
+	// 일반적인 회원가입
 	@PostMapping("/api/members")
 	@ResponseBody
 	public ResponseEntity<Member> createMember(@RequestBody @Parameter(description = "회원 데이터") Member member) {

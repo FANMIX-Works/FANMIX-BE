@@ -2,7 +2,9 @@ package com.fanmix.api.domain.member.service;
 
 import static com.fanmix.api.domain.member.exception.MemberErrorCode.*;
 
+import java.util.Collections;
 import java.util.Date;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 
@@ -18,12 +20,19 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.orm.jpa.JpaSystemException;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import com.fanmix.api.domain.common.Role;
 import com.fanmix.api.domain.common.SocialType;
 import com.fanmix.api.domain.member.entity.Member;
 import com.fanmix.api.domain.member.exception.MemberException;
@@ -39,7 +48,7 @@ import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.WeakKeyException;
 
 @Service
-public class GoogleLoginService implements OAuthClient {
+public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, OAuth2User>, OAuthClient {
 
 	private final MemberRepository memberRepository;
 	private final String clientId;
@@ -185,6 +194,7 @@ public class GoogleLoginService implements OAuthClient {
 					.profileImgUrl(picture)
 					.socialType(SocialType.GOOGLE)
 					.firstLoginYn(true)
+					.role(Role.MEMBER)
 					.build());
 
 			if (member.getId() != -1) {
@@ -296,5 +306,17 @@ public class GoogleLoginService implements OAuthClient {
 			nickName.append(numSyllables[random.nextInt(numSyllables.length)]);
 		}
 		return nickName.toString();
+	}
+
+	@Override
+	public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+		String accessToken = userRequest.getAccessToken().getTokenValue();
+		Member member = requestOAuthInfo(accessToken);
+
+		return new DefaultOAuth2User(
+			Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")),
+			Map.of("email", member.getEmail(), "name", member.getName()),
+			"email"
+		);
 	}
 }
