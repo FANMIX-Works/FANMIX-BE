@@ -16,6 +16,7 @@ import com.fanmix.api.domain.member.service.GoogleLoginService;
 @EnableWebSecurity
 public class SecurityConfig {
 
+	/* 운영서버 application-prod.yml 값 넣어주고 인코딩후 깃헙변수에 추가 */
 	@Autowired
 	private GoogleLoginService googleLoginService;
 
