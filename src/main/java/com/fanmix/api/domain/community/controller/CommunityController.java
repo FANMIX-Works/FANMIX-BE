@@ -4,8 +4,8 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -26,7 +26,7 @@ public class CommunityController {
 	private final CommunityService communityService;
 
 	// 커뮤니티 추가
-	@PostMapping("/community")
+	@PostMapping("/api/communities")
 	public ResponseEntity<Community> addCommunity(@RequestBody AddCommunityRequest request) {
 		Community community = communityService.save(request);
 
@@ -34,8 +34,8 @@ public class CommunityController {
 			.body(community);
 	}
 
-	// 커뮤니티 목록 조회
-	@GetMapping("/communities")
+	// 전체 커뮤니티 리스트 조회
+	@GetMapping("/api/communities")
 	public ResponseEntity<List<CommunityResponse>> findAllCommunity() {
 		List<CommunityResponse> communities = communityService.findAll()
 			.stream()
@@ -47,26 +47,26 @@ public class CommunityController {
 	}
 
 	// 커뮤니티 조회
-	@GetMapping("/communities/{id}")
-	public ResponseEntity<Community> findCommunity(@PathVariable int id) {
-		Community community = communityService.findById(id);
+	@GetMapping("/api/communities/{communityId}")
+	public ResponseEntity<Community> findCommunity(@PathVariable int communityId) {
+		Community community = communityService.findById(communityId);
 
 		return ResponseEntity.ok()
 			.body(community);
 	}
 
 	// 커뮤니티 수정
-	@PutMapping("/communities/{id}")
-	public ResponseEntity<Community> updateCommunity(@PathVariable int id, @RequestBody UpdateCommunityRequest request) {
-		Community community = communityService.update(id, request);
+	@PutMapping("/api/communities/{communityId}")
+	public ResponseEntity<Community> updateCommunity(@PathVariable int communityId, @RequestBody UpdateCommunityRequest request) {
+		Community community = communityService.update(communityId, request);
 
 		return ResponseEntity.ok()
 			.body(community);
 	}
 
 	// 커뮤니티 삭제
-	@DeleteMapping("/communities/{id}")
-	public void deleteCommunity(@PathVariable int id) {
-		communityService.delete(id);
+	@PatchMapping("/api/communities/{communityId}")
+	public void deleteCommunity(@PathVariable int communityId) {
+		communityService.delete(communityId);
 	}
 }
