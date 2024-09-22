@@ -36,18 +36,27 @@ class MemberControllerTest {
 	private TestRestTemplate restTemplate;
 
 	@Test
-	@WithMockUser(username = "test@example.com")
+	@WithMockUser(username = "test@example.com", roles = "MEMBER")
 	public void testGetMyInfo() throws Exception {
 		System.out.println("testGetMyInfo() 테스트 함수 호출");
 		//현재 로그인한 회원의 정보를 가져오는 api 테스트
 		//@WithMockUser를 하용하면 Mockito에서 Authentication , Securitycontext, pk로 해당유저 담는 코드 생략가능
 		// MockMvc를 사용하여 실제 데이터베이스나 로직을 거치지 않고 HTTP 요청 시뮬레이션 테스트. 해당사용자가 없어소 사용자가 인증된것처럼 동작
 		Member mockMember = new Member(); // 필요한 필드 설정
+		mockMember.setId(1);
+		mockMember.setEmail("test@example.com");
+		mockMember.setNickName("TestUser");
+		mockMember.setRole(Role.MEMBER); // Role 설정 추가
+
 		when(memberService.getMyInfo()).thenReturn(mockMember);
 
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/members/me"))
 			.andExpect(MockMvcResultMatchers.status().isOk())
 			.andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+			.andExpect(MockMvcResultMatchers.jsonPath("$.id").value(1))
+			.andExpect(MockMvcResultMatchers.jsonPath("$.email").value("test@example.com"))
+			.andExpect(MockMvcResultMatchers.jsonPath("$.nickName").value("TestUser"))
+			.andExpect(MockMvcResultMatchers.jsonPath("$.role").value("MEMBER"))
 			.andDo(MockMvcResultHandlers.print());
 	}
 
@@ -69,7 +78,8 @@ class MemberControllerTest {
 				.contentType(MediaType.APPLICATION_JSON)
 				.content("{\"gender\": \"M\"}"))    // JSON 형식으로 성별 전송
 			.andExpect(MockMvcResultMatchers.status().isOk())
-			.andExpect(MockMvcResultMatchers.jsonPath("$.gender").value("M"));// 응답 JSON의 gender 필드 값 확인
+			.andExpect(MockMvcResultMatchers.jsonPath("$.gender").value("M"));
+		// 응답 JSON의 gender 필드 값 확인
 
 		verify(memberService).updateGender(memberId, 'M');
 	}

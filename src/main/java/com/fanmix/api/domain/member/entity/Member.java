@@ -124,4 +124,8 @@ public class Member extends BaseEntity implements UserDetails {
 	public boolean isEnabled() {
 		return true;
 	}
+
+	public String getRoleName() {
+		return role != null ? role.name() : null;
+	}
 }
