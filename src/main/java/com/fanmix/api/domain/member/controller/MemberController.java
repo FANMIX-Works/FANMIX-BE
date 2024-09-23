@@ -96,7 +96,12 @@ public class MemberController {
 
 	@GetMapping("/api/members/auth/refresh-token")
 	@ResponseBody
-	public String getAccessTokenUsingrefreshToken(@RequestParam String refreshToken) {
+	public String getAccessTokenUsingrefreshToken(@RequestBody Map<String, String> body) {
+
+		String refreshToken = body.get("refreshToken");
+		if (refreshToken == null) {
+			throw new IllegalArgumentException("Invalid refreshToken");
+		}
 		return googleLoginService.getAccessTokenUsingrefreshToken(refreshToken);
 	}
 

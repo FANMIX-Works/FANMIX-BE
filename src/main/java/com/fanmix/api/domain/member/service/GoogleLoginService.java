@@ -256,6 +256,12 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 		return jwt;
 	}
 
+	/**
+	 *
+	 * @param refreshToken
+	 * 초기 인증과정에서 어세스토큰과 함께 발급했던 리프레쉬 토큰으로 어세스토큰 만료시 다시 어세스토큰 발급
+	 * @return 어세스토큰
+	 */
 	public String getAccessTokenUsingrefreshToken(String refreshToken) {
 		try {
 			Claims claims = Jwts.parser().setSigningKey(jwtKey).parseClaimsJws(refreshToken).getBody();
