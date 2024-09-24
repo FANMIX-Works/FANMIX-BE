@@ -29,8 +29,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.extern.slf4j.Slf4j;
 
 @Controller
+@Slf4j
 public class MemberController {
 
 	@Autowired
@@ -49,7 +51,7 @@ public class MemberController {
 	 */
 	public Response<Map<String, Object>> googleAuthLogin(@RequestBody Map<String, String> request) {
 		try {
-			System.out.println("구글 소셜 로그인. 인가코드로 어세스토큰, 멤버정보 반환");
+			log.debug("구글 소셜 로그인. 인가코드로 어세스토큰, 멤버정보 반환");
 			String code = request.get("code");
 			String accessToken = googleLoginService.requestAccessToken(code);
 			MemberResponseDto memberResponseDto = googleLoginService.requestOAuthInfo(accessToken);
@@ -73,24 +75,25 @@ public class MemberController {
 	@GetMapping("/api/members/auth/validate-token")
 	@ResponseBody
 	public boolean validateToken(@RequestParam String jwt) {
+		log.debug("컨트롤러의 validateToken()");
 		return googleLoginService.validateToken(jwt);
 	}
 
 	@GetMapping("/login")
 	public String login() {
-		System.out.println("로그인화면 리턴");
+		log.debug("로그인화면 리턴");
 		return "login";
 	}
 
 	@GetMapping("/auth/redirect")
 	public String auth_redirect() {
-		System.out.println("구글로그인 버튼승인후 리턴");
+		log.debug("구글로그인 버튼승인후 리턴");
 		return "auth/redirect";
 	}
 
 	@GetMapping("/profile")
 	public String profile() {
-		System.out.println("프로필화면 리턴");
+		log.debug("프로필화면 리턴");
 		return "profile";
 	}
 
@@ -127,9 +130,11 @@ public class MemberController {
 	// 현재 로그인한 회원의 정보를 가져오는 API
 	@GetMapping("/api/members/me")
 	@ResponseBody
-	public ResponseEntity<Member> getMyInfo() {
+	public ResponseEntity<MemberResponseDto> getMyInfo() {
+		log.debug("멤버컨트롤러. 자기정보");
 		Member member = memberService.getMyInfo();
-		return ResponseEntity.ok(member);
+		MemberResponseDto responseDto = MemberService.toResponseDto(member);
+		return ResponseEntity.ok(responseDto);
 	}
 
 	// 회원의 프로필 이미지를 업데이트하는 API

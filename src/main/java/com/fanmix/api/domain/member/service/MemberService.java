@@ -81,6 +81,7 @@ public class MemberService implements UserDetailsService {
 	}
 
 	public Member getMyInfo() {
+		System.out.println("MemberService의 getMyInfo()");
 		try {
 			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 			if (authentication == null || authentication.getPrincipal() == null) {

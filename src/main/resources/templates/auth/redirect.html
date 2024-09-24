@@ -14,6 +14,14 @@
 <p>member닉네임 : <div id="member"></div></p>
 <br>
 <p id="response"></p>
+<button onclick="validateToken()">유저 정보 보기</button>
+<!-- 추가 정보 표시 -->
+<p>프로필 이미지 URL : <div id="profileImgUrl"></div></p>
+<br>
+<p>첫 로그인 여부 : <div id="firstLoginYn"></div></p>
+<br>
+<p>역할 : <div id="role"></div></p>
+<br>
 
 
 <script th:inline="javascript">
@@ -39,6 +47,31 @@
             document.getElementById('response').innerText = 'Error: ' + error.message;
         });
     });
+
+
+    function validateToken() {
+        const jwt = document.getElementById('jwt').innerText;
+        axios.get('/api/members/me', {
+            /* 헤더에 Authorization이라는 이름으로 Bearer 한칸띄우고 jwt 값을 넣음 */
+            headers: {
+                'Authorization': 'Bearer ' + jwt
+            }
+        })
+        .then(response => {
+            console.log("마이페이지 response : ", response);
+            console.log("마이페이지 response.data : ", response.data);
+
+            document.getElementById('nickName').innerText = response.data.nickName;
+            document.getElementById('email').innerText = response.data.email;
+            document.getElementById('profileImgUrl').innerText = response.data.profileImgUrl;
+            document.getElementById('firstLoginYn').innerText = response.data.firstLoginYn;
+            document.getElementById('role').innerText = response.data.role;
+        })
+        .catch(error => {
+            console.error(error);
+            document.getElementById('response').innerText = 'Error: ' + error.message;
+        });
+    }
 </script>
 </body>
 </html>

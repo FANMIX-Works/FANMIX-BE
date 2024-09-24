@@ -1,16 +1,21 @@
 package com.fanmix.api.domain.member.conf;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.fanmix.api.domain.member.service.GoogleLoginService;
+import com.fanmix.api.domain.member.service.MemberService;
+import com.fanmix.api.security.filter.JwtTokenFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -19,6 +24,11 @@ public class SecurityConfig {
 	/* 운영서버 application-prod.yml 값 넣어주고 인코딩후 깃헙변수에 추가 */
 	@Autowired
 	private GoogleLoginService googleLoginService;
+	@Autowired
+	@Lazy
+	private MemberService memberService;
+	@Value("${jwt.secret}")
+	private String secretKey;
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -35,7 +45,7 @@ public class SecurityConfig {
 				.requestMatchers("/", "/login", "/profile", "/oauth2/**", "/auth/redirect", "/error",
 					"/api/members/oauth/google").permitAll()
 				.requestMatchers("/api/admin/**").hasRole("ADMIN")
-				.requestMatchers("/api/member/**").hasAnyRole("MEMBER", "ADMIN")
+				.requestMatchers("/api/members/**").hasAnyRole("MEMBER", "ADMIN")
 				.requestMatchers("/api/influencer/**").hasRole("INFLUENCER")
 				.anyRequest().authenticated()
 			).formLogin(form -> form    //formLogin은 로그인정보를 처리하는 기능까지 포함
@@ -53,8 +63,8 @@ public class SecurityConfig {
 				.userInfoEndpoint(userInfo -> userInfo
 					.userService(googleLoginService)
 				)
-			);
-
+			)
+			.addFilterBefore(new JwtTokenFilter(memberService, secretKey), UsernamePasswordAuthenticationFilter.class);
 		return http.build();
 	}
 

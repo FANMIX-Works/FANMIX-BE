@@ -1,6 +1,7 @@
 package com.fanmix.api.domain.member.service;
 
 import static com.fanmix.api.domain.member.exception.MemberErrorCode.*;
+import static io.jsonwebtoken.Jwts.*;
 
 import java.util.Collections;
 import java.util.Date;
@@ -44,7 +45,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.WeakKeyException;
@@ -70,7 +70,7 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 		this.clientId = clientId;
 		this.clientSecret = clientSecret;
 		this.redirectUri = redirectUri;
-		this.jwtKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+		this.jwtKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);    //알고리즘
 		int keySize = jwtKey.getEncoded().length * 8;
 		if (keySize < 256) {
 			throw new WeakKeyException("The signing key's size is not secure enough for the HS256 algorithm.");
@@ -232,7 +232,7 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 	public String generateJwt(Member member) {
 		//JWT 토큰의 구성요소
 		//Header(암호화 알고리즘), Payload(사용자정보와 토큰유효기간), Signature(토큰의 무결성을 보장하는 서명)
-		String jwt = Jwts.builder()
+		String jwt = builder()
 			.setSubject(member.getEmail())
 			.setIssuedAt(new Date())
 			.setExpiration(new Date(System.currentTimeMillis() + 86400000)) // 1일
@@ -249,8 +249,8 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 	 */
 	public String getAccessTokenUsingrefreshToken(String refreshToken) {
 		try {
-			Claims claims = Jwts.parser().setSigningKey(jwtKey).parseClaimsJws(refreshToken).getBody();
-			String newJwt = Jwts.builder()
+			Claims claims = parser().setSigningKey(jwtKey).parseClaimsJws(refreshToken).getBody();
+			String newJwt = builder()
 				.setSubject(claims.getSubject())
 				.setIssuedAt(new Date())
 				.setExpiration(new Date(System.currentTimeMillis() + 86400000)) // 1일
@@ -264,7 +264,7 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 
 	public boolean validateToken(String jwt) {
 		try {
-			Jwts.parser().setSigningKey(jwtKey).parseClaimsJws(jwt);
+			parser().setSigningKey(jwtKey).parseClaimsJws(jwt);
 			return true;
 		} catch (Exception e) {
 			return false;
