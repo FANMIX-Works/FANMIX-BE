@@ -39,8 +39,6 @@ public class MemberServiceTest {
 	@PersistenceContext
 	EntityManager em;
 
-	// private PasswordEncoder passwordEncoder;  // Uncomment if password encoding is needed
-
 	@Autowired
 	private MemberService memberService;
 

@@ -1,6 +1,7 @@
 package com.fanmix.api.domain.member.service;
 
 import com.fanmix.api.domain.common.SocialType;
+import com.fanmix.api.domain.member.dto.MemberResponseDto;
 import com.fanmix.api.domain.member.entity.Member;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -20,10 +21,11 @@ public interface OAuthClient {
 
 	/**
 	 * Access Token을 사용하여 사용자의 프로필 정보를 획득합니다.
+	 *
 	 * @param accessToken 액세스 토큰.
 	 * @return MemberRepository 사용자의 프로필 정보가 저장된 리포지토리 객체.
 	 */
-	Member requestOAuthInfo(String accessToken) throws JsonProcessingException;
+	MemberResponseDto requestOAuthInfo(String accessToken) throws JsonProcessingException;
 
 	String generateJwt(Member member);
 

@@ -1,6 +1,5 @@
 package com.fanmix.api.domain.member.entity;
 
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -19,7 +18,6 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -54,18 +52,10 @@ public class Member extends BaseEntity implements UserDetails {
 	private String socialId; // 로그인한 소셜 타입의 식별자 값 (일반 자체 로그인인 경우 null)
 	private String refreshToken; // 리프레시 토큰. JWT를 사용하여 로그인성공시 AccessToken, RefreshToken을 발행할 예정
 
-	@Column(columnDefinition = "BOOLEAN DEFAULT FALSE")
-	private boolean firstLoginYn;
+	@Column(columnDefinition = "BOOLEAN DEFAULT NULL")
+	private Boolean firstLoginYn;
 	@Enumerated(EnumType.STRING)
 	private Role role; // GUEST, MEMBER, COMMUNITY, ADMIN
-
-	private int crMember;
-	private LocalDateTime crDate;
-	private int uMember;
-	private LocalDateTime uDate;
-
-	@Transient
-	private String jwt;    //db에 저장안하고 메모리에서만 사용
 
 	public Member(String name) {
 		this.name = name;
@@ -128,4 +118,5 @@ public class Member extends BaseEntity implements UserDetails {
 	public String getRoleName() {
 		return role != null ? role.name() : null;
 	}
+
 }
