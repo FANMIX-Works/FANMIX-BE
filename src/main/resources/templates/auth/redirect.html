@@ -13,14 +13,15 @@
 <br>
 <p>member닉네임 : <div id="member"></div></p>
 <br>
+<p>역할 : <div id="role"></div></p>
+<br>
 <p id="response"></p>
 <button onclick="validateToken()">유저 정보 보기</button>
 <!-- 추가 정보 표시 -->
 <p>프로필 이미지 URL : <div id="profileImgUrl"></div></p>
 <br>
 <p>첫 로그인 여부 : <div id="firstLoginYn"></div></p>
-<br>
-<p>역할 : <div id="role"></div></p>
+
 <br>
 
 
@@ -39,8 +40,9 @@
             console.log("response.data.data.member.nickName : ", response.data.data.member.nickName);
 
             document.getElementById('authCode').innerText = authCode;
-            document.getElementById('jwt').innerText = response.data.data.jwt; // No need for JSON.stringify here
-            document.getElementById('member').innerText = response.data.data.member.nickName; // No need for JSON.stringify here
+            document.getElementById('jwt').innerText = response.data.data.jwt;
+            document.getElementById('member').innerText = response.data.data.member.nickName;
+            document.getElementById('role').innerText = response.data.data.member.role;
         })
         .catch(error => {
             console.error(error);
@@ -65,9 +67,9 @@
             document.getElementById('email').innerText = response.data.email;
             document.getElementById('profileImgUrl').innerText = response.data.profileImgUrl;
             document.getElementById('firstLoginYn').innerText = response.data.firstLoginYn;
-            document.getElementById('role').innerText = response.data.role;
         })
         .catch(error => {
+            console.error("마이페이지 response에러");
             console.error(error);
             document.getElementById('response').innerText = 'Error: ' + error.message;
         });

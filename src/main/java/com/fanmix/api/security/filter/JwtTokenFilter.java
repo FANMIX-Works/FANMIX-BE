@@ -58,20 +58,24 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 		}
 
 		// token에서 userName 꺼내기
-		log.debug("유저네임 꺼내기");
+		log.debug("사용자식별자 꺼내기(이메일)");
 		String userName = JwtTokenUtil.getUserName(token, secretKey);
-		log.info("사용자 이름 : {}", userName);
+		log.debug("사용자식별자 (이메일) : {}", userName);
 
 		UserDetails userDetails = memberService.loadUserByUsername(userName);
-		log.info("userRole : {} ", userDetails.getAuthorities());
+		log.debug("userRole : {} ", userDetails.getAuthorities());
 
-		//문 열어주기, Role 바인딩
+		// 인증된 사용자를 나타내는 새로운 UsernamePasswordAuthenticationToken 객체 생성
+		// UsernamePasswordAuthenticationToken 생성자의 파라미터3개.  principal(아이디. 식별자), credentials(비밀번호), authorities(권한목록)
+		// 이 생성자는 인증이 완료된 후에 사용하며 인증된 사용자정보를 저장하고 Spring Security의 컨텍스트에 저장
 		UsernamePasswordAuthenticationToken authenticationToken =
 			new UsernamePasswordAuthenticationToken(userDetails.getUsername(), null,
 				userDetails.getAuthorities());
+
 		authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 		SecurityContextHolder.getContext().setAuthentication(authenticationToken); // 권한 부여
 		filterChain.doFilter(request, response);
+		log.debug("필터 끝가지 옴");
 
 	}
 }

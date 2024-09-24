@@ -17,6 +17,10 @@ public record Response<T>(
 		return new Response<>(SUCCESS_STATUS, null, data, null);
 	}
 
+	public static <T> Response<T> success(T data, String message) {
+		return new Response<>(SUCCESS_STATUS, null, data, message);
+	}
+
 	public static Response<String> fail(String customCode, String message) {
 		return new Response<>(FAIL_STATUS, customCode, null, message);
 	}

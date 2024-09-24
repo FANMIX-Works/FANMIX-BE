@@ -41,6 +41,7 @@ public class SecurityConfig {
 			// HTTP 기본 인증 비활성화
 			.httpBasic(httpBasic -> httpBasic.disable())
 			// API패턴별 요청에 대한 권한 설정
+			// hasRole을 쓰면 자동으로 앞에 'ROLE_' 를 붙인다.
 			.authorizeHttpRequests((authz) -> authz
 				.requestMatchers("/", "/login", "/profile", "/oauth2/**", "/auth/redirect", "/error",
 					"/api/members/oauth/google").permitAll()
