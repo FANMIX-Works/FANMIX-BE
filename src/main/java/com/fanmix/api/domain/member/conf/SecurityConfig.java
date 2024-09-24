@@ -32,14 +32,15 @@ public class SecurityConfig {
 			.httpBasic(httpBasic -> httpBasic.disable())
 			// API패턴별 요청에 대한 권한 설정
 			.authorizeHttpRequests((authz) -> authz
-				.requestMatchers("/", "/login/**", "/oauth2/**", "/error").permitAll()
+				.requestMatchers("/", "/login", "/profile", "/oauth2/**", "/auth/redirect", "/error",
+					"/api/members/oauth/google").permitAll()
 				.requestMatchers("/api/admin/**").hasRole("ADMIN")
-				.requestMatchers("/api/member/**").hasRole("MEMBER")
+				.requestMatchers("/api/member/**").hasAnyRole("MEMBER", "ADMIN")
 				.requestMatchers("/api/influencer/**").hasRole("INFLUENCER")
 				.anyRequest().authenticated()
 			).formLogin(form -> form    //formLogin은 로그인정보를 처리하는 기능까지 포함
 				.loginPage("/login")        //loginPage는 로그인정보를 입력하는 페이지만 제공
-				.defaultSuccessUrl("/home")
+				// .defaultSuccessUrl("/home")  RESTAPI용도의 백엔드여서 제거. 이제 특정 URL로 리다이렉트 하려고 시도안함고 대신 인증 성공시 200 OK 응답
 				.permitAll())
 			// 로그아웃 설정
 			.logout(logout -> logout
@@ -47,8 +48,8 @@ public class SecurityConfig {
 				.clearAuthentication(true))
 			// OAuth2 로그인 설정
 			.oauth2Login(oauth2 -> oauth2
-				.loginPage("/login")
-				.defaultSuccessUrl("/home")
+				.loginPage("/login")    //내가만든 로그인 페이지
+				// .defaultSuccessUrl("/home")  RESTAPI용도의 백엔드여서 제거. 이제 특정 URL로 리다이렉트 하려고 시도안함고 대신 인증 성공시 200 OK 응답
 				.userInfoEndpoint(userInfo -> userInfo
 					.userService(googleLoginService)
 				)

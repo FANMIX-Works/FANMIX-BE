@@ -11,8 +11,22 @@ public class AuthResponse {
 	@Schema(description = "JWT Token", type = "string")
 	private String jwt;
 
+	//멤버 속성에서 필요없는것들은 빼고 필요한 정보만 리턴
 	public AuthResponse(Member member, String jwt) {
-		this.member = member;
+		this.member = new Member();
+		this.member.setId(member.getId());
+		this.member.setName(member.getName());
+		this.member.setNickName(member.getNickName());
+		this.member.setProfileImgUrl(member.getProfileImgUrl());
+		this.member.setIntroduce(member.getIntroduce());
+		this.member.setEmail(member.getEmail());
+		this.member.setGender(member.getGender());
+		this.member.setBirthYear(member.getBirthYear());
+		this.member.setNationality(member.getNationality());
+		this.member.setTotalPoint(member.getTotalPoint());
+		this.member.setRefreshToken(member.getRefreshToken());
+		this.member.setRole(member.getRole());
+		this.member.setFirstLoginYn(member.getFirstLoginYn());
 		this.jwt = jwt;
 	}
 

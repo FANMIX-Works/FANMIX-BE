@@ -16,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fanmix.api.domain.member.dto.MemberResponseDto;
 import com.fanmix.api.domain.member.dto.MemberSignUpDto;
 import com.fanmix.api.domain.member.entity.Member;
 import com.fanmix.api.domain.member.repository.MemberRepository;
@@ -137,4 +138,9 @@ public class MemberService implements UserDetailsService {
 	public Member createMember(Member member) {
 		return memberRepository.save(member);
 	}
+
+	public static MemberResponseDto toResponseDto(Member member) {
+		return new MemberResponseDto(member);
+	}
+
 }

@@ -6,29 +6,33 @@
 </head>
 <body>
 
-<h1>인가코드</h1>
+<h1>로그인 성공후</h1>
 <p>인가코드 : <div id="authCode"></div></p>
+<br>
 <p>jwt : <div id="jwt"></div></p>
+<br>
 <p>member닉네임 : <div id="member"></div></p>
+<br>
 <p id="response"></p>
 
 
-<script>
+<script th:inline="javascript">
     // Assuming you have the authorization code in a variable
     const urlParams = new URLSearchParams(window.location.search);
     let authCode = urlParams.get('code');
+    console.log("authCode : ", authCode);
 
     document.addEventListener('DOMContentLoaded', () => {
     axios.post('/api/members/oauth/google', { code: authCode })
         .then(response => {
             console.log("response : ", response);
-            console.log(response.data);
-            console.log(response.data.jwt);
-            console.log(response.data.member.nickName);
+            console.log("response.data : ", response.data);
+            console.log("response.data.data.jwt : ", response.data.data.jwt);
+            console.log("response.data.data.member.nickName : ", response.data.data.member.nickName);
 
             document.getElementById('authCode').innerText = authCode;
-            document.getElementById('jwt').innerText = response.data.jwt; // No need for JSON.stringify here
-            document.getElementById('member').innerText = response.data.member.nickName; // No need for JSON.stringify here
+            document.getElementById('jwt').innerText = response.data.data.jwt; // No need for JSON.stringify here
+            document.getElementById('member').innerText = response.data.data.member.nickName; // No need for JSON.stringify here
         })
         .catch(error => {
             console.error(error);

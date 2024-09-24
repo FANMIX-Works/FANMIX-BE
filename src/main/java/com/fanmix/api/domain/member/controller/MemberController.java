@@ -1,5 +1,6 @@
 package com.fanmix.api.domain.member.controller;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,14 +19,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.fanmix.api.domain.member.dto.AuthResponse;
+import com.fanmix.api.common.response.Response;
+import com.fanmix.api.domain.member.dto.MemberResponseDto;
 import com.fanmix.api.domain.member.entity.Member;
-import com.fanmix.api.domain.member.exception.MemberErrorCode;
-import com.fanmix.api.domain.member.exception.MemberException;
 import com.fanmix.api.domain.member.service.GoogleLoginService;
 import com.fanmix.api.domain.member.service.MemberService;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -46,28 +44,29 @@ public class MemberController {
 	@PostMapping("/api/members/oauth/google")
 	@ResponseBody
 	@Operation(summary = "Google OAuth Login", description = "구글 OAUTH 소셜로그인 API")
-	public ResponseEntity<AuthResponse> googleAuthLogin(
-		@RequestBody @Schema(description = "구글 인가 Code") String code) {
-		String accessToken = null;
-		//code는 JSON형태에 "code"라는 키에 담겨서 넘어오기로 인터페이스 정함
+	/**
+	 * 인가코드로 어세스토큰, 멤버정보 반환
+	 */
+	public Response<Map<String, Object>> googleAuthLogin(@RequestBody Map<String, String> request) {
 		try {
-			// JSON에서 코드 추출
-			ObjectMapper mapper = new ObjectMapper();
-			JsonNode jsonNode = mapper.readTree(code);
-			String codeStr = jsonNode.get("code").asText();
-
-			accessToken = googleLoginService.requestAccessToken(codeStr);
-			System.out.println("accessToken : " + accessToken);
-			Member member = googleLoginService.requestOAuthInfo(accessToken);
-			System.out.println("member : " + member);
+			System.out.println("구글 소셜 로그인. 인가코드로 어세스토큰, 멤버정보 반환");
+			String code = request.get("code");
+			String accessToken = googleLoginService.requestAccessToken(code);
+			MemberResponseDto memberResponseDto = googleLoginService.requestOAuthInfo(accessToken);
+			Member member = Member.builder()
+				.email(memberResponseDto.getEmail())
+				.build();
 			String jwt = googleLoginService.generateJwt(member);
-			System.out.println("jwt : " + jwt);
-			AuthResponse authResponse = new AuthResponse(member, jwt);
-			return ResponseEntity.ok(authResponse);
 
+			Map<String, Object> data = new HashMap<>();
+			data.put("member", memberResponseDto);
+			data.put("jwt", jwt);
+
+			return new Response<>("SUCCESS", null, data, "소셜 로그인 성공하였습니다.");
 		} catch (Exception e) {
-			e.printStackTrace();
-			throw new MemberException(MemberErrorCode.UNKNOWN_ERROR);
+			Map<String, Object> errorResponse = new HashMap<>();
+			errorResponse.put("message", "로그인 중 오류가 발생했습니다.");
+			return new Response<>("FAIL", "ERROR_CODE", null, "로그인 중 오류가 발생했습니다.");
 		}
 	}
 
@@ -91,6 +90,7 @@ public class MemberController {
 
 	@GetMapping("/profile")
 	public String profile() {
+		System.out.println("프로필화면 리턴");
 		return "profile";
 	}
 
@@ -106,7 +106,7 @@ public class MemberController {
 	}
 
 	// 전체 회원리스트를 페이징 처리하여 가져오는 API
-	@GetMapping("/api/members")
+	@GetMapping("/api/admin/members")
 	@ResponseBody
 	public ResponseEntity<PagedModel<Member>> getMembers(@RequestParam(defaultValue = "0") int page,
 		@RequestParam(defaultValue = "10") int size) {
@@ -218,7 +218,7 @@ public class MemberController {
 	}
 
 	// 일반적인 회원가입
-	@PostMapping("/api/members")
+	@PostMapping("/api/admin/members")
 	@ResponseBody
 	public ResponseEntity<Member> createMember(@RequestBody @Parameter(description = "회원 데이터") Member member) {
 		Member createdMember = memberService.createMember(member);
