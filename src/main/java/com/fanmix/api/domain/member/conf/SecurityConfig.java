@@ -1,5 +1,9 @@
 package com.fanmix.api.domain.member.conf;
 
+import java.io.IOException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -12,10 +16,16 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.fanmix.api.domain.member.service.GoogleLoginService;
 import com.fanmix.api.domain.member.service.MemberService;
 import com.fanmix.api.security.filter.JwtTokenFilter;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
 @EnableWebSecurity
@@ -41,12 +51,13 @@ public class SecurityConfig {
 			// HTTP 기본 인증 비활성화
 			.httpBasic(httpBasic -> httpBasic.disable())
 			// API패턴별 요청에 대한 권한 설정
+			// hasRole을 쓰면 자동으로 앞에 'ROLE_' 를 붙인다.
 			.authorizeHttpRequests((authz) -> authz
 				.requestMatchers("/", "/login", "/profile", "/oauth2/**", "/auth/redirect", "/error",
 					"/api/members/oauth/google").permitAll()
-				.requestMatchers("/api/admin/**").hasRole("ADMIN")
-				.requestMatchers("/api/members/**").hasAnyRole("MEMBER", "ADMIN")
-				.requestMatchers("/api/influencer/**").hasRole("INFLUENCER")
+				.requestMatchers("/api/admin/**").hasAnyAuthority("ADMIN")
+				.requestMatchers("/api/members/**").hasAnyAuthority("MEMBER", "ADMIN")
+				.requestMatchers("/api/influencer/**").hasAnyAuthority("INFLUENCER")
 				.anyRequest().authenticated()
 			).formLogin(form -> form    //formLogin은 로그인정보를 처리하는 기능까지 포함
 				.loginPage("/login")        //loginPage는 로그인정보를 입력하는 페이지만 제공
@@ -64,8 +75,21 @@ public class SecurityConfig {
 					.userService(googleLoginService)
 				)
 			)
-			.addFilterBefore(new JwtTokenFilter(memberService, secretKey), UsernamePasswordAuthenticationFilter.class);
+			.addFilterBefore(new JwtTokenFilter(memberService, secretKey), UsernamePasswordAuthenticationFilter.class)
+			.addFilterAfter(new LoggingFilter(), JwtTokenFilter.class)
+		;
 		return http.build();
+	}
+
+	public class LoggingFilter extends OncePerRequestFilter {
+		private static final Logger logger = LoggerFactory.getLogger(LoggingFilter.class);
+
+		@Override
+		protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+			FilterChain filterChain) throws ServletException, IOException {
+			logger.info("LoggingFilter: {}", request.getRequestURI());
+			filterChain.doFilter(request, response);
+		}
 	}
 
 	@Bean

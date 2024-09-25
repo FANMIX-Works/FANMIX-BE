@@ -9,8 +9,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 
-import javax.crypto.SecretKey;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +34,6 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fanmix.api.domain.common.Role;
 import com.fanmix.api.domain.common.SocialType;
-import com.fanmix.api.domain.member.dto.MemberResponseDto;
 import com.fanmix.api.domain.member.entity.Member;
 import com.fanmix.api.domain.member.exception.MemberException;
 import com.fanmix.api.domain.member.repository.MemberRepository;
@@ -46,8 +43,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
-import io.jsonwebtoken.security.WeakKeyException;
 
 @Service
 public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, OAuth2User>, OAuthClient {
@@ -56,12 +51,14 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 	private final String clientId;
 	private final String clientSecret;
 	private final String redirectUri;
-	private final SecretKey jwtKey;
+	@Value("${jwt.secret}")
+	private String jwtKey;
 	private final Random random = new Random();
 	private static final Logger logger = LoggerFactory.getLogger(GoogleLoginService.class);
 	private static final String USER_INFO_ENDPOINT = "https://www.googleapis.com/oauth2/v3/userinfo";
 	@Autowired
 	private RestTemplate restTemplate;
+	private String refreshToken;
 
 	public GoogleLoginService(MemberRepository memberRepository, @Value("${oauth.google.client-id}") String clientId,
 		@Value("${oauth.google.client-secret}") String clientSecret,
@@ -70,11 +67,12 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 		this.clientId = clientId;
 		this.clientSecret = clientSecret;
 		this.redirectUri = redirectUri;
-		this.jwtKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);    //알고리즘
-		int keySize = jwtKey.getEncoded().length * 8;
-		if (keySize < 256) {
-			throw new WeakKeyException("The signing key's size is not secure enough for the HS256 algorithm.");
-		}
+		//this.jwtKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);    //알고리즘
+		this.jwtKey = jwtKey;
+		// int keySize = jwtKey.getEncoded().length * 8;
+		// if (keySize < 256) {
+		// 	throw new WeakKeyException("The signing key's size is not secure enough for the HS256 algorithm.");
+		// }
 	}
 
 	@Override
@@ -83,7 +81,7 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 	}
 
 	@Override
-	public String requestAccessToken(String authorizationCode) {
+	public JsonNode requestAccessToken(String authorizationCode) {
 		try {
 			// Null 체크
 			Optional.ofNullable(authorizationCode)
@@ -117,9 +115,10 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 				throw new MemberException(FAIL_GENERATE_ACCESSCODE);
 			}
 
-			logger.debug("어세스토큰 등 : " + responseNode);
+			logger.debug("어세스토큰 등 JsonNode : " + responseNode);
+			refreshToken = responseNode.get("refresh_token").asText();
 
-			return responseNode.get("access_token").asText();
+			return responseNode;
 
 		} catch (JsonProcessingException e) {
 			// JSON 처리 중 발생한 예외 처리
@@ -159,7 +158,7 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 	}
 
 	@Override
-	public MemberResponseDto requestOAuthInfo(String accessToken) {
+	public Member requestOAuthInfo(String accessToken) {
 		try {
 			// Google에서 사용자 정보 가져오기
 			HttpHeaders headers = new HttpHeaders();
@@ -176,15 +175,25 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 			// 응답 처리
 			ObjectMapper objectMapper = new ObjectMapper();
 			JsonNode jsonNode = objectMapper.readTree(response.getBody());
+			System.out.println("!!!!!!!!!!!!!!!!!!!!!!" + jsonNode);
 
 			String email = jsonNode.get("email").asText();
 			String name = jsonNode.get("name").asText();
 			String picture = jsonNode.get("picture").asText();
 
-			// DB에서 회원 조회 또는 생성
+			// DB에서 회원 조회
+			// 있으면 최초로그인 false로 변경
+			// 없으면 구글에서 받은 정보넣으면서 생성(자동회원가입)
 			Member member = memberRepository.findByEmail(email)
-				.orElseGet(() -> createNewMember(email, name, picture));
-			return MemberService.toResponseDto(member);
+				.map(m -> {
+					if (m.getFirstLoginYn()) {
+						m.setFirstLoginYn(false);
+						return memberRepository.save(m);
+					}
+					return m;
+				})
+				.orElseGet(() -> joinNewMember(email, name, picture, refreshToken));
+			return member;
 
 		} catch (Exception e) {
 			logger.error("OAuth 정보 요청 중 오류 발생", e);
@@ -192,24 +201,7 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 		}
 	}
 
-	public Member requestOAuthInfoAsMember(String accessToken) {
-		MemberResponseDto memberResponseDto = requestOAuthInfo(accessToken);
-		return Member.builder()
-			.email(memberResponseDto.getEmail())
-			.name(memberResponseDto.getName())
-			.build();
-	}
-
-	private MemberResponseDto findOrCreateMember(String email, String name, String picture) {
-		return memberRepository.findByEmail(email)
-			.map(MemberService::toResponseDto)
-			.orElseGet(() -> {
-				Member newMember = createNewMember(email, name, picture);
-				return MemberService.toResponseDto(newMember);
-			});
-	}
-
-	private Member createNewMember(String email, String name, String picture) {
+	private Member joinNewMember(String email, String name, String picture, String refreshToken) {
 		Member newMember = Member.builder()
 			.email(email)
 			.name(name)
@@ -218,6 +210,7 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 			.socialType(SocialType.GOOGLE)
 			.firstLoginYn(true)
 			.role(Role.MEMBER)
+			.refreshToken(refreshToken)
 			.build();
 		Member savedMember = memberRepository.save(newMember);
 		return savedMember;
@@ -229,15 +222,20 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 	}
 
 	@Override
+	/**
+	 * 회원정보를 사용하여 그 유저의 jwt토큰 생성
+	 */
 	public String generateJwt(Member member) {
+		logger.debug("새로운 jwt생성");
 		//JWT 토큰의 구성요소
 		//Header(암호화 알고리즘), Payload(사용자정보와 토큰유효기간), Signature(토큰의 무결성을 보장하는 서명)
 		String jwt = builder()
 			.setSubject(member.getEmail())
 			.setIssuedAt(new Date())
 			.setExpiration(new Date(System.currentTimeMillis() + 86400000)) // 1일
-			.signWith(jwtKey, SignatureAlgorithm.HS256)
+			.signWith(SignatureAlgorithm.HS256, jwtKey.getBytes())
 			.compact();
+		logger.debug("생성된 jwt : " + jwt);
 		return jwt;
 	}
 
@@ -254,7 +252,7 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 				.setSubject(claims.getSubject())
 				.setIssuedAt(new Date())
 				.setExpiration(new Date(System.currentTimeMillis() + 86400000)) // 1일
-				.signWith(jwtKey, SignatureAlgorithm.HS256)
+				.signWith(SignatureAlgorithm.HS256, jwtKey.getBytes())
 				.compact();
 			return newJwt;
 		} catch (Exception e) {
@@ -300,12 +298,16 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 	}
 
 	@Override
+	/**
+	 * OAuth2 인증 프로세스에서 호출.
+	 */
 	public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+		logger.debug("loadUser함수 호출됨");
 		String accessToken = userRequest.getAccessToken().getTokenValue();
-		Member member = requestOAuthInfoAsMember(accessToken);
+		Member member = requestOAuthInfo(accessToken);
 
 		return new DefaultOAuth2User(
-			Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")),
+			Collections.singleton(new SimpleGrantedAuthority("MEMBER")),
 			Map.of("email", member.getEmail(), "name", member.getName()),
 			"email"
 		);

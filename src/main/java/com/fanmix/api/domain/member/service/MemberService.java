@@ -32,8 +32,9 @@ public class MemberService implements UserDetailsService {
 	private final PasswordEncoder passwordEncoder;
 
 	@Override
-	//오버라이드한 함수라 함수이름을 변경할수 없지만 이메일로 식별
+	//오버라이드한 함수라 함수이름을 변경할수 없어서 username이지만 실제로는 이메일로 식별
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+		System.out.println("loadUserByUsername() 함수 호출됨. username : " + username);
 		return memberRepository.findByEmail(username)
 			.orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + username));
 	}

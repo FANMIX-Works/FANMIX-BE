@@ -10,7 +10,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import com.fanmix.api.domain.member.dto.AuthResponse;
+import com.fanmix.api.domain.member.entity.Member;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -29,9 +29,10 @@ public class FanmixApplication {
 			HttpServletRequest request = ((ServletRequestAttributes)
 				RequestContextHolder.currentRequestAttributes()).getRequest();
 			HttpSession session = request.getSession();
-			AuthResponse authResponse = (AuthResponse)session.getAttribute("authResponse");
-			if (authResponse != null) {
-				return Optional.of(String.valueOf(authResponse.getMember().getId()));
+			Member member = (Member)session.getAttribute("member");
+			//AuthResponse authResponse = (AuthResponse)session.getAttribute("authResponse");
+			if (member != null) {
+				return Optional.of(String.valueOf(member.getId()));
 			} else {
 				return Optional.empty();
 			}

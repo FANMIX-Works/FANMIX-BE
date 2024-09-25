@@ -9,7 +9,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -20,10 +19,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.fanmix.api.common.response.Response;
+import com.fanmix.api.domain.member.dto.AuthResponse;
 import com.fanmix.api.domain.member.dto.MemberResponseDto;
 import com.fanmix.api.domain.member.entity.Member;
 import com.fanmix.api.domain.member.service.GoogleLoginService;
 import com.fanmix.api.domain.member.service.MemberService;
+import com.fanmix.api.security.util.JwtTokenUtil;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -53,18 +55,27 @@ public class MemberController {
 		try {
 			log.debug("구글 소셜 로그인. 인가코드로 어세스토큰, 멤버정보 반환");
 			String code = request.get("code");
-			String accessToken = googleLoginService.requestAccessToken(code);
-			MemberResponseDto memberResponseDto = googleLoginService.requestOAuthInfo(accessToken);
-			Member member = Member.builder()
-				.email(memberResponseDto.getEmail())
-				.build();
-			String jwt = googleLoginService.generateJwt(member);
+			JsonNode response = googleLoginService.requestAccessToken(code);
+			String accessToken = response.get("access_token").asText();
+			Member member = googleLoginService.requestOAuthInfo(accessToken);
+
+			// 스프링 시큐리티 세션에 이미 유효한 JWT 토큰이 존재하는 경우, 이를 사용합니다.
+			String jwt = JwtTokenUtil.getJwtFromSecurityContext(member);
+			if (jwt == null) {
+				// 유효한 JWT 토큰이 존재하지 않는 경우, 새로운 JWT 토큰을 생성합니다.
+				jwt = googleLoginService.generateJwt(member);
+			}
+
+			//여기서 모든 멤버정보가 아니라 클라이언트에 전달할 멤버정도만 추려냄
+			AuthResponse authResponse = new AuthResponse(member, jwt);
 
 			Map<String, Object> data = new HashMap<>();
-			data.put("member", memberResponseDto);
-			data.put("jwt", jwt);
+			data.put("member", authResponse.getMember());
+			data.put("jwt", authResponse.getJwt());
 
 			return new Response<>("SUCCESS", null, data, "소셜 로그인 성공하였습니다.");
+			//return Response.success(data, "소셜 로그인 성공하였습니다.");
+
 		} catch (Exception e) {
 			Map<String, Object> errorResponse = new HashMap<>();
 			errorResponse.put("message", "로그인 중 오류가 발생했습니다.");
@@ -134,6 +145,8 @@ public class MemberController {
 		log.debug("멤버컨트롤러. 자기정보");
 		Member member = memberService.getMyInfo();
 		MemberResponseDto responseDto = MemberService.toResponseDto(member);
+
+		//return new Response<>("SUCCESS", null, data, "소셜 로그인 성공하였습니다.");
 		return ResponseEntity.ok(responseDto);
 	}
 
@@ -196,7 +209,6 @@ public class MemberController {
 	}
 
 	// 회원의 출생년도를 업데이트하는 API
-	@PreAuthorize("hasRole('MEMBER')")
 	@PatchMapping("/api/members/{id}/birth-year")
 	@ResponseBody
 	public ResponseEntity<Member> updateBirthYear(@PathVariable int id,
