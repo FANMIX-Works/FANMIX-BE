@@ -1,6 +1,7 @@
 package com.fanmix.api.domain.post.service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,6 +13,7 @@ import com.fanmix.api.domain.community.exception.CommunityErrorCode;
 import com.fanmix.api.domain.community.exception.CommunityException;
 import com.fanmix.api.domain.community.repository.CommunityRepository;
 import com.fanmix.api.domain.post.dto.AddPostRequest;
+import com.fanmix.api.domain.post.dto.PopularPostsResponse;
 import com.fanmix.api.domain.post.dto.UpdatePostRequest;
 import com.fanmix.api.domain.post.entity.Post;
 import com.fanmix.api.domain.post.exception.PostErrorCode;
@@ -103,5 +105,28 @@ public class PostService {
 			throw new PostException(PostErrorCode.POST_NOT_BELONG_TO_COMMUNITY);
 		}
 		postRepository.deleteById(postId);
+	}
+
+	// 인기 게시물 5개 가져오기
+	@Transactional(readOnly = true)
+	public List<PopularPostsResponse> popularPosts() {
+		List<Post> popularList = postRepository.findTop5PopularPosts();
+
+		return popularList
+			.stream()
+			.map(post -> {
+				int likeCount = postRepository.countLikesByPostId(post.getId());
+				int commentCount = post.getComments().size();
+				int influencerId = post.getCommunity().getInfluencerId();
+
+				return new PopularPostsResponse(
+					post.getCommunity().getId(),
+					influencerId,		// 인플루언서 이름 받기
+					likeCount,
+					commentCount,
+					post.getCr_date()
+				);
+			})
+			.collect(Collectors.toList());
 	}
 }

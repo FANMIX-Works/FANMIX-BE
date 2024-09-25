@@ -66,7 +66,8 @@ public class Post {
 	@OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE, orphanRemoval = true)
 	private List<Comment> comments;        // 댓글
 
-	private int post_evaluation;		// 게시글 평가 id
+	@OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
+	private List<PostLikeDislike> likes;
 
 	@Builder
 	public Post(String title, String content, List<String> imgUrls) {

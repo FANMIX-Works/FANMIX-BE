@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fanmix.api.common.image.service.ImageService;
 import com.fanmix.api.domain.post.dto.AddPostRequest;
+import com.fanmix.api.domain.post.dto.PopularPostsResponse;
 import com.fanmix.api.domain.post.dto.PostResponse;
 import com.fanmix.api.domain.post.dto.UpdatePostRequest;
 import com.fanmix.api.domain.post.entity.Post;
@@ -30,7 +31,7 @@ public class PostController {
 	private final ImageService imageService;
 
 	// 게시물 등록
-	@PostMapping("/communities/{communityId}/posts")
+	@PostMapping("/api/communities/posts")
 	public ResponseEntity<Post> addPost(
 		@PathVariable int communityId,
 		@RequestPart @Validated AddPostRequest request,
@@ -88,5 +89,14 @@ public class PostController {
 
 		return ResponseEntity.ok()
 			.build();
+	}
+
+	// 인기글 top5 조회
+	@GetMapping("/api/communities/popular")
+	public ResponseEntity<List<PopularPostsResponse>> popularPosts() {
+		List<PopularPostsResponse> posts = postService.popularPosts();
+
+		return ResponseEntity.ok()
+			.body(posts);
 	}
 }
