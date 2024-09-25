@@ -1,12 +1,11 @@
 package com.fanmix.api.domain.member.controller;
 
+import static com.fanmix.api.domain.member.exception.MemberErrorCode.*;
+
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,11 +15,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.fanmix.api.common.image.service.ImageService;
 import com.fanmix.api.common.response.Response;
 import com.fanmix.api.domain.member.dto.AuthResponse;
 import com.fanmix.api.domain.member.dto.MemberResponseDto;
 import com.fanmix.api.domain.member.entity.Member;
+import com.fanmix.api.domain.member.exception.MemberException;
 import com.fanmix.api.domain.member.service.GoogleLoginService;
 import com.fanmix.api.domain.member.service.MemberService;
 import com.fanmix.api.security.util.JwtTokenUtil;
@@ -40,6 +42,8 @@ public class MemberController {
 	private GoogleLoginService googleLoginService;
 	@Autowired
 	private MemberService memberService;
+	@Autowired
+	private ImageService imageService;
 
 	public MemberController() {
 	}
@@ -109,14 +113,11 @@ public class MemberController {
 	}
 
 	// 전체 회원리스트를 페이징 처리하여 가져오는 API
-	@GetMapping("/api/admin/members")
+	@GetMapping("/api/members")
 	@ResponseBody
-	public ResponseEntity<PagedModel<Member>> getMembers(@RequestParam(defaultValue = "0") int page,
-		@RequestParam(defaultValue = "10") int size) {
-		Pageable pageable = PageRequest.of(page, size);
-		Page<Member> members = memberService.getMembers(pageable);
-		PagedModel<Member> pagedModel = new PagedModel<>(members);
-		return ResponseEntity.ok(pagedModel);
+	public ResponseEntity<Response<List<Member>>> getMembers() {
+		List<Member> members = memberService.getMembers();
+		return ResponseEntity.ok(Response.success(members));
 	}
 
 	// 특정 회원의 정보를 가져오는 API
@@ -143,11 +144,13 @@ public class MemberController {
 	@PatchMapping("/api/members/{id}/profile-image")
 	@ResponseBody
 	public ResponseEntity<Response<Member>> updateProfileImage(@PathVariable int id,
-		@RequestBody Map<String, String> body) {
-		String profileImgUrl = body.get("profileImgUrl");
-		if (profileImgUrl == null || profileImgUrl.isEmpty()) {
-			throw new IllegalArgumentException("Invalid profileImgUrl value");
+		@RequestParam("file") MultipartFile file) {
+		log.debug("들어온파일 : " + file);
+		if (file.isEmpty()) {
+			throw new IllegalArgumentException("Invalid file value");
 		}
+		String profileImgUrl = imageService.saveImageAndReturnUrl(file);
+		log.debug("수정 프로필 이미지 업로드 경로 : " + profileImgUrl);
 		Member member = memberService.updateProfileImage(id, profileImgUrl);
 		return ResponseEntity.ok(Response.success(member));
 	}
@@ -159,7 +162,7 @@ public class MemberController {
 		@RequestBody Map<String, String> body) {
 		String introduce = body.get("introduce");
 		if (introduce == null) {
-			throw new IllegalArgumentException("Invalid introduce value");
+			throw new MemberException(NO_REQUEST_DATA_EXIST);
 		}
 		Member member = memberService.updateIntroduce(id, introduce);
 		return ResponseEntity.ok(Response.success(member));
@@ -175,10 +178,9 @@ public class MemberController {
 			content = @Content(schema = @Schema(example = "{\"nickname\": \"새로운닉네임\"}")))
 		@RequestBody Map<String, String> body) {
 		String nickName = body.get("nickName");
-		if (nickName == null || nickName.length() != 1) {
-			throw new IllegalArgumentException("Invalid nickName value");
+		if (nickName == null) {
+			throw new MemberException(NO_REQUEST_DATA_EXIST);
 		}
-		char gender = nickName.charAt(0);
 		Member member = memberService.updateNickname(id, nickName);
 		return ResponseEntity.ok(Response.success(member));
 	}
@@ -202,10 +204,23 @@ public class MemberController {
 	@ResponseBody
 	public ResponseEntity<Response<Member>> updateBirthYear(@PathVariable int id,
 		@RequestBody Map<String, Object> body) {
-		Integer birthYear = (Integer)body.get("birthYear");
-		if (birthYear == null) {
+		Object birthYearObj = body.get("birthYear");
+		Integer birthYear;
+		if (birthYearObj == null) {
 			throw new IllegalArgumentException("Invalid birthYear value");
 		}
+		try {
+			if (birthYearObj instanceof String) {
+				birthYear = Integer.parseInt((String)birthYearObj);
+			} else if (birthYearObj instanceof Integer) {
+				birthYear = (Integer)birthYearObj;
+			} else {
+				throw new IllegalArgumentException("Invalid birthYear value");
+			}
+		} catch (Exception e) {
+			throw new MemberException(NO_INTEGER_TYPE);
+		}
+
 		Member member = memberService.updateBirthYear(id, birthYear);
 		return ResponseEntity.ok(Response.success(member));
 	}
@@ -224,7 +239,7 @@ public class MemberController {
 	}
 
 	// 일반적인 회원가입
-	@PostMapping("/api/admin/members")
+	@PostMapping("/api/members")
 	@ResponseBody
 	public ResponseEntity<Response<Member>> createMember(
 		@RequestBody @Parameter(description = "회원 데이터") Member member) {

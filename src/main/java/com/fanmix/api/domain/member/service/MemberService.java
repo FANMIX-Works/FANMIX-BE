@@ -1,10 +1,10 @@
 package com.fanmix.api.domain.member.service;
 
+import static com.fanmix.api.domain.member.exception.MemberErrorCode.*;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.fanmix.api.domain.member.dto.MemberResponseDto;
 import com.fanmix.api.domain.member.dto.MemberSignUpDto;
 import com.fanmix.api.domain.member.entity.Member;
+import com.fanmix.api.domain.member.exception.MemberException;
 import com.fanmix.api.domain.member.repository.MemberRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -73,8 +74,8 @@ public class MemberService implements UserDetailsService {
 	}
 
 	@Transactional
-	public Page<Member> getMembers(Pageable pageable) {
-		return memberRepository.findAll(pageable);
+	public List<Member> getMembers() {
+		return memberRepository.findAll();
 	}
 
 	public Member getMemberById(int id) {
@@ -108,14 +109,19 @@ public class MemberService implements UserDetailsService {
 	}
 
 	public Member updateIntroduce(int id, String introduce) {
-		Member member = memberRepository.findById(id).orElseThrow();
-		member.setIntroduce(introduce);
-		return memberRepository.save(member);
+		try {
+			Member member = memberRepository.findById(id).orElseThrow(() -> new MemberException(NO_USER_EXIST));
+			member.setIntroduce(introduce);
+			return memberRepository.save(member);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new MemberException(FAIL_UPDATE_MEMBERINFO);
+		}
 	}
 
-	public Member updateNickname(int id, String nickname) {
+	public Member updateNickname(int id, String nickName) {
 		Member member = memberRepository.findById(id).orElseThrow();
-		member.setNickName(nickname);
+		member.setNickName(nickName);
 		return memberRepository.save(member);
 	}
 
