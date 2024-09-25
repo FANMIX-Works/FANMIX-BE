@@ -3,12 +3,12 @@ package com.fanmix.api.domain.post.entity;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import com.fanmix.api.domain.comment.entity.Comment;
+import com.fanmix.api.domain.common.entity.BaseEntity;
 import com.fanmix.api.domain.community.entity.Community;
+import com.fanmix.api.domain.member.entity.Member;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -32,7 +32,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @Builder
 @EntityListeners(AuditingEntityListener.class)
-public class Post {
+public class Post extends BaseEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,6 +42,10 @@ public class Post {
 	@ManyToOne
 	@JoinColumn(name = "community_id", nullable = false)
 	private Community community;		// 커뮤니티 id
+
+	@ManyToOne
+	@JoinColumn(name = "member_id", nullable = false)
+	private Member member;
 
 	private String title;				// 제목
 	private String content;				// 내용
@@ -54,14 +58,6 @@ public class Post {
 
 	private int viewCount;				// 조회수
 	private LocalDateTime lastViewed;	// 마지막 조회 시간
-	
-	private int cr_member;				// 생성자
-	private int u_member;				// 수정자
-
-	@CreatedDate
-	private LocalDateTime cr_date;		// 생성일
-	@LastModifiedDate
-	private LocalDateTime u_date;		// 수정일
 
 	@OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE, orphanRemoval = true)
 	private List<Comment> comments;        // 댓글

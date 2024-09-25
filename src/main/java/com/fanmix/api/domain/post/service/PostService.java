@@ -14,6 +14,7 @@ import com.fanmix.api.domain.community.exception.CommunityException;
 import com.fanmix.api.domain.community.repository.CommunityRepository;
 import com.fanmix.api.domain.post.dto.AddPostRequest;
 import com.fanmix.api.domain.post.dto.PopularPostsResponse;
+import com.fanmix.api.domain.post.dto.PostListResponse;
 import com.fanmix.api.domain.post.dto.UpdatePostRequest;
 import com.fanmix.api.domain.post.entity.Post;
 import com.fanmix.api.domain.post.exception.PostErrorCode;
@@ -34,8 +35,8 @@ public class PostService {
 
 	// 게시물 추가
 	@Transactional
-	public Post save(int communityId, AddPostRequest request, List<MultipartFile> images) {
-		Community community = communityRepository.findById(communityId)
+	public Post save(AddPostRequest request, List<MultipartFile> images) {
+		Community community = communityRepository.findById(request.getCommunityId())
 			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
 
 		Post post = request.toEntity(community);
@@ -46,6 +47,19 @@ public class PostService {
 		}
 
 		return postRepository.save(post);
+	}
+
+	// 전체 커뮤니티 종합 글 리스트 조회
+	public List<PostListResponse> findAllCommunityPosts(String sort) {
+		List<Post> postList = switch (sort) {
+			case "LIKE_COUNT" -> postRepository.findAllByOrderByLikesDesc();
+			case "VIEW_COUNT" -> postRepository.findAllByOrderByViewCount();
+			default -> postRepository.findAllByOrderByCrDateDesc();
+		};
+		return postList
+			.stream()
+			.map(PostListResponse::new)
+			.collect(Collectors.toList());
 	}
 
 	// 게시물 목록 조회
@@ -124,7 +138,7 @@ public class PostService {
 					influencerId,		// 인플루언서 이름 받기
 					likeCount,
 					commentCount,
-					post.getCr_date()
+					post.getCrDate()
 				);
 			})
 			.collect(Collectors.toList());

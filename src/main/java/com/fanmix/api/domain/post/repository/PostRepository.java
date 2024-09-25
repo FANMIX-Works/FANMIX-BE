@@ -22,4 +22,7 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
 		+ "ORDER BY p.viewCount DESC")
 	List<Post> findTop5PopularPosts();
 
+	List<Post> findAllByOrderByCrDateDesc();
+	List<Post> findAllByOrderByLikesDesc();
+	List<Post> findAllByOrderByViewCount();
 }

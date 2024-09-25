@@ -10,13 +10,16 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fanmix.api.common.image.service.ImageService;
+import com.fanmix.api.common.response.Response;
 import com.fanmix.api.domain.post.dto.AddPostRequest;
 import com.fanmix.api.domain.post.dto.PopularPostsResponse;
+import com.fanmix.api.domain.post.dto.PostListResponse;
 import com.fanmix.api.domain.post.dto.PostResponse;
 import com.fanmix.api.domain.post.dto.UpdatePostRequest;
 import com.fanmix.api.domain.post.entity.Post;
@@ -33,14 +36,20 @@ public class PostController {
 	// 게시물 등록
 	@PostMapping("/api/communities/posts")
 	public ResponseEntity<Post> addPost(
-		@PathVariable int communityId,
 		@RequestPart @Validated AddPostRequest request,
 		@RequestPart(value = "images", required = false) List<MultipartFile> images) {
 
-		Post post = postService.save(communityId, request, images);
+		Post post = postService.save(request, images);
 
 		return ResponseEntity.status(HttpStatus.CREATED)
 			.body(post);
+	}
+
+	// 전체 커뮤니티 종합 글 리스트 조회
+	@GetMapping("/api/communities")
+	public ResponseEntity<Response<List<PostListResponse>>> allCommunityPosts(
+		@RequestParam(value = "sort", defaultValue = "LATEST_POST") String sort) {
+		return ResponseEntity.ok(Response.success(postService.findAllCommunityPosts(sort)));
 	}
 
 	// 게시물 목록 조회
