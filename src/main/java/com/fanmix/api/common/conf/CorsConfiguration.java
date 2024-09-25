@@ -1,4 +1,4 @@
-package com.fanmix.api.domain.member.conf;
+package com.fanmix.api.common.conf;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;

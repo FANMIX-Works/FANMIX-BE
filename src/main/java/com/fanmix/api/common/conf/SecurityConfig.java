@@ -1,4 +1,4 @@
-package com.fanmix.api.domain.member.conf;
+package com.fanmix.api.common.conf;
 
 import java.io.IOException;
 
@@ -54,11 +54,37 @@ public class SecurityConfig {
 			// hasRole을 쓰면 자동으로 앞에 'ROLE_' 를 붙인다.
 			.authorizeHttpRequests((authz) -> authz
 				.requestMatchers("/", "/login", "/profile", "/oauth2/**", "/auth/redirect", "/error",
-					"/api/members/oauth/google").permitAll()
-				.requestMatchers("/api/admin/**").hasAnyAuthority("ADMIN")
-				.requestMatchers("/api/members/**").hasAnyAuthority("MEMBER", "ADMIN")
-				.requestMatchers("/api/influencer/**").hasAnyAuthority("INFLUENCER")
-				.anyRequest().authenticated()
+					"/api/members/oauth/google")
+				.permitAll()
+				/* 관리자 */
+				.requestMatchers("/api/admin/**")
+				.hasAnyAuthority("ADMIN")
+				/* 멤버 */
+				.requestMatchers("/api/members/**")
+				.hasAnyAuthority("MEMBER", "ADMIN")
+
+				/* 인플루언서 */
+				.requestMatchers("/api/influencers/search", "/api/influencers/hot10", "/api/influencers/recent10",
+					"/api/influencers/{influencerId}", "/api/influencers/reviews/hot5")
+				.permitAll()
+
+				.requestMatchers("/api/influencers/**/reviews/**")
+				.hasAnyAuthority("MEMBER", "ADMIN")
+				.requestMatchers("/api/influencers/**/reviews/**/comments/like", "/api/influencers/**/follow")
+				.hasAnyAuthority("MEMBER", "ADMIN")
+				.requestMatchers("/api/influencers/**/reviews/**")
+				.hasAnyAuthority("MEMBER", "ADMIN")
+
+				/* 커뮤니티 */
+				.requestMatchers("/api/communities/**")
+				.permitAll()
+
+				/* 팬채널 */
+				.requestMatchers("/api/fanchannels/**")
+				.permitAll()
+
+				.anyRequest()
+				.authenticated()
 			).formLogin(form -> form    //formLogin은 로그인정보를 처리하는 기능까지 포함
 				.loginPage("/login")        //loginPage는 로그인정보를 입력하는 페이지만 제공
 				// .defaultSuccessUrl("/home")  RESTAPI용도의 백엔드여서 제거. 이제 특정 URL로 리다이렉트 하려고 시도안함고 대신 인증 성공시 200 OK 응답

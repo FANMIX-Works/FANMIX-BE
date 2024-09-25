@@ -26,12 +26,12 @@ class GoogleLoginServiceTest {
 	@Test
 	public void validateToken() {
 		String tmp = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJnZ29vbXRlckBnbWFpbC5jb20iLCJpYXQiOjE3MjYyMzM2NzMsImV4cCI6MTcyNjMyMDA3M30.BymxpkUVxqySOc4rEmKPKaw55Sq8VYJdxI24NVI3Rk8";
-		googleLoginService.validateToken(tmp);
+		googleLoginService.isValidateJwtToken(tmp);
 	}
 
 	@Test
 	public void getAccessTokenUsingrefreshToken() {
 		String refreshToken = "1//0etSGwBdL0HA-CgYIARAAGA4SNwF-L9Ireq4_ulFBX3OcLlZehTMLMhw2-camq1U7v8dJtXOXnzscao7FFFXjVwMY1gKdvICEk50";
-		googleLoginService.getAccessTokenUsingrefreshToken(refreshToken);
+		googleLoginService.getNewAccessTokenUsingRefreshToken(refreshToken);
 	}
 }

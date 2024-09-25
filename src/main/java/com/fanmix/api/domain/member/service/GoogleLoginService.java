@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,8 +42,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.SignatureAlgorithm;
+
+// 스프링시큐리티 콘텍스트에서 유저정보 가져오는 예제
+// Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+// String username = ((UserDetails)principal).getUsername();
+// memberRepository.findByEmail(username)
 
 @Service
 public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, OAuth2User>, OAuthClient {
@@ -52,7 +57,7 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 	private final String clientSecret;
 	private final String redirectUri;
 	@Value("${jwt.secret}")
-	private String jwtKey;
+	private String secretKey;
 	private final Random random = new Random();
 	private static final Logger logger = LoggerFactory.getLogger(GoogleLoginService.class);
 	private static final String USER_INFO_ENDPOINT = "https://www.googleapis.com/oauth2/v3/userinfo";
@@ -68,7 +73,7 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 		this.clientSecret = clientSecret;
 		this.redirectUri = redirectUri;
 		//this.jwtKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);    //알고리즘
-		this.jwtKey = jwtKey;
+		this.secretKey = secretKey;
 		// int keySize = jwtKey.getEncoded().length * 8;
 		// if (keySize < 256) {
 		// 	throw new WeakKeyException("The signing key's size is not secure enough for the HS256 algorithm.");
@@ -124,8 +129,8 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 			// JSON 처리 중 발생한 예외 처리
 			e.printStackTrace();
 			throw new MemberException(JSON_PROCESSING_ERROR);
-		} catch (
-			JpaSystemException e) {    //InvalidDataAccessResourceUsageException은 SQLGrammarException를 래핑하고 JpaSystemException 내부예외임
+		} catch (JpaSystemException e) {
+			//InvalidDataAccessResourceUsageException은 SQLGrammarException를 래핑하고 JpaSystemException 내부예외임
 			logger.debug("멤버 테이블 없음");
 			e.printStackTrace();
 			throw new MemberException(SQL_ERROR);
@@ -151,6 +156,7 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 				throw new MemberException(SQL_ERROR);
 			} else {
 				e.printStackTrace();
+				logger.error("기타 예외 처리");
 				// 기타 예외 처리
 				throw new MemberException(FAIL_AUTH);
 			}
@@ -233,7 +239,7 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 			.setSubject(member.getEmail())
 			.setIssuedAt(new Date())
 			.setExpiration(new Date(System.currentTimeMillis() + 86400000)) // 1일
-			.signWith(SignatureAlgorithm.HS256, jwtKey.getBytes())
+			.signWith(SignatureAlgorithm.HS256, secretKey.getBytes())
 			.compact();
 		logger.debug("생성된 jwt : " + jwt);
 		return jwt;
@@ -245,26 +251,46 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 	 * 초기 인증과정에서 어세스토큰과 함께 발급했던 리프레쉬 토큰으로 어세스토큰 만료시 다시 어세스토큰 발급
 	 * @return 어세스토큰
 	 */
-	public String getAccessTokenUsingrefreshToken(String refreshToken) {
+	public String getNewAccessTokenUsingRefreshToken(String refreshToken) {
 		try {
-			Claims claims = parser().setSigningKey(jwtKey).parseClaimsJws(refreshToken).getBody();
-			String newJwt = builder()
-				.setSubject(claims.getSubject())
-				.setIssuedAt(new Date())
-				.setExpiration(new Date(System.currentTimeMillis() + 86400000)) // 1일
-				.signWith(SignatureAlgorithm.HS256, jwtKey.getBytes())
-				.compact();
-			return newJwt;
+			// OAuth 2.0 Token Endpoint로 요청을 보내 새로운 Access Token을 발급받기
+			String tokenEndpointUrl = "https://oauth2.googleapis.com/token";
+			HttpHeaders headers = new HttpHeaders();
+			headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+			MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+			params.add("grant_type", "refresh_token");
+			params.add("refresh_token", refreshToken);
+			params.add("client_id", clientId);
+			params.add("client_secret", clientSecret);
+			logger.debug("새토큰받기 구글에 보내기전 파라미터 : " + params);
+
+			HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
+			RestTemplate restTemplate = new RestTemplate();
+			ResponseEntity<String> response = restTemplate.postForEntity(tokenEndpointUrl, request, String.class);
+			logger.debug("새토큰 받기 구글에 보내고 받은 응답 : " + response);
+
+			// 응답에서 새로운 Access Token과 Refresh Token을 추출하기
+			JSONObject jsonObject = new JSONObject(response.getBody());
+			String newAccessToken = jsonObject.getString("access_token");
+
+			return newAccessToken;
 		} catch (Exception e) {
-			return null;
+			e.printStackTrace();
+			throw new MemberException(FAIL_NEW_ACCESSCODE);
 		}
 	}
 
-	public boolean validateToken(String jwt) {
+	public boolean isValidateJwtToken(String jwt) {
 		try {
-			parser().setSigningKey(jwtKey).parseClaimsJws(jwt);
+			parser().setSigningKey(secretKey.getBytes()).parseClaimsJws(jwt);
 			return true;
 		} catch (Exception e) {
+			e.printStackTrace();
+			//토큰생성시 사용한 키와 토큰 검사시 사용키가 다름
+			//io.jsonwebtoken.security.SignatureException: JWT signature does not match locally computed signature. JWT validity cannot be asserted and should not be trusted.
+			//토큰의 만료시간이 지남
+			//토큰이 손상됨
 			return false;
 		}
 	}

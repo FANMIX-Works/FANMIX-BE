@@ -19,7 +19,8 @@ public enum MemberErrorCode implements ErrorCode {
 	JSON_PROCESSING_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "2-007", "JSON파싱 에러"),
 	REST_CLIENT_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "2-008", "서버에서 구글로 API요청시 에러. 유효하지 않은 인증코드"),
 	UNKNOWN_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "2-009", "서버에서 예상치 못한 에러"),
-	SQL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "2-010", "관련 테이블이 없습니다.");
+	SQL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "2-010", "멤버 테이블이 없습니다."),
+	FAIL_NEW_ACCESSCODE(HttpStatus.INTERNAL_SERVER_ERROR, "2-011", "새 어세스토큰 발급에 실패");
 
 	private final HttpStatus httpStatus;
 	private final String customCode;
