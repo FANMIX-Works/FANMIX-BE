@@ -8,11 +8,9 @@ import org.springframework.stereotype.Service;
 import com.fanmix.api.domain.common.Role;
 import com.fanmix.api.domain.community.dto.AddCommunityRequest;
 import com.fanmix.api.domain.community.dto.UpdateCommunityRequest;
-import com.fanmix.api.domain.community.entity.Category;
 import com.fanmix.api.domain.community.entity.Community;
 import com.fanmix.api.domain.community.exception.CommunityErrorCode;
 import com.fanmix.api.domain.community.exception.CommunityException;
-import com.fanmix.api.domain.community.repository.CategoryRepository;
 import com.fanmix.api.domain.community.repository.CommunityRepository;
 import com.fanmix.api.domain.member.entity.Member;
 import com.fanmix.api.domain.member.exception.MemberErrorCode;
@@ -24,14 +22,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CommunityService {
 	private final CommunityRepository communityRepository;
-	private final CategoryRepository categoryRepository;
 
 	// 커뮤니티 추가
 	public Community save(AddCommunityRequest request, @AuthenticationPrincipal Member member) {
-		Category category = categoryRepository.findByName(request.getName())
-			.orElseThrow(() -> new CommunityException(CommunityErrorCode.NOT_EXISTS_CATEGORY));
 
-		if(communityRepository.existsByName(request.getCategory())) {
+		if(communityRepository.existsByName(request.getName())) {
  			throw new CommunityException(CommunityErrorCode.NAME_DUPLICATION);
 		}
 
@@ -39,7 +34,7 @@ public class CommunityService {
 			throw new CommunityException(CommunityErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
-		return communityRepository.save(request.toEntity(category));
+		return communityRepository.save(request.toEntity());
 	}
 
 	// 커뮤니티 목록 조회
@@ -58,7 +53,7 @@ public class CommunityService {
 		Community community = communityRepository.findById(id)
 			.orElseThrow(() -> new IllegalArgumentException("게시물이 존재하지 않습니다"));
 
-		if(communityRepository.existsByName(request.getCategory().getName())) {
+		if(communityRepository.existsByName(request.getName())) {
 			throw new CommunityException(CommunityErrorCode.NAME_DUPLICATION);
 		}
 
@@ -66,7 +61,7 @@ public class CommunityService {
 			throw new MemberException(MemberErrorCode.FAIL_GENERATE_ACCESSCODE);
 		}
 
-		community.update(request.getInfluencerId(), request.getCategory(), request.getName(), request.getIsShow());
+		community.update(request.getInfluencerId(), request.getName(), request.getIsShow());
 
 		return community;
 	}

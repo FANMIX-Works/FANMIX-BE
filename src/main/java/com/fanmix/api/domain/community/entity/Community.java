@@ -9,7 +9,6 @@ import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -38,24 +37,16 @@ public class Community extends BaseEntity {
 	@Column(name = "show_yn")
 	private Boolean isShow;			// 노출 여부
 
-	@JoinColumn(name = "category_id")
-	private Category category;		// 카테고리
-
-	@JoinColumn(name = "follow_id")
-	private CommunityFollow followId;	// 커뮤니티 팔로우 id
-
 	@Builder
-	public Community(int influencerId, Category category, String name, Boolean isShow) {
+	public Community(int influencerId, String name, Boolean isShow) {
 		this.influencerId = influencerId;
-		this.category = category;
 		this.name = name;
 		this.isShow = isShow;
 	}
 
 	// 게시물 수정
-	public void update(int influencerId, Category category, String name, Boolean isShow) {
+	public void update(int influencerId, String name, Boolean isShow) {
 		this.influencerId = influencerId;
-		this.category = category;
 		this.name = name;
 		this.isShow = isShow;
 	}
