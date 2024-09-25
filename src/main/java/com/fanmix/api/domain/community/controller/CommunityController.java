@@ -2,7 +2,6 @@ package com.fanmix.api.domain.community.controller;
 
 import java.util.List;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,12 +12,11 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fanmix.api.common.response.Response;
 import com.fanmix.api.domain.community.dto.AddCommunityRequest;
-import com.fanmix.api.domain.community.dto.CommunityResponse;
 import com.fanmix.api.domain.community.dto.UpdateCommunityRequest;
 import com.fanmix.api.domain.community.entity.Community;
 import com.fanmix.api.domain.community.service.CommunityService;
-import com.fanmix.api.domain.member.entity.Member;
 
 import lombok.RequiredArgsConstructor;
 
@@ -29,51 +27,38 @@ public class CommunityController {
 
 	// 커뮤니티 추가
 	@PostMapping("/api/communities")
-	public ResponseEntity<Community> addCommunity(
-		@RequestBody AddCommunityRequest request
-		, @AuthenticationPrincipal Member member) {
-		Community community = communityService.save(request, member);
-
-		return ResponseEntity.status(HttpStatus.CREATED)
-			.body(community);
+	public ResponseEntity<Response<Community>> addCommunity(
+		@RequestBody AddCommunityRequest request, @AuthenticationPrincipal String email) {
+		return ResponseEntity.ok(Response.success(communityService.save(request, email)));
 	}
 
 	// 전체 커뮤니티 리스트 조회
-	@GetMapping("/api/communities")
-	public ResponseEntity<List<CommunityResponse>> findAllCommunity() {
-		List<CommunityResponse> communities = communityService.findAll()
-			.stream()
-			.map(CommunityResponse::new)
-			.toList();
-
-		return ResponseEntity.ok()
-			.body(communities);
+	@GetMapping("/api/communities/all")
+	public ResponseEntity<Response<List<Community>>> findAllCommunity() {
+		return ResponseEntity.ok(Response.success(communityService.findAll()));
 	}
 
 	// 커뮤니티 조회
-	@GetMapping("/api/communities/{communityId}")
-	public ResponseEntity<Community> findCommunity(@PathVariable int communityId) {
-		Community community = communityService.findById(communityId);
-
-		return ResponseEntity.ok()
-			.body(community);
+	@GetMapping("/api/communities/{communityId}/info")
+	public ResponseEntity<Response<Community>> findCommunity(@PathVariable int communityId) {
+		return ResponseEntity.ok(Response.success(communityService.findById(communityId)));
 	}
 
 	// 커뮤니티 수정
 	@PutMapping("/api/communities/{communityId}")
-	public ResponseEntity<Community> updateCommunity(
+	public ResponseEntity<Response<Community>> updateCommunity(
 		@PathVariable int communityId,
 		@RequestBody UpdateCommunityRequest request,
-		@AuthenticationPrincipal Member member) {
-		Community community = communityService.update(communityId, request, member);
+		@AuthenticationPrincipal String email) {
 
-		return ResponseEntity.ok()
-			.body(community);
+		return ResponseEntity.ok(Response.success(communityService.update(communityId, request, email)));
 	}
 
 	// 커뮤니티 삭제
 	@PatchMapping("/api/communities/{communityId}")
-	public void deleteCommunity(@PathVariable int communityId, @AuthenticationPrincipal Member member) {
-		communityService.delete(communityId, member);
+	public ResponseEntity<Response<Void>> deleteCommunity(@PathVariable int communityId, @AuthenticationPrincipal String email) {
+		communityService.delete(communityId, email);
+
+		return ResponseEntity.ok(Response.success());
 	}
 }

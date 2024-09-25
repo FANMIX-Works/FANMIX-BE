@@ -2,8 +2,8 @@ package com.fanmix.api.domain.community.service;
 
 import java.util.List;
 
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fanmix.api.domain.common.Role;
 import com.fanmix.api.domain.community.dto.AddCommunityRequest;
@@ -15,6 +15,9 @@ import com.fanmix.api.domain.community.repository.CommunityRepository;
 import com.fanmix.api.domain.member.entity.Member;
 import com.fanmix.api.domain.member.exception.MemberErrorCode;
 import com.fanmix.api.domain.member.exception.MemberException;
+import com.fanmix.api.domain.member.repository.MemberRepository;
+import com.fanmix.api.domain.post.exception.PostErrorCode;
+import com.fanmix.api.domain.post.exception.PostException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -22,15 +25,20 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CommunityService {
 	private final CommunityRepository communityRepository;
+	private final MemberRepository memberRepository;
 
 	// 커뮤니티 추가
-	public Community save(AddCommunityRequest request, @AuthenticationPrincipal Member member) {
+	@Transactional
+	public Community save(AddCommunityRequest request, String email) {
 
 		if(communityRepository.existsByName(request.getName())) {
  			throw new CommunityException(CommunityErrorCode.NAME_DUPLICATION);
 		}
 
-		if(member.getRole().equals(Role.ADMIN)) {
+		Member member = memberRepository.findByEmail(email)
+			.orElseThrow(() -> new MemberException(MemberErrorCode.FAIL_GET_OAUTHINFO));
+
+		if(!member.getRole().equals(Role.ADMIN)) {
 			throw new CommunityException(CommunityErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
@@ -38,27 +46,33 @@ public class CommunityService {
 	}
 
 	// 커뮤니티 목록 조회
+	@Transactional(readOnly = true)
 	public List<Community> findAll() {
 		return communityRepository.findAll();
 	}
 
 	// 커뮤니티 조회
+	@Transactional(readOnly = true)
 	public Community findById(int id) {
 		return communityRepository.findById(id)
-			.orElseThrow(() -> new IllegalArgumentException("게시물이 존재하지 않습니다."));
+			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_EXIST));
 	}
 
 	// 커뮤니티 수정
-	public Community update(int id, UpdateCommunityRequest request, @AuthenticationPrincipal Member member) {
-		Community community = communityRepository.findById(id)
-			.orElseThrow(() -> new IllegalArgumentException("게시물이 존재하지 않습니다"));
+	@Transactional
+	public Community update(int communityId, UpdateCommunityRequest request, String email) {
+		Community community = communityRepository.findById(communityId)
+			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
 
 		if(communityRepository.existsByName(request.getName())) {
 			throw new CommunityException(CommunityErrorCode.NAME_DUPLICATION);
 		}
 
-		if(member.getRole().equals(Role.ADMIN)) {
-			throw new MemberException(MemberErrorCode.FAIL_GENERATE_ACCESSCODE);
+		Member member = memberRepository.findByEmail(email)
+			.orElseThrow(() -> new MemberException(MemberErrorCode.FAIL_GET_OAUTHINFO));
+
+		if(!member.getRole().equals(Role.ADMIN)) {
+			throw new CommunityException(CommunityErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
 		community.update(request.getInfluencerId(), request.getName(), request.getIsShow());
@@ -67,10 +81,15 @@ public class CommunityService {
 	}
 
 	// 커뮤니티 삭제
-	public void delete(int id, @AuthenticationPrincipal Member member) {
-		if(member.getRole().equals(Role.ADMIN)) {
-			throw new MemberException(MemberErrorCode.FAIL_GENERATE_ACCESSCODE);
+	@Transactional
+	public void delete(int id, String email) {
+		Member member = memberRepository.findByEmail(email)
+			.orElseThrow(() -> new MemberException(MemberErrorCode.FAIL_GET_OAUTHINFO));
+
+		if(!member.getRole().equals(Role.ADMIN)) {
+			throw new CommunityException(CommunityErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
+
 		communityRepository.deleteById(id);
 	}
 

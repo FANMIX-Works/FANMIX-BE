@@ -8,4 +8,5 @@ import com.fanmix.api.domain.community.entity.Community;
 
 public interface CommunityRepository extends JpaRepository<Community, Integer> {
 	boolean existsByName(String name);
+	Optional<Community> findByInfluencerId(int influencerId);
 }

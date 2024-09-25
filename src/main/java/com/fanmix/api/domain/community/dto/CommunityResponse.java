@@ -6,11 +6,13 @@ import lombok.Getter;
 
 @Getter
 public class CommunityResponse {
+	private int communityId;
 	private int influencerId;
 	private String name;
 	private Boolean isShow;
 
 	public CommunityResponse(Community community) {
+		this.communityId = community.getId();
 		this.influencerId = community.getInfluencerId();
 		this.name = community.getName();
 		this.isShow = community.getIsShow();
