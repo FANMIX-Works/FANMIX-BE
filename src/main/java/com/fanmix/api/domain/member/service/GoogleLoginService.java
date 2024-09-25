@@ -52,7 +52,7 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 	private final String clientSecret;
 	private final String redirectUri;
 	@Value("${jwt.secret}")
-	private String jwtKey;
+	private String secretKey;
 	private final Random random = new Random();
 	private static final Logger logger = LoggerFactory.getLogger(GoogleLoginService.class);
 	private static final String USER_INFO_ENDPOINT = "https://www.googleapis.com/oauth2/v3/userinfo";
@@ -68,7 +68,7 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 		this.clientSecret = clientSecret;
 		this.redirectUri = redirectUri;
 		//this.jwtKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);    //알고리즘
-		this.jwtKey = jwtKey;
+		this.secretKey = secretKey;
 		// int keySize = jwtKey.getEncoded().length * 8;
 		// if (keySize < 256) {
 		// 	throw new WeakKeyException("The signing key's size is not secure enough for the HS256 algorithm.");
@@ -234,7 +234,7 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 			.setSubject(member.getEmail())
 			.setIssuedAt(new Date())
 			.setExpiration(new Date(System.currentTimeMillis() + 86400000)) // 1일
-			.signWith(SignatureAlgorithm.HS256, jwtKey.getBytes())
+			.signWith(SignatureAlgorithm.HS256, secretKey.getBytes())
 			.compact();
 		logger.debug("생성된 jwt : " + jwt);
 		return jwt;
@@ -248,12 +248,12 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 	 */
 	public String getAccessTokenUsingrefreshToken(String refreshToken) {
 		try {
-			Claims claims = parser().setSigningKey(jwtKey).parseClaimsJws(refreshToken).getBody();
+			Claims claims = parser().setSigningKey(secretKey).parseClaimsJws(refreshToken).getBody();
 			String newJwt = builder()
 				.setSubject(claims.getSubject())
 				.setIssuedAt(new Date())
 				.setExpiration(new Date(System.currentTimeMillis() + 86400000)) // 1일
-				.signWith(SignatureAlgorithm.HS256, jwtKey.getBytes())
+				.signWith(SignatureAlgorithm.HS256, secretKey.getBytes())
 				.compact();
 			return newJwt;
 		} catch (Exception e) {
@@ -261,11 +261,16 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 		}
 	}
 
-	public boolean validateToken(String jwt) {
+	public boolean isValidateJwtToken(String jwt) {
 		try {
-			parser().setSigningKey(jwtKey).parseClaimsJws(jwt);
+			parser().setSigningKey(secretKey.getBytes()).parseClaimsJws(jwt);
 			return true;
 		} catch (Exception e) {
+			e.printStackTrace();
+			//토큰생성시 사용한 키와 토큰 검사시 사용키가 다름
+			//io.jsonwebtoken.security.SignatureException: JWT signature does not match locally computed signature. JWT validity cannot be asserted and should not be trusted.
+			//토큰의 만료시간이 지남
+			//토큰이 손상됨
 			return false;
 		}
 	}

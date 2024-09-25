@@ -16,7 +16,7 @@
 <p>역할 : <div id="role"></div></p>
 <br>
 <p id="response"></p>
-<button onclick="validateToken()">유저 정보 보기</button>
+<button onclick="getMyInfo()">유저 정보 보기</button>
 <!-- 추가 정보 표시 -->
 <p>닉네임2 : <div id="nickName2"></div></p>
 <br>
@@ -52,7 +52,7 @@
     });
 
 
-    function validateToken() {
+    function getMyInfo() {
         const jwt = document.getElementById('jwt').innerText;
         console.log("원래받은 jwt : ", jwt);
         console.log("헤더에 담을 Authorization : ", 'Bearer ' + jwt);

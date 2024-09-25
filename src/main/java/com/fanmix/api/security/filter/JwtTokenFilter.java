@@ -33,6 +33,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
 		//1.header에서 jwt토큰 꺼내기기
 		if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+			log.debug("authorizationHeader가 null 또는 Bearer 로 시작안해서 종료");
 			filterChain.doFilter(request, response);
 			return;
 		}

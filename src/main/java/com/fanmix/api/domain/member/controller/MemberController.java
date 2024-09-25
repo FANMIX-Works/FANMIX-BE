@@ -71,11 +71,12 @@ public class MemberController {
 
 	}
 
-	@GetMapping("/api/members/auth/validate-token")
+	@GetMapping("/api/members/auth/validate/jwt")
 	@ResponseBody
-	public boolean validateToken(@RequestParam String jwt) {
-		log.debug("컨트롤러의 validateToken()");
-		return googleLoginService.validateToken(jwt);
+	public boolean isValidateJwtToken(@RequestBody Map<String, String> request) {
+		String jwt = request.get("jwt").toString();
+		log.debug("컨트롤러의 isValidateJwtToken(). 전달받은 jwt : " + jwt);
+		return googleLoginService.isValidateJwtToken(jwt);
 	}
 
 	@GetMapping("/login")
