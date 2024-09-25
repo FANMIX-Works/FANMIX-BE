@@ -30,7 +30,7 @@ public class PostResponse {
 			.stream()
 			.map(CommentResponse::new)
 			.collect(Collectors.toList());
-		this.cr_date = post.getCr_date();
-		this.u_date = post.getU_date();
+		this.cr_date = post.getCrDate();
+		this.u_date = post.getUDate();
 	}
 }

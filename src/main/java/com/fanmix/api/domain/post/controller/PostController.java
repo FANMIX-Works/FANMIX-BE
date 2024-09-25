@@ -52,6 +52,14 @@ public class PostController {
 		return ResponseEntity.ok(Response.success(postService.findAllCommunityPosts(sort)));
 	}
 
+	// 특정 커뮤니티 게시글 리스트 조회
+	@GetMapping("/api/communities/{communityId}")
+	public ResponseEntity<Response<List<PostListResponse>>> communityPosts(
+		@PathVariable int communityId,
+		@RequestParam(value = "sort", defaultValue = "LATEST_POST") String sort) {
+		return ResponseEntity.ok(Response.success(postService.findAllByCommunityId(communityId, sort)));
+	}
+
 	// 게시물 목록 조회
 	@GetMapping("/communities/{communityId}/posts")
 	public ResponseEntity<List<PostResponse>> findAllPost(@PathVariable int communityId) {

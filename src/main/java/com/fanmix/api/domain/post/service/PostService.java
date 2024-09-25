@@ -62,6 +62,22 @@ public class PostService {
 			.collect(Collectors.toList());
 	}
 
+	// 특정 커뮤니티 글 리스트 조회
+	public List<PostListResponse> findAllByCommunityId(int communityId, String sort) {
+		Community community = communityRepository.findById(communityId)
+			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
+
+		List<Post> postList = switch (sort) {
+			case "LIKE_COUNT" -> postRepository.findAllByOrderByLikesDesc();
+			case "VIEW_COUNT" -> postRepository.findAllByOrderByViewCount();
+			default -> postRepository.findAllByOrderByCrDateDesc();
+		};
+		return postList
+			.stream()
+			.map(PostListResponse::new)
+			.collect(Collectors.toList());
+	}
+
 	// 게시물 목록 조회
 	public List<Post> findAll(int communityId) {
 		Community community = communityRepository.findById(communityId)
