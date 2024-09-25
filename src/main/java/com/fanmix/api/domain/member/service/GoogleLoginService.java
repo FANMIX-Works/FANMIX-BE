@@ -124,8 +124,8 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 			// JSON 처리 중 발생한 예외 처리
 			e.printStackTrace();
 			throw new MemberException(JSON_PROCESSING_ERROR);
-		} catch (
-			JpaSystemException e) {    //InvalidDataAccessResourceUsageException은 SQLGrammarException를 래핑하고 JpaSystemException 내부예외임
+		} catch (JpaSystemException e) {
+			//InvalidDataAccessResourceUsageException은 SQLGrammarException를 래핑하고 JpaSystemException 내부예외임
 			logger.debug("멤버 테이블 없음");
 			e.printStackTrace();
 			throw new MemberException(SQL_ERROR);
@@ -151,6 +151,7 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 				throw new MemberException(SQL_ERROR);
 			} else {
 				e.printStackTrace();
+				logger.error("기타 예외 처리");
 				// 기타 예외 처리
 				throw new MemberException(FAIL_AUTH);
 			}

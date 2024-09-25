@@ -65,9 +65,9 @@
         .then(response => {
             console.log("마이페이지 response : ", response);
 
-            document.getElementById('nickName2').innerText = response.data.nickName;
-            document.getElementById('profileImgUrl').innerText = response.data.profileImgUrl;
-            document.getElementById('firstLoginYn').innerText = response.data.firstLoginYn;
+            document.getElementById('nickName2').innerText = response.data.data.nickName;
+            document.getElementById('profileImgUrl').innerText = response.data.data.profileImgUrl;
+            document.getElementById('firstLoginYn').innerText = response.data.data.firstLoginYn;
         })
         .catch(error => {
             console.error("마이페이지 response에러. "+error);

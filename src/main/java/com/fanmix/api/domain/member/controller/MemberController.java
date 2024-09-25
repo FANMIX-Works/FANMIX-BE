@@ -1,6 +1,5 @@
 package com.fanmix.api.domain.member.controller;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,36 +50,25 @@ public class MemberController {
 	/**
 	 * 인가코드로 어세스토큰, 멤버정보 반환
 	 */
-	public Response<Map<String, Object>> googleAuthLogin(@RequestBody Map<String, String> request) {
-		try {
-			log.debug("구글 소셜 로그인. 인가코드로 어세스토큰, 멤버정보 반환");
-			String code = request.get("code");
-			JsonNode response = googleLoginService.requestAccessToken(code);
-			String accessToken = response.get("access_token").asText();
-			Member member = googleLoginService.requestOAuthInfo(accessToken);
+	public ResponseEntity<Response<AuthResponse>> googleAuthLogin(@RequestBody Map<String, String> request) {
 
-			// 스프링 시큐리티 세션에 이미 유효한 JWT 토큰이 존재하는 경우, 이를 사용합니다.
-			String jwt = JwtTokenUtil.getJwtFromSecurityContext(member);
-			if (jwt == null) {
-				// 유효한 JWT 토큰이 존재하지 않는 경우, 새로운 JWT 토큰을 생성합니다.
-				jwt = googleLoginService.generateJwt(member);
-			}
+		log.debug("구글 소셜 로그인. 인가코드로 어세스토큰, 멤버정보 반환");
+		String code = request.get("code");
+		JsonNode response = googleLoginService.requestAccessToken(code);
+		String accessToken = response.get("access_token").asText();
+		Member member = googleLoginService.requestOAuthInfo(accessToken);
 
-			//여기서 모든 멤버정보가 아니라 클라이언트에 전달할 멤버정도만 추려냄
-			AuthResponse authResponse = new AuthResponse(member, jwt);
-
-			Map<String, Object> data = new HashMap<>();
-			data.put("member", authResponse.getMember());
-			data.put("jwt", authResponse.getJwt());
-
-			return new Response<>("SUCCESS", null, data, "소셜 로그인 성공하였습니다.");
-			//return Response.success(data, "소셜 로그인 성공하였습니다.");
-
-		} catch (Exception e) {
-			Map<String, Object> errorResponse = new HashMap<>();
-			errorResponse.put("message", "로그인 중 오류가 발생했습니다.");
-			return new Response<>("FAIL", "ERROR_CODE", null, "로그인 중 오류가 발생했습니다.");
+		// 스프링 시큐리티 세션에 이미 유효한 JWT 토큰이 존재하는 경우, 이를 사용합니다.
+		String jwt = JwtTokenUtil.getJwtFromSecurityContext(member);
+		if (jwt == null) {
+			// 유효한 JWT 토큰이 존재하지 않는 경우, 새로운 JWT 토큰을 생성합니다.
+			jwt = googleLoginService.generateJwt(member);
 		}
+
+		//여기서 모든 멤버정보가 아니라 클라이언트에 전달할 멤버정도만 추려냄
+		AuthResponse authResponse = new AuthResponse(member, jwt);
+		return ResponseEntity.ok(Response.success(authResponse));
+
 	}
 
 	@GetMapping("/api/members/auth/validate-token")
@@ -133,54 +121,54 @@ public class MemberController {
 	// 특정 회원의 정보를 가져오는 API
 	@GetMapping("/api/members/{id}")
 	@ResponseBody
-	public ResponseEntity<Member> getMember(@PathVariable int id) {
+	public ResponseEntity<Response<Member>> getMember(@PathVariable int id) {
 		Member member = memberService.getMemberById(id);
-		return ResponseEntity.ok(member);
+		return ResponseEntity.ok(Response.success(member));
 	}
 
 	// 현재 로그인한 회원의 정보를 가져오는 API
 	@GetMapping("/api/members/me")
 	@ResponseBody
-	public ResponseEntity<MemberResponseDto> getMyInfo() {
+	public ResponseEntity<Response<MemberResponseDto>> getMyInfo() {
+		//Response에는 status, customCode, data, message 4개의 속성이 있다.
 		log.debug("멤버컨트롤러. 자기정보");
 		Member member = memberService.getMyInfo();
 		MemberResponseDto responseDto = MemberService.toResponseDto(member);
 
-		//return new Response<>("SUCCESS", null, data, "소셜 로그인 성공하였습니다.");
-		return ResponseEntity.ok(responseDto);
+		return ResponseEntity.ok(Response.success(responseDto));
 	}
 
 	// 회원의 프로필 이미지를 업데이트하는 API
 	@PatchMapping("/api/members/{id}/profile-image")
 	@ResponseBody
-	public ResponseEntity<Member> updateProfileImage(@PathVariable int id,
+	public ResponseEntity<Response<Member>> updateProfileImage(@PathVariable int id,
 		@RequestBody Map<String, String> body) {
 		String profileImgUrl = body.get("profileImgUrl");
 		if (profileImgUrl == null || profileImgUrl.isEmpty()) {
 			throw new IllegalArgumentException("Invalid profileImgUrl value");
 		}
 		Member member = memberService.updateProfileImage(id, profileImgUrl);
-		return ResponseEntity.ok(member);
+		return ResponseEntity.ok(Response.success(member));
 	}
 
 	// 회원의 자기소개를 업데이트하는 API
 	@PatchMapping("/api/members/{id}/introduce")
 	@ResponseBody
-	public ResponseEntity<Member> updateIntroduce(@PathVariable int id,
+	public ResponseEntity<Response<Member>> updateIntroduce(@PathVariable int id,
 		@RequestBody Map<String, String> body) {
 		String introduce = body.get("introduce");
 		if (introduce == null) {
 			throw new IllegalArgumentException("Invalid introduce value");
 		}
 		Member member = memberService.updateIntroduce(id, introduce);
-		return ResponseEntity.ok(member);
+		return ResponseEntity.ok(Response.success(member));
 	}
 
 	// 회원의 닉네임을 업데이트하는 API
 	@PatchMapping("/api/members/{id}/nickname")
 	@ResponseBody
 	@Operation(summary = "회원 닉네임 업데이트", description = "회원의 닉네임을 업데이트합니다.")
-	public ResponseEntity<Member> updateNickname(
+	public ResponseEntity<Response<Member>> updateNickname(
 		@Parameter(description = "회원 ID") @PathVariable int id,
 		@Parameter(description = "새 닉네임 정보",
 			content = @Content(schema = @Schema(example = "{\"nickname\": \"새로운닉네임\"}")))
@@ -191,13 +179,13 @@ public class MemberController {
 		}
 		char gender = nickName.charAt(0);
 		Member member = memberService.updateNickname(id, nickName);
-		return ResponseEntity.ok(member);
+		return ResponseEntity.ok(Response.success(member));
 	}
 
 	// 회원의 성별을 업데이트하는 API
 	@PatchMapping("/api/members/{id}/gender")
 	@ResponseBody
-	public ResponseEntity<Member> updateGender(@PathVariable int id,
+	public ResponseEntity<Response<Member>> updateGender(@PathVariable int id,
 		@RequestBody Map<String, String> body) {
 		String genderStr = body.get("gender");
 		if (genderStr == null || genderStr.length() != 1) {
@@ -205,41 +193,42 @@ public class MemberController {
 		}
 		char gender = genderStr.charAt(0);
 		Member member = memberService.updateGender(id, gender);
-		return ResponseEntity.ok(member);
+		return ResponseEntity.ok(Response.success(member));
 	}
 
 	// 회원의 출생년도를 업데이트하는 API
 	@PatchMapping("/api/members/{id}/birth-year")
 	@ResponseBody
-	public ResponseEntity<Member> updateBirthYear(@PathVariable int id,
+	public ResponseEntity<Response<Member>> updateBirthYear(@PathVariable int id,
 		@RequestBody Map<String, Object> body) {
 		Integer birthYear = (Integer)body.get("birthYear");
 		if (birthYear == null) {
 			throw new IllegalArgumentException("Invalid birthYear value");
 		}
 		Member member = memberService.updateBirthYear(id, birthYear);
-		return ResponseEntity.ok(member);
+		return ResponseEntity.ok(Response.success(member));
 	}
 
 	// 회원의 국적을 업데이트하는 API
 	@PatchMapping("/api/members/{id}/nationality")
 	@ResponseBody
-	public ResponseEntity<Member> updateNationality(@PathVariable int id,
+	public ResponseEntity<Response<Member>> updateNationality(@PathVariable int id,
 		@RequestBody Map<String, String> body) {
 		String nationality = body.get("nationality");
 		if (nationality == null || nationality.isEmpty()) {
 			throw new IllegalArgumentException("Invalid nationality value");
 		}
 		Member member = memberService.updateNationality(id, nationality);
-		return ResponseEntity.ok(member);
+		return ResponseEntity.ok(Response.success(member));
 	}
 
 	// 일반적인 회원가입
 	@PostMapping("/api/admin/members")
 	@ResponseBody
-	public ResponseEntity<Member> createMember(@RequestBody @Parameter(description = "회원 데이터") Member member) {
+	public ResponseEntity<Response<Member>> createMember(
+		@RequestBody @Parameter(description = "회원 데이터") Member member) {
 		Member createdMember = memberService.createMember(member);
-		return ResponseEntity.ok(createdMember);
+		return ResponseEntity.ok(Response.success(member));
 	}
 
 }
