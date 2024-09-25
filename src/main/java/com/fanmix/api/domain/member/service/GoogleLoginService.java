@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,8 +42,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.SignatureAlgorithm;
+
+// 스프링시큐리티 콘텍스트에서 유저정보 가져오는 예제
+// Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+// String username = ((UserDetails)principal).getUsername();
+// memberRepository.findByEmail(username)
 
 @Service
 public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, OAuth2User>, OAuthClient {
@@ -246,18 +251,33 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 	 * 초기 인증과정에서 어세스토큰과 함께 발급했던 리프레쉬 토큰으로 어세스토큰 만료시 다시 어세스토큰 발급
 	 * @return 어세스토큰
 	 */
-	public String getAccessTokenUsingrefreshToken(String refreshToken) {
+	public String getNewAccessTokenUsingRefreshToken(String refreshToken) {
 		try {
-			Claims claims = parser().setSigningKey(secretKey).parseClaimsJws(refreshToken).getBody();
-			String newJwt = builder()
-				.setSubject(claims.getSubject())
-				.setIssuedAt(new Date())
-				.setExpiration(new Date(System.currentTimeMillis() + 86400000)) // 1일
-				.signWith(SignatureAlgorithm.HS256, secretKey.getBytes())
-				.compact();
-			return newJwt;
+			// OAuth 2.0 Token Endpoint로 요청을 보내 새로운 Access Token을 발급받기
+			String tokenEndpointUrl = "https://oauth2.googleapis.com/token";
+			HttpHeaders headers = new HttpHeaders();
+			headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+			MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+			params.add("grant_type", "refresh_token");
+			params.add("refresh_token", refreshToken);
+			params.add("client_id", clientId);
+			params.add("client_secret", clientSecret);
+			logger.debug("새토큰받기 구글에 보내기전 파라미터 : " + params);
+
+			HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
+			RestTemplate restTemplate = new RestTemplate();
+			ResponseEntity<String> response = restTemplate.postForEntity(tokenEndpointUrl, request, String.class);
+			logger.debug("새토큰 받기 구글에 보내고 받은 응답 : " + response);
+
+			// 응답에서 새로운 Access Token과 Refresh Token을 추출하기
+			JSONObject jsonObject = new JSONObject(response.getBody());
+			String newAccessToken = jsonObject.getString("access_token");
+
+			return newAccessToken;
 		} catch (Exception e) {
-			return null;
+			e.printStackTrace();
+			throw new MemberException(FAIL_NEW_ACCESSCODE);
 		}
 	}
 

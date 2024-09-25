@@ -99,13 +99,13 @@ public class MemberController {
 
 	@GetMapping("/api/members/auth/refresh-token")
 	@ResponseBody
-	public String getAccessTokenUsingrefreshToken(@RequestBody Map<String, String> body) {
-
+	public ResponseEntity<Response<String>> getAccessTokenUsingrefreshToken(@RequestBody Map<String, String> body) {
 		String refreshToken = body.get("refreshToken");
 		if (refreshToken == null) {
-			throw new IllegalArgumentException("Invalid refreshToken");
+			throw new IllegalArgumentException("refreshToken이 넘어오지 않음");
 		}
-		return googleLoginService.getAccessTokenUsingrefreshToken(refreshToken);
+		String newAccessToken = googleLoginService.getNewAccessTokenUsingRefreshToken(refreshToken);
+		return ResponseEntity.ok(Response.success(newAccessToken));
 	}
 
 	// 전체 회원리스트를 페이징 처리하여 가져오는 API

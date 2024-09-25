@@ -32,6 +32,6 @@ class GoogleLoginServiceTest {
 	@Test
 	public void getAccessTokenUsingrefreshToken() {
 		String refreshToken = "1//0etSGwBdL0HA-CgYIARAAGA4SNwF-L9Ireq4_ulFBX3OcLlZehTMLMhw2-camq1U7v8dJtXOXnzscao7FFFXjVwMY1gKdvICEk50";
-		googleLoginService.getAccessTokenUsingrefreshToken(refreshToken);
+		googleLoginService.getNewAccessTokenUsingRefreshToken(refreshToken);
 	}
 }
