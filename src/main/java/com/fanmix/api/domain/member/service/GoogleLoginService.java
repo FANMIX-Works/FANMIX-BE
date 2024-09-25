@@ -181,10 +181,18 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 			String name = jsonNode.get("name").asText();
 			String picture = jsonNode.get("picture").asText();
 
-			// DB에서 회원 조회 없으면 구글에서 받은 정보넣으면서 생성(자동회원가입)
+			// DB에서 회원 조회
+			// 있으면 최초로그인 false로 변경
+			// 없으면 구글에서 받은 정보넣으면서 생성(자동회원가입)
 			Member member = memberRepository.findByEmail(email)
+				.map(m -> {
+					if (m.getFirstLoginYn()) {
+						m.setFirstLoginYn(false);
+						return memberRepository.save(m);
+					}
+					return m;
+				})
 				.orElseGet(() -> joinNewMember(email, name, picture, refreshToken));
-
 			return member;
 
 		} catch (Exception e) {
@@ -227,6 +235,7 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 			.setExpiration(new Date(System.currentTimeMillis() + 86400000)) // 1일
 			.signWith(SignatureAlgorithm.HS256, jwtKey.getBytes())
 			.compact();
+		logger.debug("생성된 jwt : " + jwt);
 		return jwt;
 	}
 

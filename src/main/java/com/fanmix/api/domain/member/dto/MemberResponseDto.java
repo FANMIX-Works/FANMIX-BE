@@ -24,9 +24,9 @@ public class MemberResponseDto {
 	private Character gender;            //'M', 'W'
 	private int birthYear;               //탄생년도. 나이는 오늘날짜로부터 계산
 	private String nationality;          //국적
-	private int total_point;
+	private int totalPoint;
 	private String refresh_token;
-	private Boolean first_login_yn;
+	private Boolean firstLoginYn;
 	private Role role;
 
 	public MemberResponseDto(Member member) {
@@ -39,9 +39,9 @@ public class MemberResponseDto {
 		this.gender = member.getGender();
 		this.birthYear = member.getBirthYear();
 		this.nationality = member.getNationality();
-		this.total_point = member.getTotalPoint();
+		this.totalPoint = member.getTotalPoint();
 		this.refresh_token = member.getRefreshToken();
-		this.first_login_yn = member.getFirstLoginYn();
+		this.firstLoginYn = member.getFirstLoginYn();
 		this.role = member.getRole();
 	}
 

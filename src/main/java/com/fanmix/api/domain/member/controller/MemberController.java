@@ -9,7 +9,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -60,7 +59,7 @@ public class MemberController {
 			String accessToken = response.get("access_token").asText();
 			Member member = googleLoginService.requestOAuthInfo(accessToken);
 
-			// 이미 유효한 JWT 토큰이 존재하는 경우, 이를 사용합니다.
+			// 스프링 시큐리티 세션에 이미 유효한 JWT 토큰이 존재하는 경우, 이를 사용합니다.
 			String jwt = JwtTokenUtil.getJwtFromSecurityContext(member);
 			if (jwt == null) {
 				// 유효한 JWT 토큰이 존재하지 않는 경우, 새로운 JWT 토큰을 생성합니다.
@@ -146,6 +145,8 @@ public class MemberController {
 		log.debug("멤버컨트롤러. 자기정보");
 		Member member = memberService.getMyInfo();
 		MemberResponseDto responseDto = MemberService.toResponseDto(member);
+
+		//return new Response<>("SUCCESS", null, data, "소셜 로그인 성공하였습니다.");
 		return ResponseEntity.ok(responseDto);
 	}
 
@@ -208,7 +209,6 @@ public class MemberController {
 	}
 
 	// 회원의 출생년도를 업데이트하는 API
-	@PreAuthorize("hasRole('MEMBER')")
 	@PatchMapping("/api/members/{id}/birth-year")
 	@ResponseBody
 	public ResponseEntity<Member> updateBirthYear(@PathVariable int id,

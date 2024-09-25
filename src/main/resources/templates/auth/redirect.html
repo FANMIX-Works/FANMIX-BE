@@ -18,6 +18,8 @@
 <p id="response"></p>
 <button onclick="validateToken()">유저 정보 보기</button>
 <!-- 추가 정보 표시 -->
+<p>닉네임2 : <div id="nickName2"></div></p>
+<br>
 <p>프로필 이미지 URL : <div id="profileImgUrl"></div></p>
 <br>
 <p>첫 로그인 여부 : <div id="firstLoginYn"></div></p>
@@ -37,7 +39,6 @@
             console.log("response : ", response);
             console.log("response.data : ", response.data);
             console.log("response.data.data.jwt : ", response.data.data.jwt);
-            console.log("response.data.data.member.nickName : ", response.data.data.member.nickName);
 
             document.getElementById('authCode').innerText = authCode;
             document.getElementById('jwt').innerText = response.data.data.jwt;
@@ -53,6 +54,8 @@
 
     function validateToken() {
         const jwt = document.getElementById('jwt').innerText;
+        console.log("원래받은 jwt : ", jwt);
+        console.log("헤더에 담을 Authorization : ", 'Bearer ' + jwt);
         axios.get('/api/members/me', {
             /* 헤더에 Authorization이라는 이름으로 Bearer 한칸띄우고 jwt 값을 넣음 */
             headers: {
@@ -61,16 +64,13 @@
         })
         .then(response => {
             console.log("마이페이지 response : ", response);
-            console.log("마이페이지 response.data : ", response.data);
 
-            document.getElementById('nickName').innerText = response.data.nickName;
-            document.getElementById('email').innerText = response.data.email;
+            document.getElementById('nickName2').innerText = response.data.nickName;
             document.getElementById('profileImgUrl').innerText = response.data.profileImgUrl;
             document.getElementById('firstLoginYn').innerText = response.data.firstLoginYn;
         })
         .catch(error => {
-            console.error("마이페이지 response에러");
-            console.error(error);
+            console.error("마이페이지 response에러. "+error);
             document.getElementById('response').innerText = 'Error: ' + error.message;
         });
     }
