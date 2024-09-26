@@ -44,9 +44,15 @@ public class Community extends BaseEntity {
 		this.isShow = isShow;
 	}
 
-	// 게시물 수정
+	// 커뮤니티 수정
 	public void update(int influencerId, String name, Boolean isShow) {
 		this.influencerId = influencerId;
+		this.name = name;
+		this.isShow = isShow;
+	}
+
+	// 팬채널 수정
+	public void fanChannelUpdate(String name, Boolean isShow) {
 		this.name = name;
 		this.isShow = isShow;
 	}
