@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -146,10 +146,11 @@ public class MemberController {
 	}
 
 	// 회원의 프로필 이미지를 업데이트하는 API
-	@PatchMapping("/api/members/profile-image")
+	@PostMapping(value = "/api/members/profile-image")
 	@ResponseBody
+	//단순히 PatchMapping만 쓰면 Multipart 요청을 지원하지 않음.  post로 하든가 consumes 작업해줘야함
 	public ResponseEntity<Response<Member>> updateProfileImage(@AuthenticationPrincipal String email,
-		@RequestParam("file") MultipartFile file) {
+		@RequestPart(required = false) MultipartFile file) {
 		log.debug("들어온파일 : " + file);
 		if (file.isEmpty()) {
 			throw new IllegalArgumentException("Invalid file value");
