@@ -15,23 +15,21 @@ public class CommentResponse {
 	private int parentId;
 	private int commentId;
 	private Boolean isDelete;
-	private int cr_member;
 	private String contents;
-	private LocalDateTime cr_date;
-	private LocalDateTime u_date;
 	private List<CommentResponse> comments;
+	private LocalDateTime crDate;
+	private LocalDateTime uDate;
 
 	// JSON 순환 참조 방지
 	public CommentResponse (Comment comment) {
-		this.communityId = comment.getCommunity().getId();
+		this.communityId = comment.getPost().getCommunity().getId();
 		this.postId = comment.getPost().getId();
 		this.parentId = (comment.getParentId() != null ? comment.getParentId().getId() : 0);
 		this.commentId = comment.getId();
 		this.isDelete = comment.getIsDelete();
-		this.cr_member = comment.getCr_member().getCrMember();
 		this.contents = comment.getContents();
-		this.cr_date = comment.getCr_date();
-		this.u_date = comment.getU_date();
+		this.crDate = comment.getCrDate();
+		this.uDate = comment.getUDate();
 		this.comments = comment.getComments()
 			.stream()
 			.map(CommentResponse::new)
