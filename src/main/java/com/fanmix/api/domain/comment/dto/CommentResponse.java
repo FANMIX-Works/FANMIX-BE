@@ -15,6 +15,8 @@ public class CommentResponse {
 	private int parentId;
 	private int commentId;
 	private Boolean isDelete;
+	private int crMember;
+	private int uMember;
 	private String contents;
 	private List<CommentResponse> comments;
 	private LocalDateTime crDate;
@@ -26,6 +28,8 @@ public class CommentResponse {
 		this.postId = comment.getPost().getId();
 		this.parentId = (comment.getParentId() != null ? comment.getParentId().getId() : 0);
 		this.commentId = comment.getId();
+		this.crMember = comment.getCrMember();
+		this.uMember = comment.getUMember();
 		this.isDelete = comment.getIsDelete();
 		this.contents = comment.getContents();
 		this.crDate = comment.getCrDate();

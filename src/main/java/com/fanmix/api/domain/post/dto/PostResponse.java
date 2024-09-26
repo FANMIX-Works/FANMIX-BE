@@ -11,6 +11,8 @@ import lombok.Getter;
 public class PostResponse {
 	private int communityId;
 	private int postId;	// 게시물 Id
+	private int crMember;
+	private int uMember;
 	private String title;
 	private String contents;
 	private List<String> imgUrls;
@@ -24,6 +26,8 @@ public class PostResponse {
 	public PostResponse(Post post) {
 		this.communityId = post.getCommunity().getId();
 		this.postId = post.getId();
+		this.crMember = post.getCrMember();
+		this.uMember = post.getUMember();
 		this.title = post.getTitle();
 		this.contents = post.getContent();
 		this.imgUrls = post.getImgUrls();
