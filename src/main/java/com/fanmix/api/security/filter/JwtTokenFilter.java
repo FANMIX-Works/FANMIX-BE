@@ -1,6 +1,9 @@
 package com.fanmix.api.security.filter;
 
+import static com.fanmix.api.domain.member.exception.MemberErrorCode.*;
+
 import java.io.IOException;
+import java.io.PrintWriter;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -8,6 +11,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.fanmix.api.domain.member.exception.MemberException;
 import com.fanmix.api.domain.member.service.MemberService;
 import com.fanmix.api.security.util.JwtTokenUtil;
 
@@ -35,9 +39,10 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 		//1.header에서 jwt토큰 꺼내기기
 		if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
 			log.debug("authorizationHeader가 null 또는 Bearer 로 시작안해서 종료");
-			filterChain.doFilter(request, response);
-			return;
+			//filterChain.doFilter(request, response);    //이걸 호출하면 요청이 다음 필터 또는 리소스로 전달됨. 필터체인 외부로 전달되지않고 스프링프레임워크의 예외처리 매커니즘에 의해 처리됨
+			handleException(response, new MemberException(BLANK_CODE));
 		}
+
 		// token분리
 		String JWTtoken;
 
@@ -88,11 +93,20 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
 	}
 
-	private void handleException(HttpServletResponse response, Exception e) throws IOException {
-		// 예외를 처리하는 로직
-		// 예를 들어, 에러 메시지를 응답으로 전달
-		response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+	private void handleException(HttpServletResponse response, Exception exception) throws IOException {
+		response.reset(); // 응답을 초기화
+		response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401 Unauthorized
 		response.setContentType("application/json");
-		response.getWriter().write("{\"error\":\"" + e.getMessage() + "\"}");
+		response.setCharacterEncoding("UTF-8");
+		PrintWriter out = response.getWriter();
+		out.println(
+			"{\"status\":\"FAIL\"," +
+				"\"customCode\":\"" + "2-002" +
+				"\",\"data\":null," +
+				"\"message\":\"" + exception.getMessage() +
+				"\"}");
+
+		out.flush();
+		out.close();
 	}
 }
