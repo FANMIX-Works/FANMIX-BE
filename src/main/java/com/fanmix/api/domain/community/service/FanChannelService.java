@@ -1,15 +1,11 @@
 package com.fanmix.api.domain.community.service;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fanmix.api.domain.common.Role;
 import com.fanmix.api.domain.community.dto.AddFanChannelRequest;
-import com.fanmix.api.domain.community.dto.FanChannelListResponse;
 import com.fanmix.api.domain.community.dto.UpdateFanChannelRequest;
 import com.fanmix.api.domain.community.entity.Community;
 import com.fanmix.api.domain.community.exception.CommunityErrorCode;
@@ -49,7 +45,7 @@ public class FanChannelService {
 
 	// 팬채널 리스트 정렬
 	// @Transactional(readOnly = true)
-	// public List<FanChannelListResponse> fanChannelList(String sort) {
+	// public List<FanChannelResponse> fanChannelList(String sort) {
 	// 	List<Community> fanChannelList = switch (sort) {
 	// 		case "FOLLOWER_COUNT" -> communityRepository.findAllByOrderByFollowerCountDesc();
 	// 		case "LATEST_CHANNEL" -> communityRepository.findAllByOrderByConfirmDateDesc();
@@ -61,7 +57,13 @@ public class FanChannelService {
 	// 		.collect(Collectors.toList());
 	// }
 
-	// 팬채널 수정
+	// 팬채널 정보 조회
+	public Community fanChannel(int communityId) {
+		return communityRepository.findById(communityId)
+			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
+	}
+
+	// 팬채널 수정/삭제
 	public Community fanChannelUpdate(int communityId, UpdateFanChannelRequest request, String email) {
 		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.FAIL_GET_OAUTHINFO));
