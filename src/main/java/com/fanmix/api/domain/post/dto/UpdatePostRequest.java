@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Getter
 public class UpdatePostRequest {
+	private int communityId;
 	private String title;
 	private String content;
 	private List<String> imgUrls;

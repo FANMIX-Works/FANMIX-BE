@@ -8,10 +8,15 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fanmix.api.common.image.service.ImageService;
+import com.fanmix.api.domain.common.Role;
 import com.fanmix.api.domain.community.entity.Community;
 import com.fanmix.api.domain.community.exception.CommunityErrorCode;
 import com.fanmix.api.domain.community.exception.CommunityException;
 import com.fanmix.api.domain.community.repository.CommunityRepository;
+import com.fanmix.api.domain.member.entity.Member;
+import com.fanmix.api.domain.member.exception.MemberErrorCode;
+import com.fanmix.api.domain.member.exception.MemberException;
+import com.fanmix.api.domain.member.repository.MemberRepository;
 import com.fanmix.api.domain.post.dto.AddPostRequest;
 import com.fanmix.api.domain.post.dto.PopularPostsResponse;
 import com.fanmix.api.domain.post.dto.PostListResponse;
@@ -31,15 +36,23 @@ public class PostService {
 
 	private final CommunityRepository communityRepository;
 	private final PostRepository postRepository;
+	private final MemberRepository memberRepository;
 	private final ImageService imageService;
 
 	// 게시물 추가
 	@Transactional
-	public Post save(AddPostRequest request, List<MultipartFile> images) {
+	public Post save(AddPostRequest request, List<MultipartFile> images, String email) {
 		Community community = communityRepository.findById(request.getCommunityId())
 			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
 
-		Post post = request.toEntity(community);
+		Member member = memberRepository.findByEmail(email)
+			.orElseThrow(() -> new MemberException(MemberErrorCode.FAIL_GET_OAUTHINFO));
+
+		if(!member.getRole().equals(Role.MEMBER)) {
+			throw new CommunityException(CommunityErrorCode.NOT_EXISTS_AUTHORIZATION);
+		}
+
+		Post post = request.toEntity(community, member);
 
 		if(images != null && !images.isEmpty()) {
 			List<String> imgUrls = imageService.saveImagesAndReturnUrls(images);
@@ -79,9 +92,16 @@ public class PostService {
 	}
 
 	// 게시물 목록 조회
-	public List<Post> findAll(int communityId) {
+	public List<Post> findAll(int communityId, String email) {
 		Community community = communityRepository.findById(communityId)
 			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
+
+		Member member = memberRepository.findByEmail(email)
+			.orElseThrow(() -> new MemberException(MemberErrorCode.FAIL_GET_OAUTHINFO));
+
+		if(!member.getRole().equals(Role.MEMBER)) {
+			throw new CommunityException(CommunityErrorCode.NOT_EXISTS_AUTHORIZATION);
+		}
 
 		return postRepository.findByCommunityId(communityId);
 	}
@@ -102,7 +122,7 @@ public class PostService {
 
 	// 게시물 수정
 	@Transactional
-	public Post update(int communityId, int postId, UpdatePostRequest request, List<MultipartFile> images) {
+	public Post update(int communityId, int postId, UpdatePostRequest request, List<MultipartFile> images, String email) {
 		communityRepository.findById(communityId)
 			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
 
@@ -117,6 +137,14 @@ public class PostService {
 			List<String> imgUrls = imageService.saveImagesAndReturnUrls(images);
 			post.addImages(imgUrls);
 		}
+
+		Member member = memberRepository.findByEmail(email)
+			.orElseThrow(() -> new MemberException(MemberErrorCode.FAIL_GET_OAUTHINFO));
+
+		if(!member.getRole().equals(Role.MEMBER)) {
+			throw new CommunityException(CommunityErrorCode.NOT_EXISTS_AUTHORIZATION);
+		}
+
 		post.update(request.getTitle(), request.getContent());
 
 		return post;
@@ -124,7 +152,7 @@ public class PostService {
 
 	// 게시물 삭제
 	@Transactional
-	public void delete(int communityId, int postId) {
+	public void delete(int communityId, int postId, String email) {
 		communityRepository.findById(communityId)
 				.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
 
@@ -134,7 +162,15 @@ public class PostService {
 		if(post.getCommunity().getId() != communityId) {
 			throw new PostException(PostErrorCode.POST_NOT_BELONG_TO_COMMUNITY);
 		}
-		postRepository.deleteById(postId);
+
+		Member member = memberRepository.findByEmail(email)
+			.orElseThrow(() -> new MemberException(MemberErrorCode.FAIL_GET_OAUTHINFO));
+
+		if(!member.getRole().equals(Role.MEMBER)) {
+			throw new CommunityException(CommunityErrorCode.NOT_EXISTS_AUTHORIZATION);
+		}
+
+		post.updateByIsDelete();
 	}
 
 	// 인기 게시물 5개 가져오기

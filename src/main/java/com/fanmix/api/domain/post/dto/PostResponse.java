@@ -2,9 +2,7 @@ package com.fanmix.api.domain.post.dto;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import com.fanmix.api.domain.comment.dto.CommentResponse;
 import com.fanmix.api.domain.post.entity.Post;
 
 import lombok.Getter;
@@ -16,9 +14,12 @@ public class PostResponse {
 	private String title;
 	private String contents;
 	private List<String> imgUrls;
-	private List<CommentResponse> comments;
-	private LocalDateTime cr_date;
-	private LocalDateTime u_date;
+	private int viewCount;
+	private int likeCount;
+	private int commentCount;
+	private LocalDateTime crDate;
+	private LocalDateTime uDate;
+	private Boolean isDelete;
 
 	public PostResponse(Post post) {
 		this.communityId = post.getCommunity().getId();
@@ -26,11 +27,11 @@ public class PostResponse {
 		this.title = post.getTitle();
 		this.contents = post.getContent();
 		this.imgUrls = post.getImgUrls();
-		this.comments = post.getComments()
-			.stream()
-			.map(CommentResponse::new)
-			.collect(Collectors.toList());
-		this.cr_date = post.getCrDate();
-		this.u_date = post.getUDate();
+		this.viewCount = post.getViewCount();
+		this.likeCount = post.getLikes().size();
+		this.commentCount = post.getComments().size();
+		this.crDate = post.getCrDate();
+		this.uDate = post.getUDate();
+		this.isDelete = post.isDelete();
 	}
 }

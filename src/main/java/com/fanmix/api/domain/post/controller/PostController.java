@@ -2,11 +2,11 @@ package com.fanmix.api.domain.post.controller;
 
 import java.util.List;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.fanmix.api.common.image.service.ImageService;
 import com.fanmix.api.common.response.Response;
 import com.fanmix.api.domain.post.dto.AddPostRequest;
 import com.fanmix.api.domain.post.dto.PopularPostsResponse;
@@ -31,18 +30,14 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PostController {
 	private final PostService postService;
-	private final ImageService imageService;
 
 	// 게시물 등록
 	@PostMapping("/api/communities/posts")
-	public ResponseEntity<Post> addPost(
+	public ResponseEntity<Response<Post>> addPost(
 		@RequestPart @Validated AddPostRequest request,
-		@RequestPart(value = "images", required = false) List<MultipartFile> images) {
-
-		Post post = postService.save(request, images);
-
-		return ResponseEntity.status(HttpStatus.CREATED)
-			.body(post);
+		@RequestPart(value = "images", required = false) List<MultipartFile> images,
+		@AuthenticationPrincipal String email) {
+		return ResponseEntity.ok(Response.success(postService.save(request, images, email)));
 	}
 
 	// 전체 커뮤니티 종합 글 리스트 조회
@@ -61,59 +56,48 @@ public class PostController {
 	}
 
 	// 게시물 목록 조회
-	@GetMapping("/communities/{communityId}/posts")
-	public ResponseEntity<List<PostResponse>> findAllPost(@PathVariable int communityId) {
-		List<PostResponse> posts = postService.findAll(communityId)
+	@GetMapping("/api/communities/{communityId}/posts")
+	public ResponseEntity<Response<List<PostResponse>>> findAllPost(
+		@PathVariable int communityId, @AuthenticationPrincipal String email) {
+		return ResponseEntity.ok(Response.success(postService.findAll(communityId, email)
 			.stream()
 			.map(PostResponse::new)
-			.toList();
-
-		return ResponseEntity.ok()
-			.body(posts);
+			.toList()
+		));
 	}
 
 	// 게시물 조회
-	@GetMapping("/communities/{communityId}/posts/{postId}")
-	public ResponseEntity<PostResponse> findPost(
+	@GetMapping("/api/communities/{communityId}/posts/{postId}")
+	public ResponseEntity<Response<PostResponse>> findPost(
 		@PathVariable int communityId,
 		@PathVariable int postId) {
-		Post post = postService.findById(communityId, postId);
-
-		return ResponseEntity.status(HttpStatus.OK)
-			.body(new PostResponse(post));
+		return ResponseEntity.ok(Response.success(new PostResponse(postService.findById(communityId, postId))));
 	}
 
 	// 게시물 수정
-	@PutMapping("/communities/{communityId}/posts/{postId}")
-	public ResponseEntity<Post> updatePost(
+	@PutMapping("/api/communities/{communityId}/posts/{postId}")
+	public ResponseEntity<Response<Post>> updatePost(
 		@PathVariable int communityId,
 		@PathVariable int postId,
 		@RequestPart @Validated UpdatePostRequest request,
-		@RequestPart(value = "images", required = false) List<MultipartFile> images) {
-
-		Post post = postService.update(communityId, postId, request, images);
-
-		return ResponseEntity.ok()
-			.body(post);
+		@RequestPart(value = "images", required = false) List<MultipartFile> images,
+		@AuthenticationPrincipal String email) {
+		return ResponseEntity.ok(Response.success(postService.update(communityId, postId, request, images, email)));
 	}
 
 	// 게시물 삭제
-	@DeleteMapping("/communities/{communityId}/posts/{postId}")
-	public ResponseEntity<Void> deletePost(
+	@PatchMapping("/api/communities/{communityId}/posts/{postId}")
+	public ResponseEntity<Response<Void>> deletePost(
 		@PathVariable int communityId,
-		@PathVariable int postId) {
-		postService.delete(communityId, postId);
-
-		return ResponseEntity.ok()
-			.build();
+		@PathVariable int postId,
+		@AuthenticationPrincipal String email) {
+		postService.delete(communityId, postId, email);
+		return ResponseEntity.ok(Response.success(null));
 	}
 
 	// 인기글 top5 조회
 	@GetMapping("/api/communities/popular")
-	public ResponseEntity<List<PopularPostsResponse>> popularPosts() {
-		List<PopularPostsResponse> posts = postService.popularPosts();
-
-		return ResponseEntity.ok()
-			.body(posts);
+	public ResponseEntity<Response<List<PopularPostsResponse>>> popularPosts() {
+		return ResponseEntity.ok(Response.success(postService.popularPosts()));
 	}
 }

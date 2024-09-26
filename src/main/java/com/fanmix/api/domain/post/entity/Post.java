@@ -62,11 +62,15 @@ public class Post extends BaseEntity {
 	@OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE, orphanRemoval = true)
 	private List<Comment> comments;        // 댓글
 
+	private int postEvaluation;
+
 	@OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
 	private List<PostLikeDislike> likes;
 
 	@Builder
-	public Post(String title, String content, List<String> imgUrls) {
+	public Post(Community community, Member member, String title, String content, List<String> imgUrls) {
+		this.community = community;
+		this.member = member;
 		this.title = title;
 		this.content = content;
 		this.imgUrls = imgUrls;
@@ -74,6 +78,10 @@ public class Post extends BaseEntity {
 	public void update(String title, String content) {
 		this.title = title;
 		this.content = content;
+	}
+
+	public void updateByIsDelete() {
+		this.isDelete = true;
 	}
 
 	public void addImages(List<String> imgUrls) {
