@@ -56,6 +56,7 @@ public class Member extends BaseEntity implements UserDetails {
 	private Boolean firstLoginYn;
 	@Enumerated(EnumType.STRING)
 	private Role role; // GUEST, MEMBER, COMMUNITY, ADMIN
+	private boolean deleteYn;    //1:삭제, 0:정상(디폴트)
 
 	public Member(String name) {
 		this.name = name;

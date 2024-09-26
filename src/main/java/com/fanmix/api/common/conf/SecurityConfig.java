@@ -68,11 +68,10 @@ public class SecurityConfig {
 					"/api/influencers/{influencerId}", "/api/influencers/reviews/hot5")
 				.permitAll()
 
-				.requestMatchers("/api/influencers/**/reviews/**")
+				.requestMatchers("/api/influencers/{influencerId}/reviews")
 				.hasAnyAuthority("MEMBER", "ADMIN")
-				.requestMatchers("/api/influencers/**/reviews/**/comments/like", "/api/influencers/**/follow")
-				.hasAnyAuthority("MEMBER", "ADMIN")
-				.requestMatchers("/api/influencers/**/reviews/**")
+				.requestMatchers("/api/influencers/{influencerId}/reviews/{reviewId}/comments/**",
+					"/api/influencers/{influencerId}/follow")
 				.hasAnyAuthority("MEMBER", "ADMIN")
 
 				/* 커뮤니티 */
