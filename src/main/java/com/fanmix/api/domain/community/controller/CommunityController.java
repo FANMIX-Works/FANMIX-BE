@@ -39,7 +39,7 @@ public class CommunityController {
 	}
 
 	// 커뮤니티 조회
-	@GetMapping("/api/communities/{communityId}/info")
+	@GetMapping("/api/communities/info/{communityId}")
 	public ResponseEntity<Response<Community>> findCommunity(@PathVariable int communityId) {
 		return ResponseEntity.ok(Response.success(communityService.findById(communityId)));
 	}
