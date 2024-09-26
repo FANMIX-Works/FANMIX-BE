@@ -25,7 +25,8 @@ public enum MemberErrorCode implements ErrorCode {
 	NO_USER_EXIST(HttpStatus.BAD_REQUEST, "2-013", "해당 멤버가 없습니다."),
 	NO_REQUEST_DATA_EXIST(HttpStatus.BAD_REQUEST, "2-014", "바꿀 값이 올바르지 않습니다."),
 	NO_INTEGER_TYPE(HttpStatus.BAD_REQUEST, "2-015", "바꿀 값이 숫자형 데이터타입이 아닙니다."),
-	NO_PRIVILAGE(HttpStatus.BAD_REQUEST, "2-016", "해당 API를 호출할 권한이 없습니다.");
+	NO_PRIVILAGE(HttpStatus.BAD_REQUEST, "2-016", "해당 API를 호출할 권한이 없습니다."),
+	NO_CONTEXT(HttpStatus.INTERNAL_SERVER_ERROR, "2-017", "현재 컨텍스트에는 로그인된 유저가 없습니다.");
 
 	private final HttpStatus httpStatus;
 	private final String customCode;

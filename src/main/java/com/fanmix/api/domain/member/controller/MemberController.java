@@ -7,7 +7,9 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,8 +32,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.extern.slf4j.Slf4j;
 
 @Controller
@@ -112,7 +112,7 @@ public class MemberController {
 		return ResponseEntity.ok(Response.success(newAccessToken));
 	}
 
-	// 전체 회원리스트를 페이징 처리하여 가져오는 API
+	// 전체 회원리스트를 가져오는 API
 	@GetMapping("/api/members")
 	@ResponseBody
 	public ResponseEntity<Response<List<Member>>> getMembers() {
@@ -131,19 +131,20 @@ public class MemberController {
 	// 현재 로그인한 회원의 정보를 가져오는 API
 	@GetMapping("/api/members/me")
 	@ResponseBody
-	public ResponseEntity<Response<MemberResponseDto>> getMyInfo() {
-		//Response에는 status, customCode, data, message 4개의 속성이 있다.
+	public ResponseEntity<Response<MemberResponseDto>> getMyInfo(@AuthenticationPrincipal String email) {
+
 		log.debug("멤버컨트롤러. 자기정보");
-		Member member = memberService.getMyInfo();
+		log.debug("로그인된 멤버 : " + email);
+		Member member = memberService.findByEmail(email);
 		MemberResponseDto responseDto = MemberService.toResponseDto(member);
 
 		return ResponseEntity.ok(Response.success(responseDto));
 	}
 
 	// 회원의 프로필 이미지를 업데이트하는 API
-	@PatchMapping("/api/members/{id}/profile-image")
+	@PatchMapping("/api/members/profile-image")
 	@ResponseBody
-	public ResponseEntity<Response<Member>> updateProfileImage(@PathVariable int id,
+	public ResponseEntity<Response<Member>> updateProfileImage(@AuthenticationPrincipal String email,
 		@RequestParam("file") MultipartFile file) {
 		log.debug("들어온파일 : " + file);
 		if (file.isEmpty()) {
@@ -151,59 +152,57 @@ public class MemberController {
 		}
 		String profileImgUrl = imageService.saveImageAndReturnUrl(file);
 		log.debug("수정 프로필 이미지 업로드 경로 : " + profileImgUrl);
-		Member member = memberService.updateProfileImage(id, profileImgUrl);
+		// email을 통해 Member의 id를 조회
+		Member member = memberService.findByEmail(email);
+		member = memberService.updateProfileImage(member.getId(), profileImgUrl);
 		return ResponseEntity.ok(Response.success(member));
 	}
 
 	// 회원의 자기소개를 업데이트하는 API
-	@PatchMapping("/api/members/{id}/introduce")
+	@PatchMapping("/api/members/introduce")
 	@ResponseBody
-	public ResponseEntity<Response<Member>> updateIntroduce(@PathVariable int id,
-		@RequestBody Map<String, String> body) {
+	public ResponseEntity<Response<Member>> updateIntroduce(@RequestBody Map<String, String> body) {
 		String introduce = body.get("introduce");
 		if (introduce == null) {
 			throw new MemberException(NO_REQUEST_DATA_EXIST);
 		}
-		Member member = memberService.updateIntroduce(id, introduce);
+		Member member = memberService.getMyInfo();
+		member = memberService.updateIntroduce(member.getId(), introduce);
 		return ResponseEntity.ok(Response.success(member));
 	}
 
 	// 회원의 닉네임을 업데이트하는 API
-	@PatchMapping("/api/members/{id}/nickname")
+	@PatchMapping("/api/members/nickname")
 	@ResponseBody
 	@Operation(summary = "회원 닉네임 업데이트", description = "회원의 닉네임을 업데이트합니다.")
-	public ResponseEntity<Response<Member>> updateNickname(
-		@Parameter(description = "회원 ID") @PathVariable int id,
-		@Parameter(description = "새 닉네임 정보",
-			content = @Content(schema = @Schema(example = "{\"nickname\": \"새로운닉네임\"}")))
-		@RequestBody Map<String, String> body) {
+	public ResponseEntity<Response<Member>> updateNickname(@RequestBody Map<String, String> body) {
 		String nickName = body.get("nickName");
 		if (nickName == null) {
 			throw new MemberException(NO_REQUEST_DATA_EXIST);
 		}
-		Member member = memberService.updateNickname(id, nickName);
+		Member member = memberService.getMyInfo();
+		member = memberService.updateNickname(member.getId(), nickName);
 		return ResponseEntity.ok(Response.success(member));
 	}
 
 	// 회원의 성별을 업데이트하는 API
-	@PatchMapping("/api/members/{id}/gender")
+	@PatchMapping("/api/members/gender")
 	@ResponseBody
-	public ResponseEntity<Response<Member>> updateGender(@PathVariable int id,
-		@RequestBody Map<String, String> body) {
+	public ResponseEntity<Response<Member>> updateGender(@RequestBody Map<String, String> body) {
 		String genderStr = body.get("gender");
 		if (genderStr == null || genderStr.length() != 1) {
 			throw new IllegalArgumentException("Invalid gender value");
 		}
 		char gender = genderStr.charAt(0);
-		Member member = memberService.updateGender(id, gender);
+		Member member = memberService.getMyInfo();
+		member = memberService.updateGender(member.getId(), gender);
 		return ResponseEntity.ok(Response.success(member));
 	}
 
 	// 회원의 출생년도를 업데이트하는 API
-	@PatchMapping("/api/members/{id}/birth-year")
+	@PatchMapping("/api/members/birth-year")
 	@ResponseBody
-	public ResponseEntity<Response<Member>> updateBirthYear(@PathVariable int id,
-		@RequestBody Map<String, Object> body) {
+	public ResponseEntity<Response<Member>> updateBirthYear(@RequestBody Map<String, Object> body) {
 		Object birthYearObj = body.get("birthYear");
 		Integer birthYear;
 		if (birthYearObj == null) {
@@ -220,21 +219,21 @@ public class MemberController {
 		} catch (Exception e) {
 			throw new MemberException(NO_INTEGER_TYPE);
 		}
-
-		Member member = memberService.updateBirthYear(id, birthYear);
+		Member member = memberService.getMyInfo();
+		member = memberService.updateBirthYear(member.getId(), birthYear);
 		return ResponseEntity.ok(Response.success(member));
 	}
 
 	// 회원의 국적을 업데이트하는 API
-	@PatchMapping("/api/members/{id}/nationality")
+	@PatchMapping("/api/members/nationality")
 	@ResponseBody
-	public ResponseEntity<Response<Member>> updateNationality(@PathVariable int id,
-		@RequestBody Map<String, String> body) {
+	public ResponseEntity<Response<Member>> updateNationality(@RequestBody Map<String, String> body) {
 		String nationality = body.get("nationality");
 		if (nationality == null || nationality.isEmpty()) {
 			throw new IllegalArgumentException("Invalid nationality value");
 		}
-		Member member = memberService.updateNationality(id, nationality);
+		Member member = memberService.getMyInfo();
+		member = memberService.updateNationality(member.getId(), nationality);
 		return ResponseEntity.ok(Response.success(member));
 	}
 
@@ -245,6 +244,36 @@ public class MemberController {
 		@RequestBody @Parameter(description = "회원 데이터") Member member) {
 		Member createdMember = memberService.createMember(member);
 		return ResponseEntity.ok(Response.success(member));
+	}
+
+	// 내 활동이력 조회(내 한줄리뷰)
+	@GetMapping("/api/members/activity/reviews")
+	@ResponseBody
+	public void getMyActivityReview() {
+		return;
+	}
+
+	// 내 활동이력 조회(내 글)
+	@GetMapping("/api/members/activity/posts")
+	@ResponseBody
+	public void getMyActivityPosts() {
+		return;
+	}
+
+	// 내 활동이력 조회(내 댓글)
+	@GetMapping("/api/members/activity/comments")
+	@ResponseBody
+	public void getMyActivityComments() {
+		return;
+	}
+
+	// 회원탈퇴
+	@DeleteMapping("/api/members")
+	@ResponseBody
+	public ResponseEntity<Response<Boolean>> withDrawMember(@AuthenticationPrincipal String email) {
+		Member member = memberService.getMyInfo();
+		memberService.withDrawMember(member);
+		return ResponseEntity.ok(Response.success(true));
 	}
 
 }
