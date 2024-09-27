@@ -1,5 +1,8 @@
 package com.fanmix.api.domain.community.service;
 
+import org.checkerframework.checker.units.qual.C;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,8 +33,10 @@ public class FanChannelService {
 		if(request.getInfluencerId() <= 0) {
 			throw new CommunityException(CommunityErrorCode.INVALID_INFLUENCER_ID);
 		}
-		communityRepository.findByInfluencerId(request.getInfluencerId())
-			.orElseThrow(() -> new CommunityException(CommunityErrorCode.INFLUENCER_NOT_FOUND));
+
+		if(communityRepository.findByInfluencerId(request.getInfluencerId()).isPresent()) {
+			throw new CommunityException(CommunityErrorCode.INFLUENCER_ID_DUPLICATION);
+		}
 
 		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.FAIL_GET_OAUTHINFO));
