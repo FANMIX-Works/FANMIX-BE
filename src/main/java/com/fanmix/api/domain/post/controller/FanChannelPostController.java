@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.fanmix.api.common.response.Response;
 import com.fanmix.api.domain.post.dto.AddPostRequest;
 import com.fanmix.api.domain.post.dto.PostListResponse;
+import com.fanmix.api.domain.post.dto.PostResponse;
 import com.fanmix.api.domain.post.entity.Post;
 import com.fanmix.api.domain.post.service.FanChannelPostService;
 
@@ -43,5 +44,13 @@ public class FanChannelPostController {
 		@AuthenticationPrincipal String email,
 		@RequestParam(value = "sort", defaultValue = "LATEST_POST") String sort) {
 		return ResponseEntity.ok(Response.success(fanChannelPostService.findAllFanChannelPosts(communityId, email, sort)));
+	}
+
+	// 팬채널 글 조회
+	@GetMapping("/api/fanchannels/posts/{postId}")
+	public ResponseEntity<Response<PostResponse>> fanChannelPost(
+		@PathVariable int postId,
+		@AuthenticationPrincipal String email) {
+		return ResponseEntity.ok(Response.success(new PostResponse(fanChannelPostService.findFanChannelPost(postId, email))));
 	}
 }

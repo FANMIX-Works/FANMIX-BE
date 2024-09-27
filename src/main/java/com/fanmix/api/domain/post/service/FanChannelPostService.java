@@ -86,4 +86,18 @@ public class FanChannelPostService {
 			.map(PostListResponse::new)
 			.collect(Collectors.toList());
 	}
+
+	// 팬채널 글 조회
+	public Post findFanChannelPost(int postId, String email) {
+		Post post = postRepository.findById(postId)
+			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_EXIST));
+
+		Member member = memberRepository.findByEmail(email)
+			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
+
+		if(member.getRole().equals(Role.COMMUNITY)) {
+			throw new MemberException(MemberErrorCode.FAIL_GENERATE_ACCESSCODE);
+		}
+		return post;
+	}
 }
