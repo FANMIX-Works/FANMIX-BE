@@ -15,7 +15,7 @@ public interface OAuthClient {
 	/**
 	 * Authorization Code를 사용하여 인증 API에 요청하고 Access Token을 획득합니다.
 	 *
-	 * @param params OAuthLogin 타입의 인증 파라미터.
+	 * @param  authorizationCode 타입의 인증 파라미터.
 	 * @return String Access Token을 문자열로 반환합니다.
 	 */
 	JsonNode requestAccessToken(String authorizationCode) throws JsonProcessingException;
