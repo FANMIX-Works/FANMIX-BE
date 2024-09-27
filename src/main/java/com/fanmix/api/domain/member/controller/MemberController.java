@@ -22,13 +22,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fanmix.api.common.image.service.ImageService;
 import com.fanmix.api.common.response.Response;
+import com.fanmix.api.common.security.util.JwtTokenUtil;
 import com.fanmix.api.domain.member.dto.AuthResponse;
 import com.fanmix.api.domain.member.dto.MemberResponseDto;
 import com.fanmix.api.domain.member.entity.Member;
 import com.fanmix.api.domain.member.exception.MemberException;
 import com.fanmix.api.domain.member.service.GoogleLoginService;
 import com.fanmix.api.domain.member.service.MemberService;
-import com.fanmix.api.security.util.JwtTokenUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import io.swagger.v3.oas.annotations.Operation;

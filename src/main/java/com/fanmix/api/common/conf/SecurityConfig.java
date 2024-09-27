@@ -18,9 +18,9 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.fanmix.api.common.security.filter.JwtTokenFilter;
 import com.fanmix.api.domain.member.service.GoogleLoginService;
 import com.fanmix.api.domain.member.service.MemberService;
-import com.fanmix.api.security.filter.JwtTokenFilter;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
