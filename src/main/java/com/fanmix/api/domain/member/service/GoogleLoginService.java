@@ -119,7 +119,7 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 				throw new MemberException(FAIL_GENERATE_ACCESSCODE);
 			}
 
-			log.debug("어세스토큰 등 JsonNode : " + responseNode);
+			log.debug("발급받은 어세스토큰 등 JsonNode : " + responseNode);
 			refreshToken = responseNode.get("refresh_token").asText();
 
 			return responseNode;
@@ -180,7 +180,7 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 			// 응답 처리
 			ObjectMapper objectMapper = new ObjectMapper();
 			JsonNode jsonNode = objectMapper.readTree(response.getBody());
-			System.out.println("!!!!!!!!!!!!!!!!!!!!!!" + jsonNode);
+			log.debug("구글에서 받은 유저정보 : " + jsonNode);
 
 			String email = jsonNode.get("email").asText();
 			String name = jsonNode.get("name").asText();

@@ -39,8 +39,8 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 		//1.header에서 jwt토큰 꺼내기기
 		if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
 			log.debug("authorizationHeader가 null 또는 Bearer 로 시작안해서 종료");
-			filterChain.doFilter(request,
-				response);    //이걸 호출하면 요청이 다음 필터 또는 리소스로 전달됨. 필터체인 외부로 전달되지않고 스프링프레임워크의 예외처리 매커니즘에 의해 처리됨
+			//이걸 호출하면 요청이 다음 필터 또는 리소스로 전달됨. 필터체인 외부로 전달되지않고 스프링프레임워크의 예외처리 매커니즘에 의해 처리됨
+			filterChain.doFilter(request, response);
 			return;
 			//throw new MemberException(BLANK_CODE);
 			//handleException(response, new MemberException(BLANK_CODE));

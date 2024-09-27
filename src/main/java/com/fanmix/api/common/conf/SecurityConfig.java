@@ -100,6 +100,7 @@ public class SecurityConfig {
 					.userService(googleLoginService)
 				)
 			)
+			//스프링시큐리티 필터체인전에 JwtTokenFilter체인 추가.  먼저 JWT토큰을 검사하고 유효하면 인증된 사용자를 스프링시큐리티 컨텍스트 홀더에 저장
 			.addFilterBefore(new JwtTokenFilter(memberService, secretKey), UsernamePasswordAuthenticationFilter.class)
 			.addFilterAfter(new LoggingFilter(), JwtTokenFilter.class)
 		;
