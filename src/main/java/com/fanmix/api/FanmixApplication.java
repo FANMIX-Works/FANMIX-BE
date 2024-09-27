@@ -7,13 +7,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
-import com.fanmix.api.domain.member.dto.AuthResponse;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
+import com.fanmix.api.domain.member.entity.Member;
 
 @SpringBootApplication
 @EnableJpaAuditing
@@ -23,18 +20,23 @@ public class FanmixApplication {
 		SpringApplication.run(FanmixApplication.class, args);
 	}
 
+	/**
+	 * Spring Data JPA에서 제공하는 AuditorAware 인터페이스를 구현한 메소드
+	 * 생성자, 수정자, 생성일, 수정일을 자동 설정
+	 * @return
+	 */
 	@Bean
-	public AuditorAware<String> auditorProvider() {
+	public AuditorAware<Integer> auditorProvider() {
 		return () -> {
-			HttpServletRequest request = ((ServletRequestAttributes)
-				RequestContextHolder.currentRequestAttributes()).getRequest();
-			HttpSession session = request.getSession();
-			AuthResponse authResponse = (AuthResponse)session.getAttribute("authResponse");
-			if (authResponse != null) {
-				return Optional.of(String.valueOf(authResponse.getMember().getId()));
-			} else {
-				return Optional.empty();
+			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+			if (authentication != null) {
+				Object principal = authentication.getPrincipal();
+				if (principal instanceof Member) {
+					Member member = (Member)principal;
+					return Optional.of(member.getId()); // 사용자의 아이디를 반환
+				}
 			}
+			return Optional.empty();
 		};
 	}
 }

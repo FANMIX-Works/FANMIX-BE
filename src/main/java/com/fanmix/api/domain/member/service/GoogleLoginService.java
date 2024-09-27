@@ -1,6 +1,7 @@
 package com.fanmix.api.domain.member.service;
 
 import static com.fanmix.api.domain.member.exception.MemberErrorCode.*;
+import static io.jsonwebtoken.Jwts.*;
 
 import java.util.Collections;
 import java.util.Date;
@@ -8,10 +9,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 
-import javax.crypto.SecretKey;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.http.HttpEntity;
@@ -41,22 +40,29 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
-import io.jsonwebtoken.security.WeakKeyException;
+import lombok.extern.slf4j.Slf4j;
+
+// 스프링시큐리티 콘텍스트에서 유저정보 가져오는 예제
+// Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+// String username = ((UserDetails)principal).getUsername();
+// memberRepository.findByEmail(username)
 
 @Service
+@Slf4j
 public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, OAuth2User>, OAuthClient {
 
 	private final MemberRepository memberRepository;
 	private final String clientId;
 	private final String clientSecret;
 	private final String redirectUri;
-	private final SecretKey jwtKey;
+	@Value("${jwt.secret}")
+	private String secretKey;
 	private final Random random = new Random();
-	private static final Logger logger = LoggerFactory.getLogger(GoogleLoginService.class);
+	private static final String USER_INFO_ENDPOINT = "https://www.googleapis.com/oauth2/v3/userinfo";
+	@Autowired
+	private RestTemplate restTemplate;
+	private String refreshToken;
 
 	public GoogleLoginService(MemberRepository memberRepository, @Value("${oauth.google.client-id}") String clientId,
 		@Value("${oauth.google.client-secret}") String clientSecret,
@@ -65,11 +71,12 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 		this.clientId = clientId;
 		this.clientSecret = clientSecret;
 		this.redirectUri = redirectUri;
-		this.jwtKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-		int keySize = jwtKey.getEncoded().length * 8;
-		if (keySize < 256) {
-			throw new WeakKeyException("The signing key's size is not secure enough for the HS256 algorithm.");
-		}
+		//this.jwtKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);    //알고리즘
+		this.secretKey = secretKey;
+		// int keySize = jwtKey.getEncoded().length * 8;
+		// if (keySize < 256) {
+		// 	throw new WeakKeyException("The signing key's size is not secure enough for the HS256 algorithm.");
+		// }
 	}
 
 	@Override
@@ -78,19 +85,18 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 	}
 
 	@Override
-	public String requestAccessToken(String authorizationCode) {
+	public JsonNode requestAccessToken(String authorizationCode) {
 		try {
 			// Null 체크
 			Optional.ofNullable(authorizationCode)
 				.orElseThrow(() -> new MemberException(BLANK_CODE));
 
-			logger.debug("어세스토큰 발급받기 위해 넘겨줄 인가코드 : " + authorizationCode);
+			log.debug("어세스토큰 발급받기 위해 넘겨줄 인가코드 : " + authorizationCode);
 
 			// RestTemplate 설정 및 요청
 			RestTemplate restTemplate = new RestTemplate();
 			HttpHeaders httpHeaders = new HttpHeaders();
 			httpHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-			logger.debug("헤더세팅 완료");
 
 			MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 			params.add("code", authorizationCode);
@@ -99,17 +105,11 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 			params.add("client_secret", clientSecret);
 			params.add("grant_type", "authorization_code");
 
-			logger.debug("params: " + params);
-
 			HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(params, httpHeaders);
 			String url = "https://oauth2.googleapis.com/token";
 
-			logger.debug("어세스토큰 발급 API요청 직전. requestEntity : " + requestEntity);
-
 			// API 요청
 			ResponseEntity<String> response = restTemplate.postForEntity(url, requestEntity, String.class);
-
-			logger.debug("어세스토큰 발급 API요청 직후");
 
 			// 응답 처리
 			ObjectMapper objectMapper = new ObjectMapper();
@@ -119,24 +119,25 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 				throw new MemberException(FAIL_GENERATE_ACCESSCODE);
 			}
 
-			logger.debug("어세스토큰 등 : " + responseNode);
+			log.debug("발급받은 어세스토큰 등 JsonNode : " + responseNode);
+			refreshToken = responseNode.get("refresh_token").asText();
 
-			return responseNode.get("access_token").asText();
+			return responseNode;
 
 		} catch (JsonProcessingException e) {
 			// JSON 처리 중 발생한 예외 처리
 			e.printStackTrace();
 			throw new MemberException(JSON_PROCESSING_ERROR);
-		} catch (
-			JpaSystemException e) {    //InvalidDataAccessResourceUsageException은 SQLGrammarException를 래핑하고 JpaSystemException 내부예외임
-			logger.debug("멤버 테이블 없음");
+		} catch (JpaSystemException e) {
+			//InvalidDataAccessResourceUsageException은 SQLGrammarException를 래핑하고 JpaSystemException 내부예외임
+			log.debug("멤버 테이블 없음");
 			e.printStackTrace();
 			throw new MemberException(SQL_ERROR);
 		} catch (RestClientException e) {
 			// REST 요청 중 발생한 예외 처리
 			e.printStackTrace();
 			if (e.getRootCause() instanceof InvalidDataAccessResourceUsageException) {
-				logger.debug("멤버 테이블 없음");
+				log.debug("멤버 테이블 없음");
 				e.printStackTrace();
 				throw new MemberException(SQL_ERROR);
 			} else {
@@ -149,11 +150,12 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 			e.printStackTrace();
 			if (e instanceof JpaSystemException
 				&& ((JpaSystemException)e).getRootCause() instanceof InvalidDataAccessResourceUsageException) {
-				logger.debug("멤버 테이블 없음");
+				log.debug("멤버 테이블 없음");
 				e.printStackTrace();
 				throw new MemberException(SQL_ERROR);
 			} else {
 				e.printStackTrace();
+				log.error("기타 예외 처리");
 				// 기타 예외 처리
 				throw new MemberException(FAIL_AUTH);
 			}
@@ -163,119 +165,131 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 	@Override
 	public Member requestOAuthInfo(String accessToken) {
 		try {
-			// RestTemplate 설정 및 요청
-			RestTemplate restTemplate = new RestTemplate();
-			String userInfoEndpoint = "https://www.googleapis.com/oauth2/v3/userinfo";
-
+			// Google에서 사용자 정보 가져오기
 			HttpHeaders headers = new HttpHeaders();
 			headers.setBearerAuth(accessToken);
 			HttpEntity<?> entity = new HttpEntity<>(headers);
 
-			ResponseEntity<String> response = restTemplate.exchange(userInfoEndpoint, HttpMethod.GET, entity,
-				String.class);
+			ResponseEntity<String> response = restTemplate.exchange(
+				USER_INFO_ENDPOINT,
+				HttpMethod.GET,
+				entity,
+				String.class
+			);
 
 			// 응답 처리
 			ObjectMapper objectMapper = new ObjectMapper();
 			JsonNode jsonNode = objectMapper.readTree(response.getBody());
-
-			logger.debug("사용자정보 :  " + jsonNode);
+			log.debug("구글에서 받은 유저정보 : " + jsonNode);
 
 			String email = jsonNode.get("email").asText();
 			String name = jsonNode.get("name").asText();
-			String nickName = generateRandomNickName();    //임시로부여될 닉네임 생성. 2024.09.13 같은것을 뽑을 확률 100만분의 1 이상
 			String picture = jsonNode.get("picture").asText();
 
-			// DB에 해당 이메일이 없으면 구글에서 준 데이터로 세팅
+			// DB에서 회원 조회
+			// 있으면 최초로그인 false로 변경
+			// 없으면 구글에서 받은 정보넣으면서 생성(자동회원가입)
 			Member member = memberRepository.findByEmail(email)
-				.orElse(Member.builder()
-					.email(email)
-					.name(name)
-					.nickName(nickName)
-					.profileImgUrl(picture)
-					.socialType(SocialType.GOOGLE)
-					.firstLoginYn(true)
-					.role(Role.MEMBER)
-					.build());
-
-			if (member.getId() != -1) {
-				member.setFirstLoginYn(false);
-			} else {
-				memberRepository.save(member);
-			}
-
-			logger.debug("member : " + member);
+				.map(m -> {
+					if (m.getFirstLoginYn()) {
+						m.setFirstLoginYn(false);
+						return memberRepository.save(m);
+					}
+					return m;
+				})
+				.orElseGet(() -> joinNewMember(email, name, picture, refreshToken));
 			return member;
 
-		} catch (JsonProcessingException e) {
-			// JSON 처리 중 발생한 예외 처리
-			e.printStackTrace();
-			throw new MemberException(JSON_PROCESSING_ERROR);
-		} catch (
-			JpaSystemException e) {    //InvalidDataAccessResourceUsageException은 SQLGrammarException를 래핑하고 JpaSystemException 내부예외임
-			logger.debug("멤버테이블없음 2");
-			e.printStackTrace();
-			throw new MemberException(SQL_ERROR);
-		} catch (RestClientException e) {
-			// REST 요청 중 발생한 예외 처리
-			e.printStackTrace();
-			if (e.getRootCause() instanceof InvalidDataAccessResourceUsageException) {
-				logger.debug("멤버 테이블 없음");
-				e.printStackTrace();
-				throw new MemberException(SQL_ERROR);
-			} else {
-				e.printStackTrace();
-				// 기타 예외 처리
-				throw new MemberException(FAIL_GET_OAUTHINFO);
-			}
 		} catch (Exception e) {
-			e.printStackTrace();
-			// 기타 예외 처리
-			if (e instanceof JpaSystemException
-				&& ((JpaSystemException)e).getRootCause() instanceof InvalidDataAccessResourceUsageException) {
-				logger.debug("멤버 테이블 없음");
-				e.printStackTrace();
-				throw new MemberException(SQL_ERROR);
-			} else {
-				e.printStackTrace();
-				// 기타 예외 처리
-				throw new MemberException(FAIL_GET_OAUTHINFO);
-			}
+			log.error("OAuth 정보 요청 중 오류 발생", e);
+			throw new MemberException(FAIL_GET_OAUTHINFO);
 		}
+	}
+
+	private Member joinNewMember(String email, String name, String picture, String refreshToken) {
+		Member newMember = Member.builder()
+			.email(email)
+			.name(name)
+			.nickName(generateRandomNickName())
+			.profileImgUrl(picture)
+			.socialType(SocialType.GOOGLE)
+			.firstLoginYn(true)
+			.role(Role.MEMBER)
+			.refreshToken(refreshToken)
+			.build();
+		Member savedMember = memberRepository.save(newMember);
+		return savedMember;
+	}
+
+	private Member updateExistingMember(Member member) {
+		member.setFirstLoginYn(false);
+		return memberRepository.save(member);
 	}
 
 	@Override
+	/**
+	 * 회원정보를 사용하여 그 유저의 jwt토큰 생성
+	 */
 	public String generateJwt(Member member) {
+		log.debug("새로운 jwt생성");
 		//JWT 토큰의 구성요소
 		//Header(암호화 알고리즘), Payload(사용자정보와 토큰유효기간), Signature(토큰의 무결성을 보장하는 서명)
-		String jwt = Jwts.builder()
+		String jwt = builder()
 			.setSubject(member.getEmail())
 			.setIssuedAt(new Date())
 			.setExpiration(new Date(System.currentTimeMillis() + 86400000)) // 1일
-			.signWith(jwtKey, SignatureAlgorithm.HS256)
+			.signWith(SignatureAlgorithm.HS256, secretKey.getBytes())
 			.compact();
+		log.debug("생성된 jwt : " + jwt);
 		return jwt;
 	}
 
-	public String getAccessTokenUsingrefreshToken(String refreshToken) {
+	/**
+	 *
+	 * @param refreshToken
+	 * 초기 인증과정에서 어세스토큰과 함께 발급했던 리프레쉬 토큰으로 어세스토큰 만료시 다시 어세스토큰 발급
+	 * @return 어세스토큰
+	 */
+	public String getNewAccessTokenUsingRefreshToken(String refreshToken) {
 		try {
-			Claims claims = Jwts.parser().setSigningKey(jwtKey).parseClaimsJws(refreshToken).getBody();
-			String newJwt = Jwts.builder()
-				.setSubject(claims.getSubject())
-				.setIssuedAt(new Date())
-				.setExpiration(new Date(System.currentTimeMillis() + 86400000)) // 1일
-				.signWith(jwtKey, SignatureAlgorithm.HS256)
-				.compact();
-			return newJwt;
+			// OAuth 2.0 Token Endpoint로 요청을 보내 새로운 Access Token을 발급받기
+			String tokenEndpointUrl = "https://oauth2.googleapis.com/token";
+			HttpHeaders headers = new HttpHeaders();
+			headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+			MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+			params.add("grant_type", "refresh_token");
+			params.add("refresh_token", refreshToken);
+			params.add("client_id", clientId);
+			params.add("client_secret", clientSecret);
+			log.debug("새토큰받기 구글에 보내기전 파라미터 : " + params);
+
+			HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
+			RestTemplate restTemplate = new RestTemplate();
+			ResponseEntity<String> response = restTemplate.postForEntity(tokenEndpointUrl, request, String.class);
+			log.debug("새토큰 받기 구글에 보내고 받은 응답 : " + response);
+
+			// 응답에서 새로운 Access Token과 Refresh Token을 추출하기
+			JSONObject jsonObject = new JSONObject(response.getBody());
+			String newAccessToken = jsonObject.getString("access_token");
+
+			return newAccessToken;
 		} catch (Exception e) {
-			return null;
+			e.printStackTrace();
+			throw new MemberException(FAIL_NEW_ACCESSCODE);
 		}
 	}
 
-	public boolean validateToken(String jwt) {
+	public boolean isValidateJwtToken(String jwt) {
 		try {
-			Jwts.parser().setSigningKey(jwtKey).parseClaimsJws(jwt);
+			parser().setSigningKey(secretKey.getBytes()).parseClaimsJws(jwt);
 			return true;
 		} catch (Exception e) {
+			e.printStackTrace();
+			//토큰생성시 사용한 키와 토큰 검사시 사용키가 다름
+			//io.jsonwebtoken.security.SignatureException: JWT signature does not match locally computed signature. JWT validity cannot be asserted and should not be trusted.
+			//토큰의 만료시간이 지남
+			//토큰이 손상됨
 			return false;
 		}
 	}
@@ -309,14 +323,19 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 	}
 
 	@Override
+	/**
+	 * OAuth2 인증 프로세스에서 호출.
+	 */
 	public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+		log.debug("loadUser함수 호출됨");
 		String accessToken = userRequest.getAccessToken().getTokenValue();
 		Member member = requestOAuthInfo(accessToken);
 
 		return new DefaultOAuth2User(
-			Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")),
+			Collections.singleton(new SimpleGrantedAuthority("MEMBER")),
 			Map.of("email", member.getEmail(), "name", member.getName()),
 			"email"
 		);
 	}
+
 }

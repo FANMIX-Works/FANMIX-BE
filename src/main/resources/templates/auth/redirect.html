@@ -6,35 +6,74 @@
 </head>
 <body>
 
-<h1>인가코드</h1>
-<p>인가코드 : <div id="authCode"></div></p>
+<h1>로그인 성공후</h1>
+<p>더이상 못쓰는 일회용 방금쓴 인가코드 : <div id="authCode"></div></p>
+<br>
 <p>jwt : <div id="jwt"></div></p>
+<br>
 <p>member닉네임 : <div id="member"></div></p>
+<br>
+<p>역할 : <div id="role"></div></p>
+<br>
 <p id="response"></p>
+<button onclick="getMyInfo()">유저 정보 보기</button>
+<!-- 추가 정보 표시 -->
+<p>닉네임2 : <div id="nickName2"></div></p>
+<br>
+<p>프로필 이미지 URL : <div id="profileImgUrl"></div></p>
+<br>
+<p>첫 로그인 여부 : <div id="firstLoginYn"></div></p>
+
+<br>
 
 
-<script>
+<script th:inline="javascript">
     // Assuming you have the authorization code in a variable
     const urlParams = new URLSearchParams(window.location.search);
     let authCode = urlParams.get('code');
+    console.log("authCode : ", authCode);
 
     document.addEventListener('DOMContentLoaded', () => {
     axios.post('/api/members/oauth/google', { code: authCode })
         .then(response => {
             console.log("response : ", response);
-            console.log(response.data);
-            console.log(response.data.jwt);
-            console.log(response.data.member.nickName);
+            console.log("response.data : ", response.data);
+            console.log("response.data.data.jwt : ", response.data.data.jwt);
 
             document.getElementById('authCode').innerText = authCode;
-            document.getElementById('jwt').innerText = response.data.jwt; // No need for JSON.stringify here
-            document.getElementById('member').innerText = response.data.member.nickName; // No need for JSON.stringify here
+            document.getElementById('jwt').innerText = response.data.data.jwt;
+            document.getElementById('member').innerText = response.data.data.member.nickName;
+            document.getElementById('role').innerText = response.data.data.member.role;
         })
         .catch(error => {
             console.error(error);
             document.getElementById('response').innerText = 'Error: ' + error.message;
         });
     });
+
+
+    function getMyInfo() {
+        const jwt = document.getElementById('jwt').innerText;
+        console.log("원래받은 jwt : ", jwt);
+        console.log("헤더에 담을 Authorization : ", 'Bearer ' + jwt);
+        axios.get('/api/members/me', {
+            /* 헤더에 Authorization이라는 이름으로 Bearer 한칸띄우고 jwt 값을 넣음 */
+            headers: {
+                'Authorization': 'Bearer ' + jwt
+            }
+        })
+        .then(response => {
+            console.log("마이페이지 response : ", response);
+
+            document.getElementById('nickName2').innerText = response.data.data.nickName;
+            document.getElementById('profileImgUrl').innerText = response.data.data.profileImgUrl;
+            document.getElementById('firstLoginYn').innerText = response.data.data.firstLoginYn;
+        })
+        .catch(error => {
+            console.error("마이페이지 response에러. "+error);
+            document.getElementById('response').innerText = 'Error: ' + error.message;
+        });
+    }
 </script>
 </body>
 </html>
