@@ -64,8 +64,6 @@ public class Post extends BaseEntity {
 	@OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE, orphanRemoval = true)
 	private List<Comment> comments;        // 댓글
 
-	private int postEvaluation;			// 게시물 평가 id
-
 	@OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
 	private List<PostLikeDislike> likes = new ArrayList<>();    // 평가 목록
 

@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fanmix.api.domain.comment.dto.AddCommentRequest;
 import com.fanmix.api.domain.comment.entity.Comment;
 import com.fanmix.api.domain.comment.exception.CommentErrorCode;
 import com.fanmix.api.domain.comment.exception.CommentException;
@@ -28,6 +29,27 @@ public class FanChannelCommentService {
 	private final CommentRepository commentRepository;
 	private final MemberRepository memberRepository;
 
+	// 팬채널 댓글 작성
+	public Comment addFanChannelComment(int postId, AddCommentRequest request, String email) {
+		Post post = postRepository.findById(postId)
+			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_EXIST));
+
+		Member member = memberRepository.findByEmail(email)
+			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
+
+		if(!member.getRole().equals(Role.COMMUNITY)) {
+			throw new CommentException(CommentErrorCode.NOT_EXISTS_AUTHORIZATION);
+		}
+
+		Comment parentComment = null;
+		if(request.getParentId() != 0) {
+			parentComment = commentRepository.findById(request.getParentId())
+				.orElseThrow(() -> new CommentException(CommentErrorCode.PARENT_ID_NOT_EXIST));
+		}
+
+		return commentRepository.save(request.toEntity(post, parentComment));
+	}
+
 	// 팬채널 댓글 조회
 	@Transactional(readOnly = true)
 	public List<Comment> findFanChannelComments(int postId, int commentId, String email) {
@@ -40,7 +62,7 @@ public class FanChannelCommentService {
 		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if(member.getRole().equals(Role.COMMUNITY)) {
+		if(!member.getRole().equals(Role.COMMUNITY)) {
 			throw new CommentException(CommentErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 		return post.getComments();
