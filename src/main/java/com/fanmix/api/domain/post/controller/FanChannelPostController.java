@@ -8,6 +8,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,6 +18,7 @@ import com.fanmix.api.common.response.Response;
 import com.fanmix.api.domain.post.dto.AddPostRequest;
 import com.fanmix.api.domain.post.dto.PostListResponse;
 import com.fanmix.api.domain.post.dto.PostResponse;
+import com.fanmix.api.domain.post.dto.UpdatePostRequest;
 import com.fanmix.api.domain.post.entity.Post;
 import com.fanmix.api.domain.post.service.FanChannelPostService;
 
@@ -52,5 +54,16 @@ public class FanChannelPostController {
 		@PathVariable int postId,
 		@AuthenticationPrincipal String email) {
 		return ResponseEntity.ok(Response.success(new PostResponse(fanChannelPostService.findFanChannelPost(postId, email))));
+	}
+
+	// 팬채널 글 수정
+	@PutMapping("/api/fanchannels/posts/{postId}")
+	public ResponseEntity<Response<Post>> updateFanChannelPost(
+		@PathVariable int postId,
+		@RequestPart @Validated UpdatePostRequest request,
+		@RequestPart(value = "images", required = false) List<MultipartFile> images,
+		@AuthenticationPrincipal String email) {
+		fanChannelPostService.updateFanChannelPost(postId, request, images, email);
+		return ResponseEntity.ok(Response.success());
 	}
 }

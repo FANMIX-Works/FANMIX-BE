@@ -19,6 +19,7 @@ import com.fanmix.api.domain.member.exception.MemberException;
 import com.fanmix.api.domain.member.repository.MemberRepository;
 import com.fanmix.api.domain.post.dto.AddPostRequest;
 import com.fanmix.api.domain.post.dto.PostListResponse;
+import com.fanmix.api.domain.post.dto.UpdatePostRequest;
 import com.fanmix.api.domain.post.entity.Post;
 import com.fanmix.api.domain.post.exception.PostErrorCode;
 import com.fanmix.api.domain.post.exception.PostException;
@@ -76,7 +77,7 @@ public class FanChannelPostService {
 		}
 
 		List<Post> postList = switch (sort) {
-			case "LIKE_COUNT" -> postRepository.findAllByCommunityIdOrderByLikeCountDesc(communityId);
+			// case "LIKE_COUNT" -> postRepository.findAllByCommunityIdOrderByLikeCountDesc(communityId);
 			case "VIEW_COUNT" -> postRepository.findAllByCommunityIdOrderByViewCount(communityId);
 			default -> postRepository.findAllByCommunityIdOrderByCrDateDesc(communityId);
 		};
@@ -88,6 +89,7 @@ public class FanChannelPostService {
 	}
 
 	// 팬채널 글 조회
+	@Transactional(readOnly = true)
 	public Post findFanChannelPost(int postId, String email) {
 		Post post = postRepository.findById(postId)
 			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_EXIST));
@@ -99,5 +101,26 @@ public class FanChannelPostService {
 			throw new MemberException(MemberErrorCode.FAIL_GENERATE_ACCESSCODE);
 		}
 		return post;
+	}
+
+	// 팬채널 글 수정
+	@Transactional
+	public void updateFanChannelPost(int postId, UpdatePostRequest request, List<MultipartFile> images, String email) {
+		Post post = postRepository.findById(postId)
+			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_EXIST));
+
+		Member member = memberRepository.findByEmail(email)
+				.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
+
+		if(member.getRole().equals(Role.COMMUNITY)) {
+			throw new PostException(PostErrorCode.NOT_EXISTS_AUTHORIZATION);
+		}
+
+		if(images != null && !images.isEmpty()) {
+			List<String> imgUrls = imageService.saveImagesAndReturnUrls(images);
+			post.addImages(imgUrls);
+		}
+
+		post.update(request.getTitle(), request.getContent(), request.getImages());
 	}
 }

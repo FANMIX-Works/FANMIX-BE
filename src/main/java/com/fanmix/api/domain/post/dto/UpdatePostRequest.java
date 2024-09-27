@@ -13,5 +13,5 @@ public class UpdatePostRequest {
 	private int communityId;
 	private String title;
 	private String content;
-	private List<String> imgUrls;
+	private List<String> images;
 }

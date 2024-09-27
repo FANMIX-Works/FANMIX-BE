@@ -69,7 +69,7 @@ public class Post extends BaseEntity {
 	@OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
 	private List<PostLikeDislike> likes = new ArrayList<>();    // 평가 목록
 
-	@Formula("(SELECT COUNT(l.id) FROM PostLikeDislike l WHERE l.post_id = post_id)")
+	@Formula("(SELECT 1)")
 	private int likeCount;
 
 	@Builder
@@ -80,9 +80,10 @@ public class Post extends BaseEntity {
 		this.content = content;
 		this.imgUrls = imgUrls;
 	}
-	public void update(String title, String content) {
+	public void update(String title, String content, List<String> imgUrls) {
 		this.title = title;
 		this.content = content;
+		this.imgUrls = imgUrls;
 	}
 
 	public void updateByIsDelete() {
