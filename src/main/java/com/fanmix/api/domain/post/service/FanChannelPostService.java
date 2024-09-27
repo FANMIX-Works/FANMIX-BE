@@ -97,8 +97,8 @@ public class FanChannelPostService {
 		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if(member.getRole().equals(Role.COMMUNITY)) {
-			throw new MemberException(MemberErrorCode.FAIL_GENERATE_ACCESSCODE);
+		if(!member.getRole().equals(Role.COMMUNITY)) {
+			throw new PostException(PostErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 		return post;
 	}
@@ -112,7 +112,7 @@ public class FanChannelPostService {
 		Member member = memberRepository.findByEmail(email)
 				.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if(member.getRole().equals(Role.COMMUNITY)) {
+		if(!member.getRole().equals(Role.COMMUNITY)) {
 			throw new PostException(PostErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
@@ -122,5 +122,20 @@ public class FanChannelPostService {
 		}
 
 		post.update(request.getTitle(), request.getContent(), request.getImages());
+	}
+
+	// 팬채널 글 삭제
+	@Transactional
+	public void deleteFanChannelPost(int postId, String email) {
+		Post post = postRepository.findById(postId)
+			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_EXIST));
+
+		Member member = memberRepository.findByEmail(email)
+			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
+
+		if(member.getRole().equals(Role.COMMUNITY)) {
+			throw new PostException(PostErrorCode.NOT_EXISTS_AUTHORIZATION);
+		}
+		post.updateByIsDelete();
 	}
 }

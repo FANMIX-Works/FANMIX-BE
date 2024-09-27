@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -64,6 +65,15 @@ public class FanChannelPostController {
 		@RequestPart(value = "images", required = false) List<MultipartFile> images,
 		@AuthenticationPrincipal String email) {
 		fanChannelPostService.updateFanChannelPost(postId, request, images, email);
+		return ResponseEntity.ok(Response.success());
+	}
+
+	// 팬채널 글 삭제
+	@PatchMapping("/api/fanchannels/posts/{postId}")
+	public ResponseEntity<Response<Void>> deleteFanChannelPost(
+		@PathVariable int postId,
+		@AuthenticationPrincipal String email) {
+		fanChannelPostService.deleteFanChannelPost(postId, email);
 		return ResponseEntity.ok(Response.success());
 	}
 }
