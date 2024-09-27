@@ -32,7 +32,8 @@ public class FanChannelPostController {
 		@RequestPart @Validated AddPostRequest request,
 		@RequestPart(value = "images", required = false) List<MultipartFile> images,
 		@AuthenticationPrincipal String email) {
-		return ResponseEntity.ok(Response.success(fanChannelPostService.save(request, images, email)));
+		fanChannelPostService.save(request, images, email);
+		return ResponseEntity.ok(Response.success());
 	}
 
 	// 팬채널 글 목록 조회
@@ -43,5 +44,4 @@ public class FanChannelPostController {
 		@RequestParam(value = "sort", defaultValue = "LATEST_POST") String sort) {
 		return ResponseEntity.ok(Response.success(fanChannelPostService.findAllFanChannelPosts(communityId, email, sort)));
 	}
-
 }
