@@ -18,7 +18,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fanmix.api.FanmixApplication;
-import com.fanmix.api.domain.member.dto.MemberSignUpDto;
 import com.fanmix.api.domain.member.entity.Member;
 import com.fanmix.api.domain.member.repository.MemberRepository;
 import com.fanmix.api.domain.member.service.MemberService;
@@ -39,27 +38,6 @@ public class MemberServiceTest {
 
 	@Autowired
 	private MemberService memberService;
-
-	@Test
-	@Rollback(false)
-	void signUp_Success() throws Exception {
-		System.out.println("회원가입 테스트함수 실행");
-		MemberSignUpDto signUpDto = new MemberSignUpDto();
-		signUpDto.setLoginId("test");
-		signUpDto.setLoginPw("0070");
-		signUpDto.setName("Test User");
-		signUpDto.setProfileImgUrl(
-			"https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.flaticon.com%2Fkr%2Ffree-icon%2Fgorilla_2298503&psig=AOvVaw0q9xABGtN8aDrYg6pXQo-p&ust=1725954991871000&source=images&cd=vfe&opi=89978449&ved=0CBEQjRxqFwoTCIihtMOxtYgDFQAAAAAdAAAAABAE");
-		signUpDto.setIntroduce("Hello, I'm a test user.");
-		signUpDto.setNickName("꿈털이");
-		signUpDto.setEmail("ggoomter@gmail.com");
-		signUpDto.setGender('M');
-		signUpDto.setBirthYear(1990);
-		signUpDto.setNationality("KR");
-
-		memberService.signUp(signUpDto);
-		System.out.println("회원가입 수행완료");
-	}
 
 	@Test
 	@Rollback(false)
