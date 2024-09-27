@@ -1,8 +1,10 @@
 package com.fanmix.api.domain.post.entity;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
+import org.hibernate.annotations.Formula;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import com.fanmix.api.domain.comment.entity.Comment;
@@ -62,10 +64,13 @@ public class Post extends BaseEntity {
 	@OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE, orphanRemoval = true)
 	private List<Comment> comments;        // 댓글
 
-	private int postEvaluation;
+	private int postEvaluation;			// 게시물 평가 id
 
 	@OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
-	private List<PostLikeDislike> likes;
+	private List<PostLikeDislike> likes = new ArrayList<>();    // 평가 목록
+
+	@Formula("(SELECT COUNT(l.id) FROM PostLikeDislike l WHERE l.post_id = post_id)")
+	private int likeCount;
 
 	@Builder
 	public Post(Community community, Member member, String title, String content, List<String> imgUrls) {

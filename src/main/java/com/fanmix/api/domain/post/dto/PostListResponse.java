@@ -27,7 +27,7 @@ public class PostListResponse {
 		this.postContents = post.getContent();
 		this.postImageUrl = post.getImgUrls().toString();
 		this.viewCount = post.getViewCount();
-		this.likeCount = post.getLikes().size();
+		this.likeCount = post.getLikes() != null ? post.getLikes().size() : 0;
 		this.commentCount = post.getComments().size();
 		this.crDate = post.getCrDate();
 	}

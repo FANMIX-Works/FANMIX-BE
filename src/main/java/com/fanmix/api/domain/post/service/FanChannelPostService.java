@@ -1,6 +1,7 @@
 package com.fanmix.api.domain.post.service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +18,7 @@ import com.fanmix.api.domain.member.exception.MemberErrorCode;
 import com.fanmix.api.domain.member.exception.MemberException;
 import com.fanmix.api.domain.member.repository.MemberRepository;
 import com.fanmix.api.domain.post.dto.AddPostRequest;
+import com.fanmix.api.domain.post.dto.PostListResponse;
 import com.fanmix.api.domain.post.entity.Post;
 import com.fanmix.api.domain.post.exception.PostErrorCode;
 import com.fanmix.api.domain.post.exception.PostException;
@@ -39,9 +41,9 @@ public class FanChannelPostService {
 			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
 
 		Member member = memberRepository.findByEmail(email)
-			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
+			.orElseThrow(() -> new MemberException(MemberErrorCode.FAIL_GET_OAUTHINFO));
 
-		if (!member.getRole().equals(Role.COMMUNITY)) {
+		if (!member.getRole().equals(Role.MEMBER)) {
 			throw new PostException(PostErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
@@ -53,5 +55,35 @@ public class FanChannelPostService {
 		}
 
 		return postRepository.save(post);
+	}
+
+	// 팬채널 글 목록
+	@Transactional(readOnly = true)
+	public List<PostListResponse> findAllFanChannelPosts(int communityId, String sort, String email) {
+		Community community = communityRepository.findById(communityId)
+			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
+
+		int influencerId = community.getInfluencerId();
+		if(influencerId <= 0) {
+			throw new CommunityException(CommunityErrorCode.NOT_A_FANCHANNEL);
+		}
+
+		Member member = memberRepository.findByEmail(email)
+			.orElseThrow(() -> new MemberException(MemberErrorCode.FAIL_GET_OAUTHINFO));
+
+		if(!member.getRole().equals(Role.MEMBER)) {
+			throw new PostException(PostErrorCode.NOT_EXISTS_AUTHORIZATION);
+		}
+
+		List<Post> postList = switch (sort) {
+			case "LIKE_COUNT" -> postRepository.findAllByCommunityIdOrderByLikeCountDesc(communityId);
+			case "VIEW_COUNT" -> postRepository.findAllByCommunityIdOrderByViewCount(communityId);
+			default -> postRepository.findAllByCommunityIdOrderByCrDateDesc(communityId);
+		};
+
+		return postList
+			.stream()
+			.map(PostListResponse::new)
+			.collect(Collectors.toList());
 	}
 }

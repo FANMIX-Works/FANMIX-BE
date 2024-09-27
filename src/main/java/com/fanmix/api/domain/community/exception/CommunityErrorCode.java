@@ -17,7 +17,8 @@ public enum CommunityErrorCode implements ErrorCode {
 	INVALID_FOLLOW_STATUS(HttpStatus.INTERNAL_SERVER_ERROR, "2-004", "유효하지 않은 상태입니다."),
 	NOT_EXISTS_AUTHORIZATION(HttpStatus.FORBIDDEN, "2-005", "해당 작업을 수행할 권한이 없습니다."),
 	INFLUENCER_NOT_FOUND(HttpStatus.NOT_FOUND, "2-007", "존재하지 않는 인플루언서입니다."),
-	INVALID_INFLUENCER_ID(HttpStatus.BAD_REQUEST, "2-008", "유효하지 않은 인플루언서 ID입니다.");
+	INVALID_INFLUENCER_ID(HttpStatus.BAD_REQUEST, "2-008", "유효하지 않은 인플루언서 ID입니다."),
+	NOT_A_FANCHANNEL(HttpStatus.BAD_REQUEST, "2-009", "해당 커뮤니티는 팬채널이 아닙니다.");
 
 	private final HttpStatus httpStatus;
 	private final String customCode;

@@ -15,14 +15,18 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
 	List<Post> findByCommunityId(int communityId);
 
 	@Query("SELECT COUNT(l) FROM PostLikeDislike l WHERE l.post.id = :postId")
-	int countLikesByPostId(@Param("postId") int postId);
+	int countPostLikeDislikesByPostId(@Param("postId") int postId);
 
 	@Query("SELECT p FROM Post p "
 		+ "JOIN FETCH p.community c "
 		+ "ORDER BY p.viewCount DESC")
 	List<Post> findTop5PopularPosts();
 
+	List<Post> findAllByCommunityIdOrderByLikeCountDesc(int communityId);
+	List<Post> findAllByCommunityIdOrderByViewCount(int communityId);
+	List<Post> findAllByCommunityIdOrderByCrDateDesc(int communityId);
+
 	List<Post> findAllByOrderByCrDateDesc();
-	List<Post> findAllByOrderByLikesDesc();
+	List<Post> findAllByOrderByLikeCountDesc();
 	List<Post> findAllByOrderByViewCount();
 }

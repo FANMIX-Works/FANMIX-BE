@@ -65,7 +65,7 @@ public class PostService {
 	// 전체 커뮤니티 종합 글 리스트 조회
 	public List<PostListResponse> findAllCommunityPosts(String sort) {
 		List<Post> postList = switch (sort) {
-			case "LIKE_COUNT" -> postRepository.findAllByOrderByLikesDesc();
+			case "LIKE_COUNT" -> postRepository.findAllByOrderByLikeCountDesc();
 			case "VIEW_COUNT" -> postRepository.findAllByOrderByViewCount();
 			default -> postRepository.findAllByOrderByCrDateDesc();
 		};
@@ -81,7 +81,7 @@ public class PostService {
 			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
 
 		List<Post> postList = switch (sort) {
-			case "LIKE_COUNT" -> postRepository.findAllByOrderByLikesDesc();
+			case "LIKE_COUNT" -> postRepository.findAllByOrderByLikeCountDesc();
 			case "VIEW_COUNT" -> postRepository.findAllByOrderByViewCount();
 			default -> postRepository.findAllByOrderByCrDateDesc();
 		};
@@ -181,7 +181,7 @@ public class PostService {
 		return popularList
 			.stream()
 			.map(post -> {
-				int likeCount = postRepository.countLikesByPostId(post.getId());
+				int likeCount = postRepository.countPostLikeDislikesByPostId(post.getId());
 				int commentCount = post.getComments().size();
 				int influencerId = post.getCommunity().getInfluencerId();
 
