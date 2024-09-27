@@ -23,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.fanmix.api.common.image.service.ImageService;
 import com.fanmix.api.common.response.Response;
 import com.fanmix.api.common.security.util.JwtTokenUtil;
+import com.fanmix.api.domain.common.Gender;
 import com.fanmix.api.domain.member.dto.AuthResponse;
 import com.fanmix.api.domain.member.dto.MemberResponseDto;
 import com.fanmix.api.domain.member.entity.Member;
@@ -193,12 +194,8 @@ public class MemberController {
 	// 회원의 성별을 업데이트하는 API
 	@PatchMapping("/api/members/gender")
 	@ResponseBody
-	public ResponseEntity<Response<Member>> updateGender(@RequestBody Map<String, String> body) {
-		String genderStr = body.get("gender");
-		if (genderStr == null || genderStr.length() != 1) {
-			throw new IllegalArgumentException("Invalid gender value");
-		}
-		char gender = genderStr.charAt(0);
+	public ResponseEntity<Response<Member>> updateGender(@RequestBody Map<String, Gender> body) {
+		Gender gender = body.get("gender");
 		Member member = memberService.getMyInfo();
 		member = memberService.updateGender(member.getId(), gender);
 		return ResponseEntity.ok(Response.success(member));

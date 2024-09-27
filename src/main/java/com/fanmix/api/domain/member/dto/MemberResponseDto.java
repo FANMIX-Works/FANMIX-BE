@@ -1,5 +1,6 @@
 package com.fanmix.api.domain.member.dto;
 
+import com.fanmix.api.domain.common.Gender;
 import com.fanmix.api.domain.common.Role;
 import com.fanmix.api.domain.member.entity.Member;
 
@@ -21,7 +22,7 @@ public class MemberResponseDto {
 	private String profileImgUrl;         //프로필 이미지 경로
 	private String introduce;             //자기소개
 	private String email;
-	private Character gender;            //'M', 'W'
+	private Gender gender;            //MALE or FEMALE or UNKNOWN
 	private int birthYear;               //탄생년도. 나이는 오늘날짜로부터 계산
 	private String nationality;          //국적
 	private int totalPoint;
