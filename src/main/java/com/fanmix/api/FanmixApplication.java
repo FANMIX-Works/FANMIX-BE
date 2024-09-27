@@ -26,14 +26,14 @@ public class FanmixApplication {
 	 * @return
 	 */
 	@Bean
-	public AuditorAware<String> auditorProvider() {
+	public AuditorAware<Integer> auditorProvider() {
 		return () -> {
 			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 			if (authentication != null) {
 				Object principal = authentication.getPrincipal();
 				if (principal instanceof Member) {
 					Member member = (Member)principal;
-					return Optional.of(String.valueOf(member.getId()));    //사용자의 아이디를 반환
+					return Optional.of(member.getId()); // 사용자의 아이디를 반환
 				}
 			}
 			return Optional.empty();

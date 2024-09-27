@@ -8,6 +8,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -32,6 +33,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 
 @Controller
@@ -142,10 +146,11 @@ public class MemberController {
 	}
 
 	// 회원의 프로필 이미지를 업데이트하는 API
-	@PatchMapping("/api/members/profile-image")
+	@PostMapping(value = "/api/members/profile-image")
 	@ResponseBody
+	//단순히 PatchMapping만 쓰면 Multipart 요청을 지원하지 않음.  post로 하든가 consumes 작업해줘야함
 	public ResponseEntity<Response<Member>> updateProfileImage(@AuthenticationPrincipal String email,
-		@RequestParam("file") MultipartFile file) {
+		@RequestPart(required = false) MultipartFile file) {
 		log.debug("들어온파일 : " + file);
 		if (file.isEmpty()) {
 			throw new IllegalArgumentException("Invalid file value");
@@ -265,6 +270,19 @@ public class MemberController {
 	@ResponseBody
 	public void getMyActivityComments() {
 		return;
+	}
+
+	//로그아웃
+	@PostMapping("/api/members/logout")
+	public ResponseEntity<Response<Boolean>> logout(HttpServletRequest request, HttpServletResponse response) {
+		HttpSession session = request.getSession(false);
+		SecurityContextHolder.clearContext();
+		session = request.getSession(false);
+		if (session != null) {
+			session.invalidate();
+		}
+		response.setHeader("Authorization", "");
+		return ResponseEntity.ok(Response.success(true));
 	}
 
 	// 회원탈퇴
