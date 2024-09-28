@@ -18,6 +18,7 @@ public class PostResponse {
 	private List<String> imgUrls;
 	private int viewCount;
 	private int likeCount;
+	private int dislikeCount;
 	private int commentCount;
 	private LocalDateTime crDate;
 	private LocalDateTime uDate;
@@ -32,7 +33,8 @@ public class PostResponse {
 		this.contents = post.getContent();
 		this.imgUrls = post.getImgUrls();
 		this.viewCount = post.getViewCount();
-		this.likeCount = post.getLikes().size();
+		this.likeCount = post.getLikeCount();
+		this.dislikeCount = post.getDislikeCount();
 		this.commentCount = post.getComments().size();
 		this.crDate = post.getCrDate();
 		this.uDate = post.getUDate();

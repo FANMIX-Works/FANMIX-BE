@@ -14,6 +14,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -28,7 +29,7 @@ public class PostLikeDislike extends BaseEntity {
 	private int id;
 
 	@ManyToOne
-	@JoinColumn(name = "id", nullable = false)
+	@JoinColumn(name = "member_id", nullable = false)
 	private Member member;
 
 	private LocalDateTime EDate;
@@ -38,4 +39,15 @@ public class PostLikeDislike extends BaseEntity {
 	private Post post;
 
 	private Boolean isLike;	// 좋아요: 1, 싫어요 0
+
+	@Builder
+	public PostLikeDislike(Member member, Post post, Boolean isLike) {
+		this.member = member;
+		this.post = post;
+		this.isLike = isLike;
+	}
+
+	public void addLikeDislike(Boolean isLike) {
+		this.isLike = isLike;
+	}
 }

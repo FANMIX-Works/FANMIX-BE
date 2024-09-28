@@ -10,18 +10,21 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fanmix.api.common.response.Response;
+import com.fanmix.api.domain.post.dto.AddPostLikeDislikeRequest;
 import com.fanmix.api.domain.post.dto.AddPostRequest;
 import com.fanmix.api.domain.post.dto.PopularPostsResponse;
 import com.fanmix.api.domain.post.dto.PostListResponse;
 import com.fanmix.api.domain.post.dto.PostResponse;
 import com.fanmix.api.domain.post.dto.UpdatePostRequest;
 import com.fanmix.api.domain.post.entity.Post;
+import com.fanmix.api.domain.post.entity.PostLikeDislike;
 import com.fanmix.api.domain.post.service.PostService;
 
 import lombok.RequiredArgsConstructor;
@@ -99,5 +102,15 @@ public class PostController {
 	@GetMapping("/api/communities/popular")
 	public ResponseEntity<Response<List<PopularPostsResponse>>> popularPosts() {
 		return ResponseEntity.ok(Response.success(postService.popularPosts()));
+	}
+
+	// 게시물 좋아요, 싫어요
+	@PostMapping("/api/communities/posts/{postId}/like")
+	public ResponseEntity<Response<PostLikeDislike>> addPostLikeDisLike(
+		@PathVariable int postId,
+		@RequestBody AddPostLikeDislikeRequest request,
+		@AuthenticationPrincipal String email) {
+		postService.addPostLikeDislike(postId, request, email);
+		return ResponseEntity.ok(Response.success());
 	}
 }

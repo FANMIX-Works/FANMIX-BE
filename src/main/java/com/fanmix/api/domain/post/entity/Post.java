@@ -67,8 +67,11 @@ public class Post extends BaseEntity {
 	@OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
 	private List<PostLikeDislike> likes = new ArrayList<>();    // 평가 목록
 
-	@Formula("(SELECT 1)")
+	@Formula("(SELECT COUNT(*) FROM post_like_dislike pld WHERE pld.post_id = post_id AND pld.is_like = true)")
 	private int likeCount;
+
+	@Formula("(SELECT COUNT(*) FROM post_like_dislike pld WHERE pld.post_id = post_id AND pld.is_like = false)")
+	private int dislikeCount;
 
 	@Builder
 	public Post(Community community, Member member, String title, String content, List<String> imgUrls) {
@@ -90,5 +93,13 @@ public class Post extends BaseEntity {
 
 	public void addImages(List<String> imgUrls) {
 		this.imgUrls = imgUrls;
+	}
+
+	public void addLikeCount(int likeCount) {
+		this.likeCount = likeCount;
+	}
+
+	public void addDislikeCount(int dislikeCount) {
+		this.dislikeCount = dislikeCount;
 	}
 }
