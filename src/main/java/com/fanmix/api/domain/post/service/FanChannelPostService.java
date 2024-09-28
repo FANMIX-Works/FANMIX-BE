@@ -27,6 +27,9 @@ import com.fanmix.api.domain.post.exception.PostException;
 import com.fanmix.api.domain.post.repository.PostLikeDisLikeRepository;
 import com.fanmix.api.domain.post.repository.PostRepository;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -103,6 +106,9 @@ public class FanChannelPostService {
 		if(!member.getRole().equals(Role.COMMUNITY)) {
 			throw new PostException(PostErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
+
+		post.updateViewCount(post.getViewCount());
+
 		return post;
 	}
 
@@ -166,6 +172,40 @@ public class FanChannelPostService {
 			postLikeDisLikeRepository.save(request.toEntity(member, post));
 		} else {
 			throw new PostException(PostErrorCode.ALREADY_LIKED_DISLIKED);
+		}
+	}
+
+	// 팬채널 게시물 조회시 조회수 증가
+	@Transactional
+	public void updateViewCount(int postId, HttpServletRequest request, HttpServletResponse response) {
+		Post post = postRepository.findById(postId)
+			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_EXIST));
+
+		Cookie oldCookie = null;
+		Cookie[] cookies = request.getCookies();
+
+		if(cookies != null) {
+			for(Cookie cookie : cookies) {
+				if(cookie.getName().equals("viewCount")) {
+					oldCookie = cookie;
+				}
+			}
+		}
+
+		if(oldCookie != null) {
+			if(oldCookie.getValue().contains("[" + postId + "]")) {
+				post.updateViewCount(postId);
+				oldCookie.setValue(oldCookie.getValue() + "[" + postId + "]");
+				oldCookie.setPath("/");
+				oldCookie.setMaxAge(60 * 60 * 24);
+				response.addCookie(oldCookie);
+			}
+		} else {
+			post.updateViewCount(post.getViewCount());
+			Cookie newCookie = new Cookie("viewCount", "[" + postId + "]");
+			newCookie.setPath("/");
+			newCookie.setMaxAge(60 * 60 * 24);
+			response.addCookie(newCookie);
 		}
 	}
 }

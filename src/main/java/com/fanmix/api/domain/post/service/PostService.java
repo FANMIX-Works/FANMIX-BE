@@ -232,6 +232,7 @@ public class PostService {
 	}
 
 	// 조회수 증가
+	@Transactional
 	public void updateViewCount(int postId, HttpServletRequest request, HttpServletResponse response) {
 		Post post = postRepository.findById(postId)
 			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_EXIST));
