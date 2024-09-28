@@ -17,12 +17,14 @@ import com.fanmix.api.domain.member.entity.Member;
 import com.fanmix.api.domain.member.exception.MemberErrorCode;
 import com.fanmix.api.domain.member.exception.MemberException;
 import com.fanmix.api.domain.member.repository.MemberRepository;
+import com.fanmix.api.domain.post.dto.AddPostLikeDislikeRequest;
 import com.fanmix.api.domain.post.dto.AddPostRequest;
 import com.fanmix.api.domain.post.dto.PostListResponse;
 import com.fanmix.api.domain.post.dto.UpdatePostRequest;
 import com.fanmix.api.domain.post.entity.Post;
 import com.fanmix.api.domain.post.exception.PostErrorCode;
 import com.fanmix.api.domain.post.exception.PostException;
+import com.fanmix.api.domain.post.repository.PostLikeDisLikeRepository;
 import com.fanmix.api.domain.post.repository.PostRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -33,6 +35,7 @@ public class FanChannelPostService {
 	private final CommunityRepository communityRepository;
 	private final PostRepository postRepository;
 	private final MemberRepository memberRepository;
+	private final PostLikeDisLikeRepository postLikeDisLikeRepository;
 	private final ImageService imageService;
 
 	// 팬채널 글 추가
@@ -133,9 +136,36 @@ public class FanChannelPostService {
 		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if(member.getRole().equals(Role.COMMUNITY)) {
+		if(!member.getRole().equals(Role.COMMUNITY)) {
 			throw new PostException(PostErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 		post.updateByIsDelete();
+	}
+
+	// 팬채널 글 좋아요, 싫어요 평가
+	@Transactional
+	public void addFanChannelPostLikeDislike(int postId, AddPostLikeDislikeRequest request, String email) {
+		Post post = postRepository.findById(postId)
+			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_EXIST));
+
+		Member member = memberRepository.findByEmail(email)
+			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
+
+		if(!member.getRole().equals(Role.COMMUNITY)) {
+			throw new PostException(PostErrorCode.NOT_EXISTS_AUTHORIZATION);
+		}
+
+		if(!postLikeDisLikeRepository.existsByMemberAndPost(member, post)) {
+			if(request.getIsLike() != null) {
+				if(request.getIsLike()) {
+					post.addLikeCount(post.getLikeCount() + 1);
+				} else {
+					post.addDislikeCount(post.getDislikeCount() + 1);
+				}
+			}
+			postLikeDisLikeRepository.save(request.toEntity(member, post));
+		} else {
+			throw new PostException(PostErrorCode.ALREADY_LIKED_DISLIKED);
+		}
 	}
 }

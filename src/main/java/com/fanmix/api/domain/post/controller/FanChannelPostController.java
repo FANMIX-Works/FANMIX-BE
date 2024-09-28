@@ -10,12 +10,14 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fanmix.api.common.response.Response;
+import com.fanmix.api.domain.post.dto.AddPostLikeDislikeRequest;
 import com.fanmix.api.domain.post.dto.AddPostRequest;
 import com.fanmix.api.domain.post.dto.PostListResponse;
 import com.fanmix.api.domain.post.dto.PostResponse;
@@ -74,6 +76,16 @@ public class FanChannelPostController {
 		@PathVariable int postId,
 		@AuthenticationPrincipal String email) {
 		fanChannelPostService.deleteFanChannelPost(postId, email);
+		return ResponseEntity.ok(Response.success());
+	}
+
+	// 팬채널 글 좋아요, 싫어요 평가
+	@PostMapping("/api/fanchannels/posts/{postId}/like")
+	public ResponseEntity<Response<Post>> addFanChannelPostLikeDislike(
+		@PathVariable int postId,
+		@RequestBody AddPostLikeDislikeRequest request,
+		@AuthenticationPrincipal String email) {
+		fanChannelPostService.addFanChannelPostLikeDislike(postId, request, email);
 		return ResponseEntity.ok(Response.success());
 	}
 }
