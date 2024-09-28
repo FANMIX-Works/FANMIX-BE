@@ -72,7 +72,7 @@ public class PostService {
 	public List<PostListResponse> findAllCommunityPosts(String sort) {
 		List<Post> postList = switch (sort) {
 			case "LIKE_COUNT" -> postRepository.findAllByOrderByLikeCountDesc();
-			case "VIEW_COUNT" -> postRepository.findAllByOrderByViewCount();
+			case "VIEW_COUNT" -> postRepository.findAllByOrderByViewCountDesc();
 			default -> postRepository.findAllByOrderByCrDateDesc();
 		};
 		return postList
@@ -88,7 +88,7 @@ public class PostService {
 
 		List<Post> postList = switch (sort) {
 			case "LIKE_COUNT" -> postRepository.findAllByOrderByLikeCountDesc();
-			case "VIEW_COUNT" -> postRepository.findAllByOrderByViewCount();
+			case "VIEW_COUNT" -> postRepository.findAllByOrderByViewCountDesc();
 			default -> postRepository.findAllByOrderByCrDateDesc();
 		};
 		return postList
