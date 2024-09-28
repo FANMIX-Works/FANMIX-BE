@@ -17,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fanmix.api.domain.common.Gender;
 import com.fanmix.api.domain.member.dto.MemberResponseDto;
 import com.fanmix.api.domain.member.dto.MemberSignUpDto;
 import com.fanmix.api.domain.member.entity.Member;
@@ -129,7 +130,7 @@ public class MemberService implements UserDetailsService {
 		return memberRepository.save(member);
 	}
 
-	public Member updateGender(int id, Character gender) {
+	public Member updateGender(int id, Gender gender) {
 		Member member = memberRepository.findById(id).orElseThrow(() -> new MemberException(NO_USER_EXIST));
 		member.setGender(gender);
 		return memberRepository.save(member);

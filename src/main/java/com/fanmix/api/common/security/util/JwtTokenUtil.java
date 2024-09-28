@@ -1,4 +1,4 @@
-package com.fanmix.api.security.util;
+package com.fanmix.api.common.security.util;
 
 import java.util.Date;
 

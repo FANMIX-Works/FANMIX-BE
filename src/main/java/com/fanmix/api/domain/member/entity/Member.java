@@ -7,6 +7,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.fanmix.api.domain.common.Gender;
 import com.fanmix.api.domain.common.Role;
 import com.fanmix.api.domain.common.SocialType;
 import com.fanmix.api.domain.common.entity.BaseEntity;
@@ -41,7 +42,8 @@ public class Member extends BaseEntity implements UserDetails {
 	private String introduce;             //자기소개
 	private String nickName;
 	private String email;
-	private Character gender;            //'M', 'W'
+	@Enumerated(EnumType.STRING)
+	private Gender gender;
 	private int birthYear;               //탄생년도. 나이는 오늘날짜로부터 계산
 	private String nationality;          //국적
 	private int totalPoint;

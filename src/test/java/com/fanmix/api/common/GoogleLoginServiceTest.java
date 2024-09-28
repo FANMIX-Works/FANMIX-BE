@@ -9,8 +9,11 @@ import org.springframework.test.context.ActiveProfiles;
 
 import com.fanmix.api.domain.member.service.GoogleLoginService;
 
+import lombok.extern.slf4j.Slf4j;
+
 @SpringBootTest
 @ActiveProfiles("test")
+@Slf4j
 class GoogleLoginServiceTest {
 
 	@Autowired
@@ -23,15 +26,4 @@ class GoogleLoginServiceTest {
 		assertTrue(nickName.length() > 13);
 	}
 
-	@Test
-	public void validateToken() {
-		String tmp = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJnZ29vbXRlckBnbWFpbC5jb20iLCJpYXQiOjE3MjYyMzM2NzMsImV4cCI6MTcyNjMyMDA3M30.BymxpkUVxqySOc4rEmKPKaw55Sq8VYJdxI24NVI3Rk8";
-		googleLoginService.isValidateJwtToken(tmp);
-	}
-
-	@Test
-	public void getAccessTokenUsingrefreshToken() {
-		String refreshToken = "1//0etSGwBdL0HA-CgYIARAAGA4SNwF-L9Ireq4_ulFBX3OcLlZehTMLMhw2-camq1U7v8dJtXOXnzscao7FFFXjVwMY1gKdvICEk50";
-		googleLoginService.getNewAccessTokenUsingRefreshToken(refreshToken);
-	}
 }

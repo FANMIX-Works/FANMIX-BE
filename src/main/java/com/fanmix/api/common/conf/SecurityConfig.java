@@ -18,9 +18,9 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.fanmix.api.common.security.filter.JwtTokenFilter;
 import com.fanmix.api.domain.member.service.GoogleLoginService;
 import com.fanmix.api.domain.member.service.MemberService;
-import com.fanmix.api.security.filter.JwtTokenFilter;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -100,6 +100,7 @@ public class SecurityConfig {
 					.userService(googleLoginService)
 				)
 			)
+			//스프링시큐리티 필터체인전에 JwtTokenFilter체인 추가.  먼저 JWT토큰을 검사하고 유효하면 인증된 사용자를 스프링시큐리티 컨텍스트 홀더에 저장
 			.addFilterBefore(new JwtTokenFilter(memberService, secretKey), UsernamePasswordAuthenticationFilter.class)
 			.addFilterAfter(new LoggingFilter(), JwtTokenFilter.class)
 		;

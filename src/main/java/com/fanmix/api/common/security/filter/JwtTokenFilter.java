@@ -1,4 +1,4 @@
-package com.fanmix.api.security.filter;
+package com.fanmix.api.common.security.filter;
 
 import static com.fanmix.api.domain.member.exception.MemberErrorCode.*;
 
@@ -11,9 +11,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.fanmix.api.common.security.util.JwtTokenUtil;
 import com.fanmix.api.domain.member.exception.MemberException;
 import com.fanmix.api.domain.member.service.MemberService;
-import com.fanmix.api.security.util.JwtTokenUtil;
 
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -39,8 +39,8 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 		//1.header에서 jwt토큰 꺼내기기
 		if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
 			log.debug("authorizationHeader가 null 또는 Bearer 로 시작안해서 종료");
-			filterChain.doFilter(request,
-				response);    //이걸 호출하면 요청이 다음 필터 또는 리소스로 전달됨. 필터체인 외부로 전달되지않고 스프링프레임워크의 예외처리 매커니즘에 의해 처리됨
+			//이걸 호출하면 요청이 다음 필터 또는 리소스로 전달됨. 필터체인 외부로 전달되지않고 스프링프레임워크의 예외처리 매커니즘에 의해 처리됨
+			filterChain.doFilter(request, response);
 			return;
 			//throw new MemberException(BLANK_CODE);
 			//handleException(response, new MemberException(BLANK_CODE));
