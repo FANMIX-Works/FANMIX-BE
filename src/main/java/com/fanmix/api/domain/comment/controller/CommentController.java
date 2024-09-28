@@ -73,7 +73,7 @@ public class CommentController {
 	}
 
 	// 댓글 좋아요, 싫어요 평가
-	@PostMapping("/api/communities/posts/{postId}/comments/{commentId}")
+	@PostMapping("/api/communities/posts/{postId}/comments/{commentId}/lke")
 	public ResponseEntity<Response<CommentLikeDislike>> addCommentLikeDislike(
 		@PathVariable int postId,
 		@PathVariable int commentId,
