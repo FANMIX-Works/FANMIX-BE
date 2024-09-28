@@ -28,6 +28,9 @@ import com.fanmix.api.domain.post.exception.PostException;
 import com.fanmix.api.domain.post.repository.PostLikeDisLikeRepository;
 import com.fanmix.api.domain.post.repository.PostRepository;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -120,6 +123,9 @@ public class PostService {
 		if(post.getCommunity().getId() != communityId) {
 			throw new PostException(PostErrorCode.POST_NOT_BELONG_TO_COMMUNITY);
 		}
+
+		post.updateViewCount(post.getViewCount());
+
 		return post;
 	}
 
@@ -184,14 +190,13 @@ public class PostService {
 		return popularList
 			.stream()
 			.map(post -> {
-				// long likeCount = postLikeDisLikeRepository.countByPostAndIsLikeTrue(post);
 				int commentCount = post.getComments().size();
 				int influencerId = post.getCommunity().getInfluencerId();
 
 				return new PopularPostsResponse(
 					post.getCommunity().getId(),
 					influencerId,		// 인플루언서 이름 받기
-					// likeCount,
+					post.getLikeCount(),
 					commentCount,
 					post.getCrDate()
 				);
@@ -224,6 +229,38 @@ public class PostService {
 		} else {
 			throw new PostException(PostErrorCode.ALREADY_LIKED_DISLIKED);
 		}
+	}
 
+	// 조회수 증가
+	public void updateViewCount(int postId, HttpServletRequest request, HttpServletResponse response) {
+		Post post = postRepository.findById(postId)
+			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_EXIST));
+
+		Cookie oldCookie = null;
+		Cookie[] cookies = request.getCookies();
+
+		if(cookies != null) {
+			for (Cookie cookie : cookies) {
+				if(cookie.getName().equals("viewCount")) {
+					oldCookie = cookie;
+				}
+			}
+		}
+
+		if(oldCookie != null) {
+			if(oldCookie.getValue().contains("[" + postId + "]")) {
+				post.updateViewCount(postId);
+				oldCookie.setValue(oldCookie.getValue() + "[" + postId + "]");
+				oldCookie.setPath("/");
+				oldCookie.setMaxAge(60 * 60 * 24);
+				response.addCookie(oldCookie);
+			}
+		} else {
+			post.updateViewCount(post.getViewCount());
+			Cookie newCookie = new Cookie("viewCount", "[" + postId + "]");
+			newCookie.setPath("/");
+			newCookie.setMaxAge(60 * 60 * 24);
+			response.addCookie(newCookie);
+		}
 	}
 }

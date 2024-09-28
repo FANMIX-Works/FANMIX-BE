@@ -102,4 +102,8 @@ public class Post extends BaseEntity {
 	public void addDislikeCount(int dislikeCount) {
 		this.dislikeCount = dislikeCount;
 	}
+
+	public void updateViewCount(int viewCount) {
+		this.viewCount = viewCount + 1;
+	}
 }
