@@ -39,7 +39,7 @@ public class FanChannelCommentService {
 		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if(!member.getRole().equals(Role.COMMUNITY)) {
+		if(member.getRole().equals(Role.COMMUNITY)) {
 			throw new CommentException(CommentErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
@@ -86,8 +86,30 @@ public class FanChannelCommentService {
 			throw new CommentException(CommentErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
-		comment.update(request.getIsDelete(), request.getContents());
+		comment.update(request.getContents());
 
 		return comment;
 	}
+
+	// 팬채널 댓글 삭제
+	@Transactional
+	public Comment deleteFanChannelComment(int postId, int commentId, UpdateCommentRequest request, String email) {
+		Post post = postRepository.findById(postId)
+			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_EXIST));
+
+		Comment comment = commentRepository.findById(commentId)
+			.orElseThrow(() -> new CommentException(CommentErrorCode.COMMENT_NOT_EXIST));
+
+		Member member = memberRepository.findByEmail(email)
+				.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
+
+		if(member.getRole().equals(Role.COMMUNITY)) {
+			throw new CommentException(CommentErrorCode.NOT_EXISTS_AUTHORIZATION);
+		}
+
+		comment.delete(request.getIsDelete(), request.getContents());
+
+		return comment;
+	}
+
 }

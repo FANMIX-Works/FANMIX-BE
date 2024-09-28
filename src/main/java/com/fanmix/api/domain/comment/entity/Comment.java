@@ -6,6 +6,7 @@ import java.util.List;
 import com.fanmix.api.domain.common.entity.BaseEntity;
 import com.fanmix.api.domain.post.entity.Post;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -49,10 +50,10 @@ public class Comment extends BaseEntity {
 	private Boolean isDelete;				// 삭제 여부
 
 	@OneToMany(mappedBy = "parentId", orphanRemoval = true)
-	private List<Comment> comments = new ArrayList<>();
+	private List<Comment> comments = new ArrayList<>();		// 자식 댓글
 
-	@JoinColumn(name = "comm_e_id")
-	private int commEvaluation;				// 댓글 평가 id
+	@OneToMany(mappedBy = "comment", cascade = CascadeType.REMOVE, orphanRemoval = true)
+	private List<CommentLikeDislike> commentLikeDislikes = new ArrayList<>();	// 댓글 좋아요
 
 	@Builder
 	public Comment(Post post, Comment parentId, String contents) {
@@ -61,8 +62,12 @@ public class Comment extends BaseEntity {
 		this.contents = contents;
 	}
 
-	public void update(Boolean isDelete, String contents) {
-		this.isDelete = isDelete;
+	public void update(String contents) {
 		this.contents = contents;
+	}
+
+	public void delete(Boolean isDelete, String contents) {
+		this.isDelete = true;
+		this.contents = null;
 	}
 }
