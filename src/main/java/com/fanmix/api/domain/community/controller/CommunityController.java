@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fanmix.api.common.response.Response;
 import com.fanmix.api.domain.community.dto.AddCommunityRequest;
+import com.fanmix.api.domain.community.dto.CommunityResponse;
 import com.fanmix.api.domain.community.dto.UpdateCommunityRequest;
 import com.fanmix.api.domain.community.entity.Community;
 import com.fanmix.api.domain.community.service.CommunityService;
@@ -36,6 +37,12 @@ public class CommunityController {
 	@GetMapping("/api/communities/all")
 	public ResponseEntity<Response<List<Community>>> findAllCommunity() {
 		return ResponseEntity.ok(Response.success(communityService.findAll()));
+	}
+
+	// 커뮤니티 전체 카테고리 조회
+	@GetMapping("/api/communities/categories")
+	public ResponseEntity<Response<List<CommunityResponse>>> findAllCategories() {
+		return ResponseEntity.ok(Response.success(communityService.findAllCategories()));
 	}
 
 	// 커뮤니티 조회

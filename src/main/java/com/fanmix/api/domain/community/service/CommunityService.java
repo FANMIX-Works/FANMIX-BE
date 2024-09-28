@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.fanmix.api.domain.common.Role;
 import com.fanmix.api.domain.community.dto.AddCommunityRequest;
+import com.fanmix.api.domain.community.dto.CommunityResponse;
 import com.fanmix.api.domain.community.dto.UpdateCommunityRequest;
 import com.fanmix.api.domain.community.entity.Community;
 import com.fanmix.api.domain.community.exception.CommunityErrorCode;
@@ -56,6 +57,16 @@ public class CommunityService {
 	public Community findById(int id) {
 		return communityRepository.findById(id)
 			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_EXIST));
+	}
+
+	// 커뮤니티 전체 카테고리 조회
+	@Transactional(readOnly = true)
+	public List<CommunityResponse> findAllCategories() {
+		return communityRepository.findAll()
+				.stream()
+				.filter(community -> community.getInfluencerId() == null)
+				.map(CommunityResponse::new)
+				.toList();
 	}
 
 	// 커뮤니티 수정
