@@ -5,11 +5,13 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fanmix.api.domain.comment.dto.AddCommentLikeDislikeRequest;
 import com.fanmix.api.domain.comment.dto.AddCommentRequest;
 import com.fanmix.api.domain.comment.dto.UpdateCommentRequest;
 import com.fanmix.api.domain.comment.entity.Comment;
 import com.fanmix.api.domain.comment.exception.CommentErrorCode;
 import com.fanmix.api.domain.comment.exception.CommentException;
+import com.fanmix.api.domain.comment.repository.CommentLikeDislikeRepository;
 import com.fanmix.api.domain.comment.repository.CommentRepository;
 import com.fanmix.api.domain.common.Role;
 import com.fanmix.api.domain.member.entity.Member;
@@ -29,6 +31,7 @@ public class FanChannelCommentService {
 	private final PostRepository postRepository;
 	private final CommentRepository commentRepository;
 	private final MemberRepository memberRepository;
+	private final CommentLikeDislikeRepository commentLikeDislikeRepository;
 
 	// 팬채널 댓글 작성
 	@Transactional
@@ -39,7 +42,7 @@ public class FanChannelCommentService {
 		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if(member.getRole().equals(Role.COMMUNITY)) {
+		if(!member.getRole().equals(Role.COMMUNITY)) {
 			throw new CommentException(CommentErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
@@ -82,7 +85,7 @@ public class FanChannelCommentService {
 		Member member = memberRepository.findByEmail(email)
 				.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if(member.getRole().equals(Role.COMMUNITY)) {
+		if(!member.getRole().equals(Role.COMMUNITY)) {
 			throw new CommentException(CommentErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
@@ -103,7 +106,7 @@ public class FanChannelCommentService {
 		Member member = memberRepository.findByEmail(email)
 				.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if(member.getRole().equals(Role.COMMUNITY)) {
+		if(!member.getRole().equals(Role.COMMUNITY)) {
 			throw new CommentException(CommentErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
@@ -112,4 +115,32 @@ public class FanChannelCommentService {
 		return comment;
 	}
 
+	// 팬채널 댓글 좋아요, 싫어요 평가
+	public void addFanChannelCommentLikeDislike(int postId, int commentId, AddCommentLikeDislikeRequest request, String email) {
+		Post post = postRepository.findById(postId)
+			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_EXIST));
+
+		Comment comment = commentRepository.findById(commentId)
+			.orElseThrow(() -> new CommentException(CommentErrorCode.COMMENT_NOT_EXIST));
+
+		Member member = memberRepository.findByEmail(email)
+			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
+
+		if(!member.getRole().equals(Role.COMMUNITY)) {
+			throw new CommentException(CommentErrorCode.NOT_EXISTS_AUTHORIZATION);
+		}
+
+		if(!commentLikeDislikeRepository.existsByMemberAndComment(member, comment)) {
+			if(request.getIsLike() != null) {
+				if(request.getIsLike()) {
+					comment.addLikeCount(comment.getLikeCount() + 1);
+				} else {
+					comment.addDislikeCount(comment.getDislikeCount() + 1);
+				}
+			}
+			commentLikeDislikeRepository.save(request.toEntity(member, comment));
+		} else {
+			throw new CommentException(CommentErrorCode.ALREADY_LIKED_DISLIKED);
+		}
+	}
 }

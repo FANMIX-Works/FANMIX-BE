@@ -13,11 +13,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fanmix.api.common.response.Response;
+import com.fanmix.api.domain.comment.dto.AddCommentLikeDislikeRequest;
 import com.fanmix.api.domain.comment.dto.AddCommentRequest;
 import com.fanmix.api.domain.comment.dto.CommentResponse;
 import com.fanmix.api.domain.comment.dto.DeleteCommentResponse;
 import com.fanmix.api.domain.comment.dto.UpdateCommentRequest;
 import com.fanmix.api.domain.comment.entity.Comment;
+import com.fanmix.api.domain.comment.entity.CommentLikeDislike;
 import com.fanmix.api.domain.comment.service.FanChannelCommentService;
 
 import lombok.RequiredArgsConstructor;
@@ -70,5 +72,16 @@ public class FanChannelCommentController {
 		@AuthenticationPrincipal String email) {
 		Comment comment = fanChannelCommentService.deleteFanChannelComment(postId, commentId, request, email);
 		return ResponseEntity.ok(Response.success(new DeleteCommentResponse(comment, email)));
+	}
+
+	// 팬채널 댓글 좋아요, 싫어요 평가
+	@PostMapping("/api/fanchannels/posts/{postId}/comments/{commentId}/like")
+	public ResponseEntity<Response<CommentLikeDislike>> addFanChannelCommentLikeDislike(
+		@PathVariable int postId,
+		@PathVariable int commentId,
+		@RequestBody AddCommentLikeDislikeRequest request,
+		@AuthenticationPrincipal String email) {
+		fanChannelCommentService.addFanChannelCommentLikeDislike(postId, commentId, request, email);
+		return ResponseEntity.ok(Response.success());
 	}
 }
