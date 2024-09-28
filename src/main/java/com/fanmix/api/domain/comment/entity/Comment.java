@@ -3,6 +3,8 @@ package com.fanmix.api.domain.comment.entity;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hibernate.annotations.Formula;
+
 import com.fanmix.api.domain.common.entity.BaseEntity;
 import com.fanmix.api.domain.post.entity.Post;
 
@@ -55,6 +57,12 @@ public class Comment extends BaseEntity {
 	@OneToMany(mappedBy = "comment", cascade = CascadeType.REMOVE, orphanRemoval = true)
 	private List<CommentLikeDislike> commentLikeDislikes = new ArrayList<>();	// 댓글 좋아요
 
+	@Formula("(SELECT COUNT(*) FROM comment_like_dislike cld WHERE cld.comment_id = comment_id AND cld.is_like = true)")
+	private int likeCount;
+
+	@Formula("(SELECT COUNT(*) FROM comment_like_dislike cld WHERE cld.comment_id = comment_id AND cld.is_like = false)")
+	private int dislikeCount;
+
 	@Builder
 	public Comment(Post post, Comment parentId, String contents) {
 		this.post = post;
@@ -69,5 +77,13 @@ public class Comment extends BaseEntity {
 	public void delete(Boolean isDelete, String contents) {
 		this.isDelete = true;
 		this.contents = null;
+	}
+
+	public void addLikeCount(int likeCount) {
+		this.likeCount = likeCount;
+	}
+
+	public void addDislikeCount(int dislikeCount) {
+		this.dislikeCount = dislikeCount;
 	}
 }

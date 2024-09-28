@@ -5,11 +5,13 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fanmix.api.domain.comment.dto.AddCommentLikeDislikeRequest;
 import com.fanmix.api.domain.comment.dto.AddCommentRequest;
 import com.fanmix.api.domain.comment.dto.UpdateCommentRequest;
 import com.fanmix.api.domain.comment.entity.Comment;
 import com.fanmix.api.domain.comment.exception.CommentErrorCode;
 import com.fanmix.api.domain.comment.exception.CommentException;
+import com.fanmix.api.domain.comment.repository.CommentLikeDislikeRepository;
 import com.fanmix.api.domain.comment.repository.CommentRepository;
 import com.fanmix.api.domain.common.Role;
 import com.fanmix.api.domain.community.entity.Community;
@@ -34,6 +36,7 @@ public class CommentService {
 	private final PostRepository postRepository;
 	private final CommentRepository commentRepository;
 	private final MemberRepository memberRepository;
+	private final CommentLikeDislikeRepository commentLikeDislikeRepository;
 
 	// 댓글 등록
 	@Transactional
@@ -100,8 +103,38 @@ public class CommentService {
 			throw new CommentException(CommentErrorCode.COMMENT_NOT_EXIST);
 		}
 
-		comment.update(request.getIsDelete(), request.getContents());
+		comment.update(request.getContents());
 
 		return comment;
+	}
+
+	// 댓글 좋아요, 싫어요 평가
+	@Transactional
+	public void addCommentLikeDislike(int postId, int commentId, AddCommentLikeDislikeRequest request, String email) {
+		Post post = postRepository.findById(postId)
+			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_EXIST));
+
+		Comment comment = commentRepository.findById(commentId)
+			.orElseThrow(() -> new CommentException(CommentErrorCode.COMMENT_NOT_EXIST));
+
+		Member member = memberRepository.findByEmail(email)
+			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
+
+		if(!member.getRole().equals(Role.MEMBER)) {
+			throw new CommentException(CommentErrorCode.NOT_EXISTS_AUTHORIZATION);
+		}
+
+		if(!commentLikeDislikeRepository.existsByMemberAndComment(member, comment)) {
+			if(request.getIsLike() != null) {
+				if(request.getIsLike()) {
+					comment.addLikeCount(comment.getLikeCount() + 1);
+				} else {
+					comment.addDislikeCount(comment.getDislikeCount() + 1);
+				}
+			}
+			commentLikeDislikeRepository.save(request.toEntity(member, comment));
+		} else {
+			throw new CommentException(CommentErrorCode.ALREADY_LIKED_DISLIKED);
+		}
 	}
 }

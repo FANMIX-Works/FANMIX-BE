@@ -18,9 +18,12 @@ public class CommentResponse {
 	private int crMember;
 	private int uMember;
 	private String contents;
-	private List<CommentResponse> comments;
 	private LocalDateTime crDate;
 	private LocalDateTime uDate;
+	private List<CommentResponse> comments;
+	private int likeCount;
+	private int dislikeCount;
+	private int commentCount;
 
 	// JSON 순환 참조 방지
 	public CommentResponse (Comment comment) {
@@ -38,5 +41,8 @@ public class CommentResponse {
 			.stream()
 			.map(CommentResponse::new)
 			.collect(Collectors.toList());
+		this.likeCount = comment.getLikeCount();
+		this.dislikeCount = comment.getDislikeCount();
+		this.commentCount = comment.getComments().size();
 	}
 }
