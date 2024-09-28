@@ -17,6 +17,7 @@ import com.fanmix.api.domain.member.entity.Member;
 import com.fanmix.api.domain.member.exception.MemberErrorCode;
 import com.fanmix.api.domain.member.exception.MemberException;
 import com.fanmix.api.domain.member.repository.MemberRepository;
+import com.fanmix.api.domain.post.dto.AddPostLikeDislikeRequest;
 import com.fanmix.api.domain.post.dto.AddPostRequest;
 import com.fanmix.api.domain.post.dto.PopularPostsResponse;
 import com.fanmix.api.domain.post.dto.PostListResponse;
@@ -24,6 +25,7 @@ import com.fanmix.api.domain.post.dto.UpdatePostRequest;
 import com.fanmix.api.domain.post.entity.Post;
 import com.fanmix.api.domain.post.exception.PostErrorCode;
 import com.fanmix.api.domain.post.exception.PostException;
+import com.fanmix.api.domain.post.repository.PostLikeDisLikeRepository;
 import com.fanmix.api.domain.post.repository.PostRepository;
 
 import lombok.Getter;
@@ -37,6 +39,7 @@ public class PostService {
 	private final CommunityRepository communityRepository;
 	private final PostRepository postRepository;
 	private final MemberRepository memberRepository;
+	private final PostLikeDisLikeRepository postLikeDisLikeRepository;
 	private final ImageService imageService;
 
 	// 게시물 추가
@@ -145,7 +148,7 @@ public class PostService {
 			throw new CommunityException(CommunityErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
-		post.update(request.getTitle(), request.getContent());
+		post.update(request.getTitle(), request.getContent(), request.getImages());
 
 		return post;
 	}
@@ -181,18 +184,46 @@ public class PostService {
 		return popularList
 			.stream()
 			.map(post -> {
-				int likeCount = postRepository.countPostLikeDislikesByPostId(post.getId());
+				// long likeCount = postLikeDisLikeRepository.countByPostAndIsLikeTrue(post);
 				int commentCount = post.getComments().size();
 				int influencerId = post.getCommunity().getInfluencerId();
 
 				return new PopularPostsResponse(
 					post.getCommunity().getId(),
 					influencerId,		// 인플루언서 이름 받기
-					likeCount,
+					// likeCount,
 					commentCount,
 					post.getCrDate()
 				);
 			})
 			.collect(Collectors.toList());
+	}
+
+	// 게시물 좋아요, 싫어요
+	@Transactional
+	public void addPostLikeDislike(int postId, AddPostLikeDislikeRequest request, String email) {
+		Post post = postRepository.findById(postId)
+			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_EXIST));
+		
+		Member member = memberRepository.findByEmail(email)
+			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
+		
+		if(!member.getRole().equals(Role.MEMBER)) {
+			throw new PostException(PostErrorCode.NOT_EXISTS_AUTHORIZATION);
+		}
+
+		if (!postLikeDisLikeRepository.existsByMemberAndPost(member, post)) {
+			if(request.getIsLike() != null) {
+				if (request.getIsLike()) {
+					post.addLikeCount(post.getLikeCount() + 1);
+				} else {
+					post.addDislikeCount(post.getDislikeCount() + 1);
+				}
+			}
+			postLikeDisLikeRepository.save(request.toEntity(member, post));
+		} else {
+			throw new PostException(PostErrorCode.ALREADY_LIKED_DISLIKED);
+		}
+
 	}
 }
