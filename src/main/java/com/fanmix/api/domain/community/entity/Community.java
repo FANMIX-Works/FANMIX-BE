@@ -27,7 +27,7 @@ public class Community extends BaseEntity {
 	private int id;					// 커뮤니티 id
 
 	@Column(name = "influencer_id")
-	private int influencerId;		// 인플루언서 id
+	private Integer influencerId;		// 인플루언서 id
 
 	@Column(nullable = false)
 	private String name;			// 커뮤니티명
