@@ -7,8 +7,9 @@
 <body>
 
 <h1>로그인 성공후</h1>
-<p>더이상 못쓰는 일회용 방금쓴 인가코드 : <div id="authCode"></div></p>
+<p>백엔드로 제출전 인가코드 : <div id="authCode"></div></p>
 <br>
+<button onclick="sendAuthLogintoBackEnd()">백엔드로 인가코드 보내서 로그인하기</button>
 <p>jwt : <div id="jwt"></div></p>
 <br>
 <p>member닉네임 : <div id="member"></div></p>
@@ -31,26 +32,30 @@
     // Assuming you have the authorization code in a variable
     const urlParams = new URLSearchParams(window.location.search);
     let authCode = urlParams.get('code');
-    console.log("authCode : ", authCode);
+    console.log("인가코드 authCode : ", authCode);
+    document.getElementById('authCode').innerText = authCode;
 
-    document.addEventListener('DOMContentLoaded', () => {
-    axios.post('/api/members/oauth/google', { code: authCode })
-        .then(response => {
-            console.log("response : ", response);
-            console.log("response.data : ", response.data);
-            console.log("response.data.data.jwt : ", response.data.data.jwt);
 
-            document.getElementById('authCode').innerText = authCode;
-            document.getElementById('jwt').innerText = response.data.data.jwt;
-            document.getElementById('member').innerText = response.data.data.member.nickName;
-            document.getElementById('role').innerText = response.data.data.member.role;
-        })
-        .catch(error => {
-            console.error(error);
-            document.getElementById('response').innerText = 'Error: ' + error.message;
-        });
-    });
 
+    function sendAuthLogintoBackEnd() {
+        const authCode = document.getElementById('authCode').innerText;
+        console.log("인가코드 authCode : ", authCode);
+
+        axios.post('/api/members/oauth/google', { code: authCode })
+            .then(response => {
+                console.log("response : ", response);
+                console.log("response.data : ", response.data);
+                console.log("response.data.data.jwt : ", response.data.data.jwt);
+
+                document.getElementById('jwt').innerText = response.data.data.jwt;
+                document.getElementById('member').innerText = response.data.data.member.nickName;
+                document.getElementById('role').innerText = response.data.data.member.role;
+            })
+            .catch(error => {
+                console.error(error);
+                document.getElementById('response').innerText = 'Error: ' + error.message;
+            });
+    }
 
     function getMyInfo() {
         const jwt = document.getElementById('jwt').innerText;

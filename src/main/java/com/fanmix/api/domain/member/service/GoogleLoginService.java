@@ -28,6 +28,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -133,6 +134,18 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 			log.debug("멤버 테이블 없음");
 			e.printStackTrace();
 			throw new MemberException(SQL_ERROR);
+		} catch (HttpClientErrorException e) {
+			try {
+				JsonNode errorNode = new ObjectMapper().readTree(e.getResponseBodyAsString());
+				if (errorNode.has("error") && errorNode.get("error").asText().equals("invalid_grant")) {
+					log.error("일회용인 인가코드 한번 더 쓴 에러");
+					throw new MemberException(INVALID_GRANT);
+				}
+			} catch (JsonProcessingException ex) {
+				// JSON 처리 중 발생한 예외 처리
+				ex.printStackTrace();
+			}
+			throw e;
 		} catch (RestClientException e) {
 			// REST 요청 중 발생한 예외 처리
 			e.printStackTrace();
