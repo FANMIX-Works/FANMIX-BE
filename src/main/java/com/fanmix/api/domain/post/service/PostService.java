@@ -3,6 +3,7 @@ package com.fanmix.api.domain.post.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -70,11 +71,20 @@ public class PostService {
 
 	// 전체 커뮤니티 종합 글 리스트 조회
 	public List<PostListResponse> findAllCommunityPosts(String sort) {
+		Sort likeCountDesc = Sort.by(
+			Sort.Order.desc("likeCount"),
+			Sort.Order.desc("crDate")
+		);
+		Sort viewCountDesc = Sort.by(
+			Sort.Order.desc("viewCount"),
+			Sort.Order.desc("crDate")
+		);
 		List<Post> postList = switch (sort) {
-			case "LIKE_COUNT" -> postRepository.findAllByOrderByLikeCountDesc();
-			case "VIEW_COUNT" -> postRepository.findAllByOrderByViewCountDesc();
+			case "LIKE_COUNT" -> postRepository.findAll(likeCountDesc);
+			case "VIEW_COUNT" -> postRepository.findAll(viewCountDesc);
 			default -> postRepository.findAllByOrderByCrDateDesc();
 		};
+
 		return postList
 			.stream()
 			.map(PostListResponse::new)
