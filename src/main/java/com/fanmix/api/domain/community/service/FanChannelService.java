@@ -11,6 +11,8 @@ import com.fanmix.api.domain.community.entity.Community;
 import com.fanmix.api.domain.community.exception.CommunityErrorCode;
 import com.fanmix.api.domain.community.exception.CommunityException;
 import com.fanmix.api.domain.community.repository.CommunityRepository;
+import com.fanmix.api.domain.influencer.entity.Influencer;
+import com.fanmix.api.domain.influencer.entity.InfluencerRepository;
 import com.fanmix.api.domain.member.entity.Member;
 import com.fanmix.api.domain.member.exception.MemberErrorCode;
 import com.fanmix.api.domain.member.exception.MemberException;
@@ -23,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 public class FanChannelService {
 	private final CommunityRepository communityRepository;
 	private final MemberRepository memberRepository;
+	private final InfluencerRepository influencerRepository;
 
 	// 팬채널 추가
 	@Transactional
@@ -35,8 +38,9 @@ public class FanChannelService {
 			throw new CommunityException(CommunityErrorCode.INFLUENCER_ID_DUPLICATION);
 		}
 
-		// 인플루언서 존재 여부 예외처리
-		// Influencer influencer = influencerRepository.findById(request.getInfluencerId());
+		// 인플루언서 존재 여부 예외처리(임시)
+		Influencer influencer = influencerRepository.findById(request.getInfluencerId())
+			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
 		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.FAIL_GET_OAUTHINFO));
@@ -63,7 +67,13 @@ public class FanChannelService {
 	// }
 
 	// 팬채널 정보 조회
-	public Community fanChannel(int communityId) {
+	public Community fanChannel(int communityId, String email) {
+		Member member = memberRepository.findByEmail(email)
+			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
+
+		if(!member.getRole().equals(Role.COMMUNITY)) {
+			throw new CommunityException(CommunityErrorCode.NOT_EXISTS_AUTHORIZATION);
+		}
 		return communityRepository.findById(communityId)
 			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
 	}

@@ -39,8 +39,8 @@ public class FanChannelController {
 
 	// 팬채널 정보 조회
 	@GetMapping("/api/fanchannels/{communityId}/info")
-	public ResponseEntity<Response<FanChannelResponse>> fanChannel(@PathVariable int communityId) {
-		return ResponseEntity.ok(Response.success(new FanChannelResponse(fanChannelService.fanChannel(communityId))));
+	public ResponseEntity<Response<FanChannelResponse>> fanChannel(@PathVariable int communityId, @AuthenticationPrincipal String email) {
+		return ResponseEntity.ok(Response.success(new FanChannelResponse(fanChannelService.fanChannel(communityId, email))));
 	}
 
 	// 팬채널 수정/삭제
