@@ -56,9 +56,9 @@ public class CommunityService {
 
 	// 커뮤니티 조회
 	@Transactional(readOnly = true)
-	public Community findById(int id) {
-		return communityRepository.findById(id)
-			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_EXIST));
+	public Community findById(int communityId) {
+		return communityRepository.findById(communityId)
+			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
 	}
 
 	// 커뮤니티 전체 카테고리 조회

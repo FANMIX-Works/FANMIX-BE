@@ -46,8 +46,8 @@ public class CommunityController {
 		return ResponseEntity.ok(Response.success(communityService.findAllCategories()));
 	}
 
-	// 커뮤니티 조회
-	@GetMapping("/api/communities/info/{communityId}")
+	// 커뮤니티 정보 조회
+	@GetMapping("/api/communities/{communityId}/info")
 	public ResponseEntity<Response<Community>> findCommunity(@PathVariable int communityId) {
 		return ResponseEntity.ok(Response.success(communityService.findById(communityId)));
 	}
