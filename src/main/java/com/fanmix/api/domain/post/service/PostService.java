@@ -93,14 +93,24 @@ public class PostService {
 
 	// 특정 커뮤니티 글 리스트 조회
 	public List<PostListResponse> findAllByCommunityId(int communityId, String sort) {
-		Community community = communityRepository.findById(communityId)
+		communityRepository.findById(communityId)
 			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
 
+		Sort likeCountDesc = Sort.by(
+			Sort.Order.desc("likeCount"),
+			Sort.Order.desc("crDate")
+		);
+		Sort viewCountDesc = Sort.by(
+			Sort.Order.desc("viewCount"),
+			Sort.Order.desc("crDate")
+		);
+
 		List<Post> postList = switch (sort) {
-			case "LIKE_COUNT" -> postRepository.findAllByOrderByLikeCountDesc();
-			case "VIEW_COUNT" -> postRepository.findAllByOrderByViewCountDesc();
+			case "LIKE_COUNT" -> postRepository.findAll(likeCountDesc);
+			case "VIEW_COUNT" -> postRepository.findAll(viewCountDesc);
 			default -> postRepository.findAllByOrderByCrDateDesc();
 		};
+
 		return postList
 			.stream()
 			.map(PostListResponse::new)
