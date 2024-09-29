@@ -31,13 +31,12 @@ public class CommunityService {
 	// 커뮤니티 추가
 	@Transactional
 	public Community save(AddCommunityRequest request, String email) {
-
 		if(communityRepository.existsByName(request.getName())) {
  			throw new CommunityException(CommunityErrorCode.NAME_DUPLICATION);
 		}
 
 		Member member = memberRepository.findByEmail(email)
-			.orElseThrow(() -> new MemberException(MemberErrorCode.FAIL_GET_OAUTHINFO));
+			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
 		if(!member.getRole().equals(Role.ADMIN)) {
 			throw new CommunityException(CommunityErrorCode.NOT_EXISTS_AUTHORIZATION);

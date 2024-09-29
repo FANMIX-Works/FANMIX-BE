@@ -30,7 +30,8 @@ public class CommunityController {
 	@PostMapping("/api/communities")
 	public ResponseEntity<Response<Community>> addCommunity(
 		@RequestBody AddCommunityRequest request, @AuthenticationPrincipal String email) {
-		return ResponseEntity.ok(Response.success(communityService.save(request, email)));
+		communityService.save(request, email);
+		return ResponseEntity.ok(Response.success());
 	}
 
 	// 전체 커뮤니티 리스트 조회

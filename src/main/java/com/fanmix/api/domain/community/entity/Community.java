@@ -38,10 +38,11 @@ public class Community extends BaseEntity {
 	private Boolean isShow;			// 노출 여부
 
 	@Builder
-	public Community(int influencerId, String name, Boolean isShow) {
+	public Community(int influencerId, String name) {
 		this.influencerId = influencerId;
 		this.name = name;
-		this.isShow = isShow;
+		this.isShow = true;
+		this.priv = Role.GUEST;
 	}
 
 	// 커뮤니티 수정
