@@ -1,4 +1,4 @@
-package com.fanmix.api.security.filter;
+package com.fanmix.api.common.security.filter;
 
 import static com.fanmix.api.domain.member.exception.MemberErrorCode.*;
 
@@ -11,9 +11,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.fanmix.api.common.security.util.JwtTokenUtil;
 import com.fanmix.api.domain.member.exception.MemberException;
 import com.fanmix.api.domain.member.service.MemberService;
-import com.fanmix.api.security.util.JwtTokenUtil;
 
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;

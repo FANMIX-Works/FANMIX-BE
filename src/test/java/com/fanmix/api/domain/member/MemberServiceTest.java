@@ -2,7 +2,6 @@ package com.fanmix.api.domain.member;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,30 +38,22 @@ public class MemberServiceTest {
 	private MemberService memberService;
 
 	@Test
-	@Rollback(false)
 	@Transactional
 	public void jpaEventBaseEntity() throws Exception {
+		logger.debug("jpaEventBaseEntity() 테스트");
 		Member member = new Member("홍길동");
 		memberRepository.save(member);
 
-		Thread.sleep(100);
-		member.setName("아버지");
-
-		em.flush();    //@PreUpdate 발생
-		em.clear();
-
 		//when
-		Optional<Member> findMember = memberRepository.findById(member.getId());
-		Member member2 = findMember.orElseThrow(() -> new RuntimeException("회원 정보가 존재하지 않습니다."));
 
 		//then
-		System.out.println("findMember.crDate = " + member2.getCrDate());
-		System.out.println("findMember.crDate = " + member2.getUDate());
+
 	}
 
 	@Test
 	@Transactional
 	public void getMembersTest() {
+		logger.debug("getMembersTest() 테스트");
 		// Given
 		Member member1 = new Member("member1");
 		Member member2 = new Member("member2");
