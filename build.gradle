@@ -17,10 +17,15 @@ configurations {
     compileOnly {
         extendsFrom annotationProcessor
     }
+    querydsl.extendsFrom compileClasspath
 }
 
 repositories {
     mavenCentral()
+}
+
+ext {
+    set('querydslVersion', "5.0.0")
 }
 
 dependencies {
@@ -64,8 +69,33 @@ dependencies {
 
     testCompileOnly 'org.projectlombok:lombok'  //빠지면 테스트에서 롬복 사용 못함
     testAnnotationProcessor 'org.projectlombok:lombok'   //빠지면 테스트에서 롬복 사용 못함
+
+    // Querydsl
+    implementation "com.querydsl:querydsl-jpa:${querydslVersion}:jakarta"
+    annotationProcessor "com.querydsl:querydsl-apt:${querydslVersion}:jakarta"
+    annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+    annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 }
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+// Q-Class를 생성할 디렉토리 경로 설정
+def querydslSrcDir = 'src/main/generated/querydsl/'
+
+// JavaCompile Task를 수행하는 경우 생성될 소스코드의 출력 디렉토리를 querydslSrcDir로 설정
+tasks.withType(JavaCompile).configureEach {
+    options.getGeneratedSourceOutputDirectory().set(file(querydslSrcDir))
+}
+
+// 소스 코드로 인식할 디렉토리에 경로에 Q-Class 파일을 추가
+// 이렇게 하면 Q-Class가 일반 Java 클래스처럼 취급되어 컴파일과 실행 시 클래스패스에 포함됨
+sourceSets {
+    main.java.srcDirs += [querydslSrcDir]
+}
+
+// clean Task를 수행하는 경우 지정한 디렉토리를 삭제하도록 설정 즉 자동 생성된 Q-Class를 제거
+clean {
+    delete file(querydslSrcDir)
 }
