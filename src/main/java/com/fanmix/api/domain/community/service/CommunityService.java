@@ -79,13 +79,13 @@ public class CommunityService {
 		}
 
 		Member member = memberRepository.findByEmail(email)
-			.orElseThrow(() -> new MemberException(MemberErrorCode.FAIL_GET_OAUTHINFO));
+			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
 		if(!member.getRole().equals(Role.ADMIN)) {
 			throw new CommunityException(CommunityErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
-		community.update(request.getInfluencerId(), request.getName(), request.getIsShow());
+		community.update(request.getName(), request.getIsShow(), request.getPriv());
 
 		return community;
 	}

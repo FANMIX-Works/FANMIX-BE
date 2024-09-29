@@ -58,8 +58,8 @@ public class CommunityController {
 		@PathVariable int communityId,
 		@RequestBody UpdateCommunityRequest request,
 		@AuthenticationPrincipal String email) {
-
-		return ResponseEntity.ok(Response.success(communityService.update(communityId, request, email)));
+		communityService.update(communityId, request, email);
+		return ResponseEntity.ok(Response.success());
 	}
 
 	// 커뮤니티 삭제
