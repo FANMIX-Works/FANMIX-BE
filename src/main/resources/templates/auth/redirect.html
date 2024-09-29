@@ -32,6 +32,7 @@
     // Assuming you have the authorization code in a variable
     const urlParams = new URLSearchParams(window.location.search);
     let authCode = urlParams.get('code');
+    let redirectUri = 'http://localhost:8080/auth/redirect';
     console.log("인가코드 authCode : ", authCode);
     document.getElementById('authCode').innerText = authCode;
 
@@ -41,7 +42,7 @@
         const authCode = document.getElementById('authCode').innerText;
         console.log("인가코드 authCode : ", authCode);
 
-        axios.post('/api/members/oauth/google', { code: authCode })
+        axios.post('/api/members/oauth/google', { code: authCode, redirectUri : redirectUri})
             .then(response => {
                 console.log("response : ", response);
                 console.log("response.data : ", response.data);

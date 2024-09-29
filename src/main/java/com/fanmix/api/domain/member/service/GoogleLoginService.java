@@ -60,6 +60,8 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 	@Value("${oauth.google.client-secret}")
 	private String clientSecret;
 	@Value("${oauth.google.redirect-uri}")
+	String redirectUri_value;
+
 	private String redirectUri;
 	@Value("${jwt.secret}")
 	private String secretKey;
@@ -72,6 +74,15 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 	@Override
 	public SocialType social_type() {
 		return SocialType.GOOGLE;
+	}
+
+	public void setRedirectUri(String redirectUri) {
+		if (redirectUri == null) {
+			this.redirectUri = redirectUri_value;
+		} else {
+			this.redirectUri = redirectUri;
+		}
+
 	}
 
 	@Override
@@ -90,7 +101,7 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 
 			MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 			params.add("code", authorizationCode);
-			params.add("redirect_uri", redirectUri);
+			params.add("redirect_uri", redirectUri);    //클라이언트가 함수 호출할때 넘겨주도록 수정됨. 비었을경우 설정파일값 참조
 			params.add("client_id", clientId);
 			params.add("client_secret", clientSecret);
 			params.add("grant_type", "authorization_code");
@@ -166,7 +177,7 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 				throw new MemberException(SQL_ERROR);
 			} else {
 				e.printStackTrace();
-				log.error("처리하지못한 예외 처리" + e);
+				log.error("처리하지못한 예외 처리", e);
 				// 기타 예외 처리
 				throw new MemberException(FAIL_AUTH);
 			}
