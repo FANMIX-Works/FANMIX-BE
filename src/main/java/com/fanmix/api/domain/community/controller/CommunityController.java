@@ -66,7 +66,6 @@ public class CommunityController {
 	@PatchMapping("/api/communities/{communityId}")
 	public ResponseEntity<Response<Void>> deleteCommunity(@PathVariable int communityId, @AuthenticationPrincipal String email) {
 		communityService.delete(communityId, email);
-
 		return ResponseEntity.ok(Response.success());
 	}
 }

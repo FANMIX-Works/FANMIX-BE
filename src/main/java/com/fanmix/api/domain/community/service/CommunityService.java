@@ -17,8 +17,6 @@ import com.fanmix.api.domain.member.entity.Member;
 import com.fanmix.api.domain.member.exception.MemberErrorCode;
 import com.fanmix.api.domain.member.exception.MemberException;
 import com.fanmix.api.domain.member.repository.MemberRepository;
-import com.fanmix.api.domain.post.exception.PostErrorCode;
-import com.fanmix.api.domain.post.exception.PostException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -95,15 +93,18 @@ public class CommunityService {
 
 	// 커뮤니티 삭제
 	@Transactional
-	public void delete(int id, String email) {
+	public void delete(int communityId, String email) {
+		Community community = communityRepository.findById(communityId)
+			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
+
 		Member member = memberRepository.findByEmail(email)
-			.orElseThrow(() -> new MemberException(MemberErrorCode.FAIL_GET_OAUTHINFO));
+			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
 		if(!member.getRole().equals(Role.ADMIN)) {
 			throw new CommunityException(CommunityErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
-		communityRepository.deleteById(id);
+		community.delete();
 	}
 
 	// 커뮤니티명 중복체크
