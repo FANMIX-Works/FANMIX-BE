@@ -131,7 +131,7 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 			throw new MemberException(JSON_PROCESSING_ERROR);
 		} catch (JpaSystemException e) {
 			//InvalidDataAccessResourceUsageException은 SQLGrammarException를 래핑하고 JpaSystemException 내부예외임
-			log.debug("멤버 테이블 없음");
+			log.error("멤버 테이블 없음");
 			e.printStackTrace();
 			throw new MemberException(SQL_ERROR);
 		} catch (HttpClientErrorException e) {
@@ -143,6 +143,7 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 				}
 			} catch (JsonProcessingException ex) {
 				// JSON 처리 중 발생한 예외 처리
+				log.error("json파싱중 에러");
 				ex.printStackTrace();
 			}
 			throw e;
@@ -150,11 +151,12 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 			// REST 요청 중 발생한 예외 처리
 			e.printStackTrace();
 			if (e.getRootCause() instanceof InvalidDataAccessResourceUsageException) {
-				log.debug("멤버 테이블 없음");
+				log.error("멤버 테이블 없음");
 				e.printStackTrace();
 				throw new MemberException(SQL_ERROR);
 			} else {
 				e.printStackTrace();
+				log.error("REST 요청중 에러");
 				// 기타 예외 처리
 				throw new MemberException(FAIL_AUTH);
 			}
@@ -163,12 +165,12 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 			e.printStackTrace();
 			if (e instanceof JpaSystemException
 				&& ((JpaSystemException)e).getRootCause() instanceof InvalidDataAccessResourceUsageException) {
-				log.debug("멤버 테이블 없음");
+				log.error("멤버 테이블 없음");
 				e.printStackTrace();
 				throw new MemberException(SQL_ERROR);
 			} else {
 				e.printStackTrace();
-				log.error("기타 예외 처리");
+				log.error("처리하지못한 예외 처리" + e);
 				// 기타 예외 처리
 				throw new MemberException(FAIL_AUTH);
 			}
