@@ -12,13 +12,11 @@ import lombok.NoArgsConstructor;
 public class AddFanChannelRequest {
 	private int influencerId;
 	private String name;
-	private Boolean isShow;
 
 	public Community FanChannelToEntity() {
 		return Community.builder()
 			.influencerId(influencerId)
 			.name(name)
-			.isShow(isShow)
 			.build();
 	}
 }
