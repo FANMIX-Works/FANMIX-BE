@@ -54,7 +54,8 @@ public class CommonExceptionHandler {
 
 	@ExceptionHandler(value = NoResourceFoundException.class)
 	public ResponseEntity<Response<String>> handleNoResourceFoundException(NoResourceFoundException ex) {
-		log.error("[NoResourceFoundException] URL = {}, Message = {}", ex.getResourcePath(), ex.getMessage());
+		// log.error("[NoResourceFoundException] URL = {}, Message = {}", ex.getResourcePath(), ex.getMessage());
+		// 배포 서버로 알 수 없는 url 요청이 너무 많이와서 주석처리
 		return new ResponseEntity<>(
 			Response.fail(COMMON_RESOURCE_NOT_FOUND.getCustomCode(), COMMON_RESOURCE_NOT_FOUND.getMessage()),
 			NOT_FOUND);
