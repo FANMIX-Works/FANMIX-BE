@@ -138,15 +138,15 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 			try {
 				JsonNode errorNode = new ObjectMapper().readTree(e.getResponseBodyAsString());
 				if (errorNode.has("error") && errorNode.get("error").asText().equals("invalid_grant")) {
-					log.error("일회용인 인가코드 한번 더 쓴 에러");
+					log.error("invalid_grant. 일회용인 인가코드 한번 더 쓴 에러");
 					throw new MemberException(INVALID_GRANT);
 				}
 			} catch (JsonProcessingException ex) {
 				// JSON 처리 중 발생한 예외 처리
 				log.error("json파싱중 에러");
-				ex.printStackTrace();
+				throw new MemberException(JSON_PROCESSING_ERROR);
 			}
-			throw e;
+			throw new MemberException(FAIL_AUTH);
 		} catch (RestClientException e) {
 			// REST 요청 중 발생한 예외 처리
 			e.printStackTrace();

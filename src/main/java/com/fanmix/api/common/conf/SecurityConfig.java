@@ -54,7 +54,7 @@ public class SecurityConfig {
 			// hasRole을 쓰면 자동으로 앞에 'ROLE_' 를 붙인다.
 			.authorizeHttpRequests((authz) -> authz
 				.requestMatchers("/", "/login", "/profile", "/oauth2/**", "/auth/redirect", "/error",
-					"/api/members/oauth/google")
+					"/api/members/oauth/google", "https://fanmix.vercel.app/auth/redirect")
 				.permitAll()
 				/* 관리자 */
 				.requestMatchers("/api/admin/**")
