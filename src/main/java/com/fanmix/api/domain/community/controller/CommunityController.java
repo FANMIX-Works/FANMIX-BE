@@ -34,9 +34,9 @@ public class CommunityController {
 		return ResponseEntity.ok(Response.success());
 	}
 
-	// 전체 커뮤니티 리스트 조회
+	// 전체 커뮤니티 리스트 조회(커뮤니티, 팬채널)
 	@GetMapping("/api/communities/all")
-	public ResponseEntity<Response<List<Community>>> findAllCommunity() {
+	public ResponseEntity<Response<List<CommunityResponse>>> findAllCommunity() {
 		return ResponseEntity.ok(Response.success(communityService.findAll()));
 	}
 

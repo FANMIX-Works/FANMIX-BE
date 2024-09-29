@@ -45,10 +45,13 @@ public class CommunityService {
 		return communityRepository.save(request.toEntity());
 	}
 
-	// 커뮤니티 목록 조회
+	// 전체 커뮤니티 목록 조회(커뮤니티, 팬채널)
 	@Transactional(readOnly = true)
-	public List<Community> findAll() {
-		return communityRepository.findAll();
+	public List<CommunityResponse> findAll() {
+		return communityRepository.findAll()
+			.stream()
+			.map(CommunityResponse::new)
+			.toList();
 	}
 
 	// 커뮤니티 조회
