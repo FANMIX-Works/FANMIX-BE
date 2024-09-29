@@ -1,6 +1,7 @@
 package com.fanmix.api.common.conf;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +17,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.fanmix.api.common.security.filter.JwtTokenFilter;
@@ -45,6 +49,10 @@ public class SecurityConfig {
 		http
 			// CSRF 보호 비활성화 (RESTful API에서는 일반적으로 불필요)
 			.csrf(csrf -> csrf.disable())
+			// 스프링시큐리티에서 cors 정책
+			.cors(cors -> cors
+				.configurationSource(corsConfigurationSource())
+			)
 			// 세션 관리 설정
 			.sessionManagement(session -> session
 				.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -121,5 +129,19 @@ public class SecurityConfig {
 	@Bean
 	public PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
+	}
+
+	@Bean
+	public CorsConfigurationSource corsConfigurationSource() {
+		CorsConfiguration configuration = new CorsConfiguration();
+		configuration.setAllowCredentials(true);
+		configuration.setAllowedOrigins(
+			Arrays.asList("http://localhost:3000", "https://prism-fe.vercel.app", "https://prism.swygbro.com",
+				"https://fanmix.vercel.app"));
+		configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
+		configuration.setAllowedMethods(Arrays.asList("GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+		source.registerCorsConfiguration("/**", configuration);
+		return source;
 	}
 }
