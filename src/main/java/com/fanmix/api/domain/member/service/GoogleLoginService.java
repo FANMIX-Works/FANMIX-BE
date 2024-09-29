@@ -53,10 +53,14 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, OAuth2User>, OAuthClient {
 
-	private final MemberRepository memberRepository;
-	private final String clientId;
-	private final String clientSecret;
-	private final String redirectUri;
+	@Autowired
+	private MemberRepository memberRepository;
+	@Value("${oauth.google.client-id}")
+	private String clientId;
+	@Value("${oauth.google.client-secret}")
+	private String clientSecret;
+	@Value("${oauth.google.redirect-uri}")
+	private String redirectUri;
 	@Value("${jwt.secret}")
 	private String secretKey;
 	private final Random random = new Random();
@@ -64,21 +68,6 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 	@Autowired
 	private RestTemplate restTemplate;
 	private String refreshToken;
-
-	public GoogleLoginService(MemberRepository memberRepository, @Value("${oauth.google.client-id}") String clientId,
-		@Value("${oauth.google.client-secret}") String clientSecret,
-		@Value("${oauth.google.redirect-uri}") String redirectUri) {
-		this.memberRepository = memberRepository;
-		this.clientId = clientId;
-		this.clientSecret = clientSecret;
-		this.redirectUri = redirectUri;
-		//this.jwtKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);    //알고리즘
-		this.secretKey = secretKey;
-		// int keySize = jwtKey.getEncoded().length * 8;
-		// if (keySize < 256) {
-		// 	throw new WeakKeyException("The signing key's size is not secure enough for the HS256 algorithm.");
-		// }
-	}
 
 	@Override
 	public SocialType social_type() {
@@ -105,6 +94,7 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 			params.add("client_id", clientId);
 			params.add("client_secret", clientSecret);
 			params.add("grant_type", "authorization_code");
+			log.info("구글로그인 서비스가 어세스토큰 요청 받았을때 파악하고 있는 params : " + params);
 
 			HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(params, httpHeaders);
 			String url = "https://oauth2.googleapis.com/token";
