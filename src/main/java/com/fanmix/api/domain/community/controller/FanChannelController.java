@@ -26,7 +26,8 @@ public class FanChannelController {
 	// 팬채널 추가
 	@PostMapping("/api/fanchannels")
 	public ResponseEntity<Response<Community>> saveFanChannel(@RequestBody AddFanChannelRequest request, @AuthenticationPrincipal String email) {
-		return ResponseEntity.ok(Response.success(fanChannelService.fanChannelSave(request, email)));
+		fanChannelService.fanChannelSave(request, email);
+		return ResponseEntity.ok(Response.success());
 	}
 
 	// // 팬채널 리스트 정렬

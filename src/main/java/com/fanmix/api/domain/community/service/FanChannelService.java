@@ -1,8 +1,5 @@
 package com.fanmix.api.domain.community.service;
 
-import org.checkerframework.checker.units.qual.C;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +26,7 @@ public class FanChannelService {
 
 	// 팬채널 추가
 	@Transactional
-	public Community fanChannelSave(AddFanChannelRequest request, @AuthenticationPrincipal String email) {
+	public void fanChannelSave(AddFanChannelRequest request, @AuthenticationPrincipal String email) {
 		if(request.getInfluencerId() <= 0) {
 			throw new CommunityException(CommunityErrorCode.INVALID_INFLUENCER_ID);
 		}
@@ -38,14 +35,17 @@ public class FanChannelService {
 			throw new CommunityException(CommunityErrorCode.INFLUENCER_ID_DUPLICATION);
 		}
 
+		// 인플루언서 존재 여부 예외처리
+		// Influencer influencer = influencerRepository.findById(request.getInfluencerId());
+
 		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.FAIL_GET_OAUTHINFO));
 
-		if(member.getRole().equals(Role.ADMIN)) {
+		if(!member.getRole().equals(Role.ADMIN)) {
 			throw new CommunityException(CommunityErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
-		return communityRepository.save(request.FanChannelToEntity());
+		communityRepository.save(request.FanChannelToEntity());
 	}
 
 	// 팬채널 리스트 정렬
