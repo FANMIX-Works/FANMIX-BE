@@ -111,7 +111,11 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 			}
 
 			log.debug("발급받은 어세스토큰 등 JsonNode : " + responseNode);
-			refreshToken = responseNode.get("refresh_token").asText();
+			JsonNode refreshTokenNode = responseNode.get("refresh_token");
+			if (refreshTokenNode != null && !refreshTokenNode.isNull()) {
+				log.info("리프레쉬토큰 비었음");
+				refreshToken = refreshTokenNode.asText();
+			}
 
 			return responseNode;
 
