@@ -8,11 +8,12 @@
 <h1>Google Login Test</h1>
 <a th:href="@{https://accounts.google.com/o/oauth2/v2/auth(
         client_id=${@environment.getProperty('oauth.google.client-id')},
-        redirect_uri=${@environment.getProperty('oauth.google.redirect-uri')},
+        redirect_uri='http://localhost:8080/auth/redirect',
         response_type='code',
         scope='https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
         access_type='offline'
     )}">Login with Google</a>
-<p>Redirect URI: <span th:text="${@environment.getProperty('oauth.google.redirect-uri')}"></span></p>
+<!--<p>Redirect URI: <span th:text="${@environment.getProperty('oauth.google.redirect-uri')}"></span></p>-->
+<p>Redirect URI: <span>http://localhost:8080/auth/redirect</span></p>
 </body>
 </html>

@@ -61,8 +61,11 @@ public class MemberController {
 	 */
 	public ResponseEntity<Response<AuthResponse>> googleAuthLogin(@RequestBody Map<String, String> request) {
 
-		log.debug("구글 소셜 로그인. 인가코드로 어세스토큰, 멤버정보 반환할 예정. 클라이언트에서 넘어온 requestBody. code값만 있음 : " + request);
+		log.debug("구글 소셜 로그인. 인가코드로 어세스토큰, 멤버정보 반환할 예정. 클라이언트에서 넘어온 requestBody : " + request);
 		String code = request.get("code");
+		String redirectUri = request.get("redirectUri");
+		googleLoginService.setRedirectUri(redirectUri);
+
 		JsonNode response = googleLoginService.requestAccessToken(code);
 		String accessToken = response.get("access_token").asText();
 		Member member = googleLoginService.requestOAuthInfo(accessToken);
