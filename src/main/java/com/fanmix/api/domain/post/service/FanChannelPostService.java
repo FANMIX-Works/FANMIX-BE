@@ -3,6 +3,9 @@ package com.fanmix.api.domain.post.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -35,6 +38,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class FanChannelPostService {
+	private static final Logger log = LoggerFactory.getLogger(FanChannelPostService.class);
 	private final CommunityRepository communityRepository;
 	private final PostRepository postRepository;
 	private final MemberRepository memberRepository;
@@ -70,21 +74,30 @@ public class FanChannelPostService {
 		Community community = communityRepository.findById(communityId)
 			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
 
-		int influencerId = community.getInfluencerId();
-		if(influencerId <= 0) {
+		Integer influencerId = community.getInfluencerId();
+		if(influencerId == null || influencerId <= 0) {
 			throw new CommunityException(CommunityErrorCode.NOT_A_FANCHANNEL);
 		}
 
 		Member member = memberRepository.findByEmail(email)
-			.orElseThrow(() -> new MemberException(MemberErrorCode.FAIL_GET_OAUTHINFO));
+			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if(!member.getRole().equals(Role.MEMBER)) {
+		if(!member.getRole().equals(Role.COMMUNITY)) {
 			throw new PostException(PostErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
+		Sort likeCountDesc = Sort.by(
+			Sort.Order.desc("likeCount"),
+			Sort.Order.desc("crDate")
+		);
+		Sort viewCountDesc = Sort.by(
+			Sort.Order.desc("viewCount"),
+			Sort.Order.desc("crDate")
+		);
+
 		List<Post> postList = switch (sort) {
-			// case "LIKE_COUNT" -> postRepository.findAllByCommunityIdOrderByLikeCountDesc(communityId);
-			case "VIEW_COUNT" -> postRepository.findAllByCommunityIdOrderByViewCount(communityId);
+			case "LIKE_COUNT" -> postRepository.findAllByCommunityId(communityId, likeCountDesc);
+			case "VIEW_COUNT" -> postRepository.findAllByCommunityId(communityId, viewCountDesc);
 			default -> postRepository.findAllByCommunityIdOrderByCrDateDesc(communityId);
 		};
 
