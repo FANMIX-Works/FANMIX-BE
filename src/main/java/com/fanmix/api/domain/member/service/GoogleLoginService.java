@@ -140,13 +140,15 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 				if (errorNode.has("error") && errorNode.get("error").asText().equals("invalid_grant")) {
 					log.error("invalid_grant. 일회용인 인가코드 한번 더 쓴 에러");
 					throw new MemberException(INVALID_GRANT);
+				} else {
+					log.error("인증 실패. 오류 코드: {}", errorNode.get("error").asText());
+					throw new MemberException(FAIL_AUTH);
 				}
 			} catch (JsonProcessingException ex) {
 				// JSON 처리 중 발생한 예외 처리
 				log.error("json파싱중 에러");
 				throw new MemberException(JSON_PROCESSING_ERROR);
 			}
-			throw new MemberException(FAIL_AUTH);
 		} catch (RestClientException e) {
 			// REST 요청 중 발생한 예외 처리
 			e.printStackTrace();
@@ -158,7 +160,7 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 				e.printStackTrace();
 				log.error("REST 요청중 에러");
 				// 기타 예외 처리
-				throw new MemberException(FAIL_AUTH);
+				throw new MemberException(REST_CLIENT_ERROR);
 			}
 		} catch (Exception e) {
 			// 기타 예외 처리
