@@ -42,6 +42,7 @@ public class Member extends BaseEntity implements UserDetails {
 	private String introduce;             //자기소개
 	private String nickName;
 	private String email;
+	@Column(nullable = true)
 	@Enumerated(EnumType.STRING)
 	private Gender gender;
 	private int birthYear;               //탄생년도. 나이는 오늘날짜로부터 계산
