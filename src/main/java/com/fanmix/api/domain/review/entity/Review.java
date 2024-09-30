@@ -58,13 +58,6 @@ public class Review extends BaseEntity {
 	@Column(name = "is_deleted")
 	private Boolean isDeleted;
 
-	// 점수가 산정되는 리뷰인지 여부
-	// 정확히는 가장 최근의 리뷰인지 판단하는 컬럼
-	// 리뷰를 달 때 그 전꺼를 false 로 바꾸고 생성자는 아예 true 로 생성
-	@NotNull
-	@Column(name = "is_Valid")
-	private Boolean isValid;
-
 	@NotNull
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "influencer_id")
@@ -86,13 +79,8 @@ public class Review extends BaseEntity {
 		this.communicationRating = communicationRating;
 		this.trustRating = trustRating;
 		this.isDeleted = false;
-		this.isValid = true;
 		this.influencer = influencer;
 		this.member = member;
-	}
-
-	public void changeToNotValid() {
-		this.isValid = false;
 	}
 
 	public void modifyReview(String content, Integer contentsRating, Integer communicationRating, Integer trustRating) {

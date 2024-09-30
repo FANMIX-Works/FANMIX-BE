@@ -55,9 +55,6 @@ public class ReviewService {
 			throw new ReviewException(REVIEW_EXISTS_WITHIN_15_DAYS);
 		}
 
-		if (review != null) {
-			review.changeToNotValid();
-		}
 		final Review newReview = reviewRequestDto.toEntity(influencer, member);
 		reviewRepository.save(newReview);
 	}

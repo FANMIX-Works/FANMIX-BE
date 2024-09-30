@@ -2,6 +2,7 @@ package com.fanmix.api.domain.influencer.service;
 
 import static com.fanmix.api.domain.influencer.exception.InfluencerErrorCode.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -62,7 +63,7 @@ public class InfluencerService {
 			influencer, false);
 		LocalDateTime latestReviewDate = latestReview.map(Review::getCrDate).orElse(null);
 
-		Object[] averageRatings = reviewRepository.findAverageRatingsByInfluencer(influencer).get(0);
+		Object[] averageRatings = reviewRepository.findAverageRatingsByInfluencer(influencer.getId()).get(0);
 		Long totalReviewCount = reviewRepository.countByInfluencerAndIsDeleted(influencer, false);
 
 		boolean isFollowing = false;
@@ -84,8 +85,10 @@ public class InfluencerService {
 			bestReviewCommentsCount = reviewCommentRepository.countByReviewAndIsDeleted(bestReview, false);
 		}
 
-		return InfluencerResponseDto.Details.of(influencer, tagList, latestReviewDate, (Double)averageRatings[0],
-			(Double)averageRatings[1], (Double)averageRatings[2], totalReviewCount, isFollowing, bestReview,
+		return InfluencerResponseDto.Details.of(influencer, tagList, latestReviewDate,
+			((BigDecimal)averageRatings[0]).doubleValue(),
+			((BigDecimal)averageRatings[1]).doubleValue(), ((BigDecimal)averageRatings[2]).doubleValue(),
+			totalReviewCount, isFollowing, bestReview,
 			bestReviewLikeCount, bestReviewDislikeCount, bestReviewCommentsCount);
 	}
 }

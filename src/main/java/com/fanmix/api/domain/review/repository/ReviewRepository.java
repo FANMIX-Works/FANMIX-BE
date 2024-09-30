@@ -24,25 +24,22 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 		+ "SUM(CASE WHEN l.isLike = FALSE THEN 1 ELSE 0 END) DESC")
 	Page<Review> findBestReviewByInfluencer(Influencer influencer, Pageable pageable);
 
-	@Query("SELECT COALESCE(AVG(r.contentsRating), 0), "
-		+ "COALESCE(AVG(r.communicationRating), 0), "
-		+ "COALESCE(AVG(r.trustRating), 0) "
-		+ "FROM Review r "
-		+ "WHERE r.influencer = :influencer "
-		+ "AND r.isValid = TRUE "
-		+ "AND r.isDeleted = FALSE")
-		// @Query("SELECT AVG(r.contentsRating)"
-		// 	+ "FROM Review r "
-		// 	+ "WHERE r.influencer = :influencer "
-		// 	+ "AND r.isDeleted = FALSE "
-		// 	+ "AND r.crDate IN ("
-		// 	+ "   SELECT MAX(r2.crDate) "
-		// 	+ "   FROM Review r2 "
-		// 	+ "   WHERE r2.member.id = r.member.id "
-		// 	+ "   AND r2.influencer.id = r.influencer.id "
-		// 	+ "   GROUP BY r2.member.id, r2.influencer.id"
-		// 	+ ")")
-	List<Object[]> findAverageRatingsByInfluencer(Influencer influencer);
+	@Query(value = "SELECT COALESCE(AVG(r.contents_rating), 0), "
+		+ "COALESCE(AVG(r.communication_rating), 0), "
+		+ "COALESCE(AVG(r.trust_rating), 0) "
+		+ "FROM review r "
+		+ "JOIN ( "
+		+ "   SELECT r2.member_id, MAX(r2.cr_date) AS latest_date "
+		+ "   FROM review r2 "
+		+ "   WHERE r2.influencer_id = :influencerId "
+		+ "   AND r2.is_deleted = false "
+		+ "   GROUP BY r2.member_id "
+		+ ") AS latest_reviews "
+		+ "ON r.member_id = latest_reviews.member_id "
+		+ "AND r.cr_date = latest_reviews.latest_date "
+		+ "WHERE r.influencer_id = :influencerId "
+		+ "AND r.is_deleted = false", nativeQuery = true)
+	List<Object[]> findAverageRatingsByInfluencer(Integer influencerId);
 
 	Long countByInfluencerAndIsDeleted(Influencer influencer, Boolean isDeleted);
 
