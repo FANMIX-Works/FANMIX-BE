@@ -67,18 +67,20 @@ public class FanChannelService {
 	// }
 
 	// 팬채널 정보 조회
+	@Transactional(readOnly = true)
 	public Community fanChannel(int communityId, String email) {
 		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if(!member.getRole().equals(Role.COMMUNITY)) {
+		if(member.getRole().equals(Role.COMMUNITY)) {
 			throw new CommunityException(CommunityErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 		return communityRepository.findById(communityId)
 			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
 	}
 
-	// 팬채널 수정/삭제
+	// 팬채널 수정
+	@Transactional
 	public Community fanChannelUpdate(int communityId, UpdateFanChannelRequest request, String email) {
 		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.FAIL_GET_OAUTHINFO));
@@ -93,5 +95,20 @@ public class FanChannelService {
 		community.fanChannelUpdate(request.getName(), request.getIsShow());
 
 		return community;
+	}
+
+	// 팬채널 삭제
+	@Transactional
+	public void fanChannelDelete(int communityId, String email) {
+		Community community = communityRepository.findById(communityId)
+			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
+
+		Member member = memberRepository.findByEmail(email)
+			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
+
+		if(member.getRole().equals(Role.ADMIN)) {
+			throw new CommunityException(CommunityErrorCode.NOT_EXISTS_AUTHORIZATION);
+		}
+		community.deleteFanChannel();
 	}
 }

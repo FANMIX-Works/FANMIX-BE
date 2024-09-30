@@ -16,6 +16,7 @@ public class FanChannelResponse {
 	private int followerCount;
 	private int postCount;
 	private LocalDateTime latestPostDate;
+	private Boolean isShow;
 
 	public FanChannelResponse(Community community) {
 		this.influencerId = community.getInfluencerId();
@@ -25,5 +26,6 @@ public class FanChannelResponse {
 		// this.followerCount = community.getInfluencerId().getFollowerCount();
 		this.postCount = community.getPostList().size();
 		this.latestPostDate = community.getPostList().get(community.getPostList().size() - 1).getCrDate();
+		this.isShow = community.getIsShow();
 	}
 }

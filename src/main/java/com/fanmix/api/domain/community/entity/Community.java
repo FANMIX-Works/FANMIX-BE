@@ -40,7 +40,7 @@ public class Community extends BaseEntity {
 
 	private Role priv;				// 권한
 
-	@Column(name = "show_yn")
+	@Column(name = "show_yn", columnDefinition = "boolean default true")
 	private Boolean isShow;			// 노출 여부
 
 	@OneToMany(mappedBy = "community", cascade = CascadeType.REMOVE)
@@ -50,7 +50,6 @@ public class Community extends BaseEntity {
 	public Community(int influencerId, String name) {
 		this.influencerId = influencerId;
 		this.name = name;
-		this.isShow = true;
 		this.priv = Role.GUEST;
 	}
 
@@ -70,5 +69,10 @@ public class Community extends BaseEntity {
 	public void fanChannelUpdate(String name, Boolean isShow) {
 		this.name = name;
 		this.isShow = isShow;
+	}
+
+	// 팬채널 삭제
+	public void deleteFanChannel() {
+		this.isShow = false;
 	}
 }
