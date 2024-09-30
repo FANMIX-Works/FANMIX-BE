@@ -40,7 +40,7 @@ public class ReviewService {
 	private final FanRepository fanRepository;
 
 	@Transactional
-	public void postReview(Integer influencerId, String email, ReviewRequestDto.ReviewPost reviewRequestDto) {
+	public void postReview(Integer influencerId, String email, ReviewRequestDto.PostReview reviewRequestDto) {
 		final Influencer influencer = influencerRepository.findById(influencerId)
 			.orElseThrow(() -> new InfluencerException(INFLUENCER_NOT_FOUND));
 

@@ -26,7 +26,7 @@ public class ReviewController {
 	@PostMapping("/influencers/{influencerId}/reviews")
 	public ResponseEntity<Response<Void>> postReview(
 		@PathVariable Integer influencerId, @AuthenticationPrincipal String email,
-		@RequestBody @Valid ReviewRequestDto.ReviewPost reviewRequestDto) {
+		@RequestBody @Valid ReviewRequestDto.PostReview reviewRequestDto) {
 		reviewService.postReview(influencerId, email, reviewRequestDto);
 		return ResponseEntity.ok(Response.success());
 	}

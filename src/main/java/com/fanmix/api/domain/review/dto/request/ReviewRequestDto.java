@@ -12,7 +12,7 @@ import lombok.Getter;
 @Getter
 public class ReviewRequestDto {
 
-	public record ReviewPost(
+	public record PostReview(
 		@NotNull
 		String content,
 		@Min(1) @Max(10)
