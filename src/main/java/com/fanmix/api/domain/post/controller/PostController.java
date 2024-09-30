@@ -40,7 +40,8 @@ public class PostController {
 		@RequestPart @Validated AddPostRequest request,
 		@RequestPart(value = "images", required = false) List<MultipartFile> images,
 		@AuthenticationPrincipal String email) {
-		return ResponseEntity.ok(Response.success(postService.save(request, images, email)));
+		postService.save(request, images, email);
+		return ResponseEntity.ok(Response.success());
 	}
 
 	// 전체 커뮤니티 종합 글 리스트 조회
