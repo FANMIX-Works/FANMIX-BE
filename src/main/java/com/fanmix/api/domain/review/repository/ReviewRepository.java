@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import com.fanmix.api.domain.influencer.entity.Influencer;
+import com.fanmix.api.domain.member.entity.Member;
 import com.fanmix.api.domain.review.entity.Review;
 
 public interface ReviewRepository extends JpaRepository<Review, Long> {
@@ -44,4 +45,7 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 	List<Object[]> findAverageRatingsByInfluencer(Influencer influencer);
 
 	Long countByInfluencerAndIsDeleted(Influencer influencer, Boolean isDeleted);
+
+	Optional<Review> findFirstByInfluencerAndMemberAndIsDeletedFalseOrderByCrDateDesc(
+		Influencer influencer, Member member);
 }
