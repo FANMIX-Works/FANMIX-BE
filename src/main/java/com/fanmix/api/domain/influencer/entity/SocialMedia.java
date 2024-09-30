@@ -32,8 +32,9 @@ public class SocialMedia {
 	private SocialMediaType socialMediaType;
 
 	@NotNull
-	@Column(name = "platform_name")
-	private String platformName;
+	@Enumerated(EnumType.STRING)
+	@Column(name = "platform_type")
+	private PlatformType platformType;
 
 	@NotNull
 	@Column(name = "address")
