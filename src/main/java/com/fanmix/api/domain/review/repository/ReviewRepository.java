@@ -48,4 +48,9 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
 	Optional<Review> findFirstByInfluencerAndMemberAndIsDeletedFalseOrderByCrDateDesc(
 		Influencer influencer, Member member);
+
+	@Query("SELECT r FROM Review r "
+		+ "JOIN FETCH r.member "
+		+ "WHERE r.id = :reviewId")
+	Optional<Review> findWithMemberById(Long reviewId);
 }

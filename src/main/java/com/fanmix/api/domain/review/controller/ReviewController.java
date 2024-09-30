@@ -4,6 +4,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,6 +29,14 @@ public class ReviewController {
 		@PathVariable Integer influencerId, @AuthenticationPrincipal String email,
 		@RequestBody @Valid ReviewRequestDto.PostReview reviewRequestDto) {
 		reviewService.postReview(influencerId, email, reviewRequestDto);
+		return ResponseEntity.ok(Response.success());
+	}
+
+	@PutMapping("/influencers/{influencerId}/reviews/{reviewId}")
+	public ResponseEntity<Response<Void>> modifyReview(
+		@PathVariable Integer influencerId, @PathVariable Long reviewId, @AuthenticationPrincipal String email,
+		@RequestBody @Valid ReviewRequestDto.ModifyReview reviewRequestDto) {
+		reviewService.modifyReview(influencerId, reviewId, email, reviewRequestDto);
 		return ResponseEntity.ok(Response.success());
 	}
 }

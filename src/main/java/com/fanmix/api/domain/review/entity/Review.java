@@ -39,15 +39,18 @@ public class Review extends BaseEntity {
 	@Column(name = "content")
 	private String content;
 
-	@Min(1) @Max(10)
+	@Min(1)
+	@Max(10)
 	@Column(name = "contents_rating")
 	private Integer contentsRating;
 
-	@Min(1) @Max(10)
+	@Min(1)
+	@Max(10)
 	@Column(name = "communication_rating")
 	private Integer communicationRating;
 
-	@Min(1) @Max(10)
+	@Min(1)
+	@Max(10)
 	@Column(name = "trust_rating")
 	private Integer trustRating;
 
@@ -90,5 +93,12 @@ public class Review extends BaseEntity {
 
 	public void changeToNotValid() {
 		this.isValid = false;
+	}
+
+	public void modifyReview(String content, Integer contentsRating, Integer communicationRating, Integer trustRating) {
+		this.content = content;
+		this.contentsRating = contentsRating;
+		this.communicationRating = communicationRating;
+		this.trustRating = trustRating;
 	}
 }

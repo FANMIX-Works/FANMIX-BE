@@ -33,4 +33,15 @@ public class ReviewRequestDto {
 				.build();
 		}
 	}
+
+	public record ModifyReview(
+		@NotNull
+		String content,
+		@Min(1) @Max(10)
+		Integer contentsRating,
+		@Min(1) @Max(10)
+		Integer communicationRating,
+		@Min(1) @Max(10)
+		Integer trustRating) {
+	}
 }
