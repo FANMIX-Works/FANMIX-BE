@@ -70,6 +70,7 @@ public class ReviewService {
 	@Transactional
 	public void modifyReview(Integer influencerId, Long reviewId, String email,
 		ReviewRequestDto.ModifyReview reviewRequestDto) {
+
 		final Influencer influencer = influencerRepository.findById(influencerId)
 			.orElseThrow(() -> new InfluencerException(INFLUENCER_NOT_FOUND));
 
@@ -79,13 +80,34 @@ public class ReviewService {
 		final Review review = reviewRepository.findWithMemberById(reviewId)
 			.orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND));
 
-		verifyCanModifyReview(member, review); // 리뷰를 수정 할 수 있는지 검증 예외 안던지면 수정 가능
+		verifyCanModifyOrDeleteReview(member, review); // 리뷰를 수정 할 수 있는지 검증 예외 안던지면 수정 가능
 
 		review.modifyReview(reviewRequestDto.content(), reviewRequestDto.contentsRating(),
 			reviewRequestDto.communicationRating(), reviewRequestDto.trustRating());
 	}
 
-	private void verifyCanModifyReview(Member member, Review review) {
+	@Transactional
+	public void deleteReview(Integer influencerId, Long reviewId, String email) {
+
+		final Influencer influencer = influencerRepository.findById(influencerId)
+			.orElseThrow(() -> new InfluencerException(INFLUENCER_NOT_FOUND));
+
+		final Member member = memberRepository.findByEmail(email)
+			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
+
+		final Review review = reviewRepository.findWithMemberById(reviewId)
+			.orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND));
+
+		if (review.getIsDeleted()) {
+			throw new ReviewException(REVIEW_ALREADY_DELETED);
+		}
+
+		verifyCanModifyOrDeleteReview(member, review); // 리뷰를 삭제 할 수 있는지 검증 예외 안던지면 수정 가능
+
+		review.deleteReview();
+	}
+
+	private void verifyCanModifyOrDeleteReview(Member member, Review review) {
 		if (review.getMember().getId() != member.getId()) {
 			throw new ReviewException(NOT_MY_REVIEW);
 		} else if (LocalDate.from(review.getCrDate()).isBefore(LocalDate.now().minusDays(15))) {

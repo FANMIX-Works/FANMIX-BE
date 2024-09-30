@@ -89,4 +89,8 @@ public class Review extends BaseEntity {
 		this.communicationRating = communicationRating;
 		this.trustRating = trustRating;
 	}
+
+	public void deleteReview() {
+		this.isDeleted = true;
+	}
 }

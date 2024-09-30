@@ -2,6 +2,7 @@ package com.fanmix.api.domain.review.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -37,6 +38,13 @@ public class ReviewController {
 		@PathVariable Integer influencerId, @PathVariable Long reviewId, @AuthenticationPrincipal String email,
 		@RequestBody @Valid ReviewRequestDto.ModifyReview reviewRequestDto) {
 		reviewService.modifyReview(influencerId, reviewId, email, reviewRequestDto);
+		return ResponseEntity.ok(Response.success());
+	}
+
+	@DeleteMapping("/influencers/{influencerId}/reviews/{reviewId}")
+	public ResponseEntity<Response<Void>> deleteReview(
+		@PathVariable Integer influencerId, @PathVariable Long reviewId, @AuthenticationPrincipal String email) {
+		reviewService.deleteReview(influencerId, reviewId, email);
 		return ResponseEntity.ok(Response.success());
 	}
 }
