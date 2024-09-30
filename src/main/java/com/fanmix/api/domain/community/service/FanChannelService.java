@@ -72,7 +72,7 @@ public class FanChannelService {
 		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if(member.getRole().equals(Role.COMMUNITY)) {
+		if(!member.getRole().equals(Role.COMMUNITY)) {
 			throw new CommunityException(CommunityErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 		return communityRepository.findById(communityId)
@@ -106,7 +106,7 @@ public class FanChannelService {
 		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if(member.getRole().equals(Role.ADMIN)) {
+		if(!member.getRole().equals(Role.ADMIN)) {
 			throw new CommunityException(CommunityErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 		community.deleteFanChannel();
