@@ -23,7 +23,7 @@ public class FanChannelResponse {
 		// this.influencerImageUrl = community.getInfluencerId().getInfluencerImageUrl();
 		// this.authenticationStatus = community.getInfluencerId().getAuthenticationStatue();
 		// this.followerCount = community.getInfluencerId().getFollowerCount();
-		// this.postCount = community.getPostCount();
-		// this.lastPostDate = community.getLatestPostDate;
+		this.postCount = community.getPostList().size();
+		this.latestPostDate = community.getPostList().get(community.getPostList().size() - 1).getCrDate();
 	}
 }

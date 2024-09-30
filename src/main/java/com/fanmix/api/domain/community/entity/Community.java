@@ -1,14 +1,20 @@
 package com.fanmix.api.domain.community.entity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.fanmix.api.domain.common.Role;
 import com.fanmix.api.domain.common.entity.BaseEntity;
+import com.fanmix.api.domain.post.entity.Post;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -36,6 +42,9 @@ public class Community extends BaseEntity {
 
 	@Column(name = "show_yn")
 	private Boolean isShow;			// 노출 여부
+
+	@OneToMany(mappedBy = "community", cascade = CascadeType.REMOVE)
+	List<Post> postList = new ArrayList<>();	// 게시물
 
 	@Builder
 	public Community(int influencerId, String name) {
