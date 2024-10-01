@@ -27,6 +27,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Entity
 @NoArgsConstructor
@@ -34,6 +35,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @Builder
 @EntityListeners(AuditingEntityListener.class)
+@ToString
 public class Post extends BaseEntity {
 
 	@Id
@@ -62,7 +64,7 @@ public class Post extends BaseEntity {
 	private LocalDateTime lastViewed;	// 마지막 조회 시간
 
 	@OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE, orphanRemoval = true)
-	private List<Comment> comments;        // 댓글
+	private List<Comment> comments = new ArrayList<>();        // 댓글
 
 	@OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
 	private List<PostLikeDislike> likes = new ArrayList<>();    // 평가 목록
