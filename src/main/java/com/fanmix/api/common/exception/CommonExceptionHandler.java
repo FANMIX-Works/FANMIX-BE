@@ -19,6 +19,8 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import com.fanmix.api.common.response.Response;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -54,7 +56,8 @@ public class CommonExceptionHandler {
 
 	@ExceptionHandler(value = NoResourceFoundException.class)
 	public ResponseEntity<Response<String>> handleNoResourceFoundException(NoResourceFoundException ex) {
-		log.error("[NoResourceFoundException] URL = {}, Message = {}", ex.getResourcePath(), ex.getMessage());
+		// log.error("[NoResourceFoundException] URL = {}, Message = {}", ex.getResourcePath(), ex.getMessage());
+		// 배포 서버로 알 수 없는 url 요청이 너무 많이와서 주석처리
 		return new ResponseEntity<>(
 			Response.fail(COMMON_RESOURCE_NOT_FOUND.getCustomCode(), COMMON_RESOURCE_NOT_FOUND.getMessage()),
 			NOT_FOUND);
@@ -80,5 +83,24 @@ public class CommonExceptionHandler {
 		log.error("[Exception] Message: {}", ex.getMessage(), ex);
 		return ResponseEntity.internalServerError()
 			.body(Response.fail(COMMON_SYSTEM_ERROR.getCustomCode(), COMMON_SYSTEM_ERROR.getMessage()));
+	}
+
+	@ExceptionHandler(value = ConstraintViolationException.class)
+	public ResponseEntity<Response<String>> handleConstraintViolationException(ConstraintViolationException ex) {
+		List<String> errorMessages = ex.getConstraintViolations()
+			.stream()
+			.map(this::formatConstraintViolation) // 람다 표현식 사용
+			.collect(Collectors.toList());
+
+		String errorMessage = String.join(", ", errorMessages);
+
+		log.error("[HandleConstraintViolationException] Message: {}", errorMessage);
+
+		return ResponseEntity.internalServerError()
+			.body(Response.fail(COMMON_SYSTEM_ERROR.getCustomCode(), COMMON_SYSTEM_ERROR.getMessage()));
+	}
+
+	private String formatConstraintViolation(ConstraintViolation<?> violation) { // 와일드카드 사용
+		return "[" + violation.getPropertyPath() + "] " + violation.getMessage();
 	}
 }

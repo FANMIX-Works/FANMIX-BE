@@ -6,8 +6,6 @@ import com.fanmix.api.domain.member.entity.Member;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -16,6 +14,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -30,10 +29,6 @@ public class Fan extends BaseEntity {
 	@Column(name = "id")
 	private Long id;
 
-	@Enumerated(EnumType.STRING)
-	@Column(name = "fan_status")
-	private FanStatus fanStatus;
-
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "influencer_id")
 	private Influencer influencer;
@@ -41,4 +36,10 @@ public class Fan extends BaseEntity {
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "member_id")
 	private Member member;
+
+	@Builder
+	public Fan(Influencer influencer, Member member) {
+		this.influencer = influencer;
+		this.member = member;
+	}
 }

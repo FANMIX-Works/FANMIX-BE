@@ -39,3 +39,6 @@ out/
 application-prod.yml
 application-local.yml
 application-test.yml
+
+### Querydsl 관련 ###
+/src/main/generated/querydsl
