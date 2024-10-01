@@ -18,7 +18,7 @@ import com.fanmix.api.domain.community.exception.CommunityException;
 import com.fanmix.api.domain.community.repository.CommunityRepository;
 import com.fanmix.api.domain.fan.entity.FanRepository;
 import com.fanmix.api.domain.influencer.entity.Influencer;
-import com.fanmix.api.domain.influencer.entity.InfluencerRepository;
+import com.fanmix.api.domain.influencer.repository.InfluencerRepository;
 import com.fanmix.api.domain.member.entity.Member;
 import com.fanmix.api.domain.member.exception.MemberErrorCode;
 import com.fanmix.api.domain.member.exception.MemberException;
