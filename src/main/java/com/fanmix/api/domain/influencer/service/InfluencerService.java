@@ -6,8 +6,10 @@ import static com.fanmix.api.domain.influencer.exception.InfluencerErrorCode.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -17,12 +19,16 @@ import org.springframework.transaction.annotation.Transactional;
 import com.fanmix.api.common.aspect.ClientIpAspect;
 import com.fanmix.api.common.redis.RedisService;
 import com.fanmix.api.domain.fan.repository.FanRepository;
+import com.fanmix.api.domain.influencer.dto.enums.SearchType;
+import com.fanmix.api.domain.influencer.dto.enums.Sort;
 import com.fanmix.api.domain.influencer.dto.response.InfluencerResponseDto;
 import com.fanmix.api.domain.influencer.entity.Influencer;
+import com.fanmix.api.domain.influencer.entity.InfluencerRatingCache;
 import com.fanmix.api.domain.influencer.entity.tag.InfluencerTag;
 import com.fanmix.api.domain.influencer.entity.tag.InfluencerTagMapper;
 import com.fanmix.api.domain.influencer.exception.InfluencerException;
 import com.fanmix.api.domain.influencer.repository.InfluencerRepository;
+import com.fanmix.api.domain.influencer.repository.cache.InfluencerRatingCacheRepository;
 import com.fanmix.api.domain.influencer.repository.tag.InfluencerTagMapperRepository;
 import com.fanmix.api.domain.member.entity.Member;
 import com.fanmix.api.domain.member.exception.MemberErrorCode;
@@ -41,6 +47,7 @@ import lombok.RequiredArgsConstructor;
 public class InfluencerService {
 
 	private final InfluencerRepository influencerRepository;
+	private final InfluencerRatingCacheRepository influencerRatingCacheRepository;
 	private final InfluencerTagMapperRepository influencerTagMapperRepository;
 	private final ReviewRepository reviewRepository;
 	private final ReviewLikeDislikeRepository reviewLikeDislikeRepository;
@@ -123,5 +130,23 @@ public class InfluencerService {
 
 		long expiration = ChronoUnit.MILLIS.between(now, tomorrowMidnight);
 		redisService.setWithExpiration(key, INFLUENCER_VIEW_REDIS_VALUE, expiration);
+	}
+
+	public List<InfluencerResponseDto.Search> searchInfluencers(SearchType searchType, String keyword, Sort sort) {
+		List<InfluencerRatingCache> influencersInCache = new ArrayList<>();
+
+		if (searchType.equals(SearchType.INFLUENCER_NAME)) {
+			influencersInCache = influencerRatingCacheRepository.findByInfluencerNameFromMainSearch(keyword, sort);
+		} else if (searchType.equals(SearchType.TAG)) {
+			if (keyword.length() < 2) {
+				throw new InfluencerException(TAG_KEYWORD_LENGTH_LIMIT);
+			}
+			influencersInCache = influencerRatingCacheRepository.findByInfluencerTagFromMainSearch(keyword, sort);
+		}
+
+		return influencersInCache
+			.stream()
+			.map(InfluencerResponseDto.Search::of)
+			.collect(Collectors.toList());
 	}
 }

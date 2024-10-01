@@ -1,14 +1,19 @@
 package com.fanmix.api.domain.influencer.controller;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fanmix.api.common.aspect.ClientIp;
 import com.fanmix.api.common.response.Response;
+import com.fanmix.api.domain.influencer.dto.enums.SearchType;
+import com.fanmix.api.domain.influencer.dto.enums.Sort;
 import com.fanmix.api.domain.influencer.dto.response.InfluencerResponseDto;
 import com.fanmix.api.domain.influencer.service.InfluencerService;
 
@@ -27,5 +32,11 @@ public class InfluencerController {
 	public ResponseEntity<Response<InfluencerResponseDto.Details>> getInfluencerDetails(
 		@PathVariable Integer influencerId, @AuthenticationPrincipal String email) {
 		return ResponseEntity.ok(Response.success(influencerService.getInfluencerDetails(influencerId, email)));
+	}
+
+	@GetMapping("/api/influencers")
+	public ResponseEntity<Response<List<InfluencerResponseDto.Search>>> searchInfluencers(
+		@RequestParam SearchType searchType, @RequestParam String keyword, @RequestParam Sort sort) {
+		return ResponseEntity.ok(Response.success(influencerService.searchInfluencers(searchType, keyword, sort)));
 	}
 }

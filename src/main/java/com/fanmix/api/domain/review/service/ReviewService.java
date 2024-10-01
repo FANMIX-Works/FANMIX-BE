@@ -4,6 +4,9 @@ import static com.fanmix.api.domain.influencer.exception.InfluencerErrorCode.*;
 import static com.fanmix.api.domain.review.exception.ReviewErrorCode.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,11 +20,14 @@ import com.fanmix.api.domain.member.entity.Member;
 import com.fanmix.api.domain.member.exception.MemberErrorCode;
 import com.fanmix.api.domain.member.exception.MemberException;
 import com.fanmix.api.domain.member.repository.MemberRepository;
+import com.fanmix.api.domain.review.dto.enums.Sort;
 import com.fanmix.api.domain.review.dto.request.ReviewCommentRequestDto;
 import com.fanmix.api.domain.review.dto.request.ReviewLikeOrDislikeRequestDto;
 import com.fanmix.api.domain.review.dto.request.ReviewRequestDto;
+import com.fanmix.api.domain.review.dto.response.ReviewResponseDto;
 import com.fanmix.api.domain.review.entity.Review;
 import com.fanmix.api.domain.review.entity.ReviewComment;
+import com.fanmix.api.domain.review.entity.ReviewLikeDislike;
 import com.fanmix.api.domain.review.exception.ReviewException;
 import com.fanmix.api.domain.review.repository.ReviewCommentRepository;
 import com.fanmix.api.domain.review.repository.ReviewLikeDislikeRepository;
@@ -190,5 +196,47 @@ public class ReviewService {
 		}
 
 		reviewComment.deleteComment();
+	}
+
+	public List<ReviewResponseDto.ForAllReview> getAllReviews(String email, Sort sort) {
+
+		List<ReviewResponseDto.ForAllReview> allReviewsToReturn = new ArrayList<>();
+
+		final Member member = memberRepository.findByEmail(email)
+			.orElse(null);
+		List<Review> allReviews = reviewRepository.findAllReviewsOrderBySort(sort);
+
+		for (Review review : allReviews) {
+			Member reviewer = review.getMember();
+			Influencer influencer = review.getInfluencer();
+
+			Long reviewLikeCount = reviewLikeDislikeRepository.countByReviewAndIsLike(review, true);
+			Long reviewDislikeCount = reviewLikeDislikeRepository.countByReviewAndIsLike(review, false);
+			Long reviewCommentsCount = reviewCommentRepository.countByReviewAndIsDeleted(review, false);
+
+			boolean isLiked = false;
+			boolean isDisliked = false;
+			boolean isMyReview = false;
+
+			if (member != null) {
+				isMyReview = member.getId() == reviewer.getId();
+				Optional<ReviewLikeDislike> reviewLikeOrDislike = reviewLikeDislikeRepository.findByMember(member);
+
+				if (reviewLikeOrDislike.isPresent()) {
+					isLiked = reviewLikeOrDislike.get().getIsLike();
+					isDisliked = !isLiked;
+				} else {
+					isLiked = false;
+					isDisliked = false;
+				}
+			}
+
+			allReviewsToReturn.add(
+				ReviewResponseDto.ForAllReview.of(influencer, reviewer, review, reviewLikeCount, reviewDislikeCount,
+					reviewCommentsCount,
+					isMyReview, isLiked, isDisliked)
+			);
+		}
+		return allReviewsToReturn;
 	}
 }
