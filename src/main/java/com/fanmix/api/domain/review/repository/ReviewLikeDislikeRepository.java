@@ -1,5 +1,7 @@
 package com.fanmix.api.domain.review.repository;
 
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -13,4 +15,6 @@ public interface ReviewLikeDislikeRepository extends JpaRepository<ReviewLikeDis
 	Long countByReviewAndIsLike(Review review, Boolean isLike);
 
 	Boolean existsByReviewAndMember(Review review, Member member);
+
+	Optional<ReviewLikeDislike> findByMember(Member member);
 }
