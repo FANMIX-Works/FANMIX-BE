@@ -63,7 +63,7 @@ public class SecurityConfig {
 			// hasRole을 쓰면 자동으로 앞에 'ROLE_' 를 붙인다.
 			.authorizeHttpRequests((authz) -> authz
 				.requestMatchers("/", "/login", "/profile", "/oauth2/**", "/auth/redirect", "/error",
-					"/api/members/oauth/google", "https://fanmix.vercel.app/auth/redirect",
+					"/api/members/oauth/google", "https://fanmix.vercel.app/auth/redirect", "/api/public/**",
 
 					/* 스웨거 관련 */
 					"/swagger-resources/**", "/v3/api-docs/**", "/swagger-ui/**", "/api-docs")

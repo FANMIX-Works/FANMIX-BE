@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import com.fanmix.api.domain.common.Gender;
 import com.fanmix.api.domain.common.Role;
 import com.fanmix.api.domain.common.SocialType;
+import com.fanmix.api.domain.common.UserMode;
 import com.fanmix.api.domain.common.entity.BaseEntity;
 
 import jakarta.persistence.Column;
@@ -48,11 +49,12 @@ public class Member extends BaseEntity implements UserDetails {
 	private int birthYear;               //탄생년도. 나이는 오늘날짜로부터 계산
 	private String nationality;          //국적
 	private int totalPoint;
+	@Enumerated(EnumType.STRING)
+	private UserMode userMode;            // 유저모드 ENUM (USER, INFLUENCER )
 
 	//소셜로그인 관련
 	@Enumerated(EnumType.STRING)
 	private SocialType socialType; // KAKAO, NAVER, GOOGLE
-	private String socialId; // 로그인한 소셜 타입의 식별자 값 (일반 자체 로그인인 경우 null)
 	private String refreshToken; // 리프레시 토큰. JWT를 사용하여 로그인성공시 AccessToken, RefreshToken을 발행할 예정
 
 	@Column(columnDefinition = "BOOLEAN DEFAULT NULL")
@@ -68,13 +70,13 @@ public class Member extends BaseEntity implements UserDetails {
 	@Builder
 	public Member(
 		String email,
-		String socialId,
+		UserMode userMode,
 		SocialType socialtype,
 		String refreshToken,
 		Role role
 	) {
 		this.email = email;
-		this.socialId = socialId;
+		this.userMode = userMode;
 		this.socialType = socialtype;
 		this.refreshToken = refreshToken;
 		this.role = role != null ? role : Role.MEMBER; // 기본 역할 설정

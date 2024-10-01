@@ -1,5 +1,7 @@
 package com.fanmix.api.domain.influencer.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -42,5 +44,6 @@ public class SocialMedia {
 
 	@ManyToOne
 	@JoinColumn(name = "influencer_id")
+	@JsonIgnore
 	private Influencer influencer;
 }
