@@ -36,7 +36,7 @@ public class PostController {
 
 	// 게시물 등록
 	@PostMapping("/api/communities/posts")
-	public ResponseEntity<Response<Post>> addPost(
+	public ResponseEntity<Response<PostResponse>> addPost(
 		@RequestPart @Validated AddPostRequest request,
 		@RequestPart(value = "images", required = false) List<MultipartFile> images,
 		@AuthenticationPrincipal String email) {
@@ -77,16 +77,16 @@ public class PostController {
 		@PathVariable int postId) {
 		return ResponseEntity.ok(Response.success(new PostResponse(postService.findById(communityId, postId))));
 	}
-
 	// 게시물 수정
 	@PutMapping("/api/communities/{communityId}/posts/{postId}")
-	public ResponseEntity<Response<Post>> updatePost(
+	public ResponseEntity<Response<PostResponse>> updatePost(
 		@PathVariable int communityId,
 		@PathVariable int postId,
 		@RequestPart @Validated UpdatePostRequest request,
 		@RequestPart(value = "images", required = false) List<MultipartFile> images,
 		@AuthenticationPrincipal String email) {
-		return ResponseEntity.ok(Response.success(postService.update(communityId, postId, request, images, email)));
+		postService.update(communityId, postId, request, images, email);
+		return ResponseEntity.ok(Response.success());
 	}
 
 	// 게시물 삭제
