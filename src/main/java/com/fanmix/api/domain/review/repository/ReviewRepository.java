@@ -12,7 +12,7 @@ import com.fanmix.api.domain.influencer.entity.Influencer;
 import com.fanmix.api.domain.member.entity.Member;
 import com.fanmix.api.domain.review.entity.Review;
 
-public interface ReviewRepository extends JpaRepository<Review, Long> {
+public interface ReviewRepository extends JpaRepository<Review, Long>, ReviewQuerydslRepository {
 	Optional<Review> findFirstByInfluencerAndIsDeletedOrderByCrDateDesc(Influencer influencer, Boolean isDeleted);
 
 	@Query("SELECT r FROM Review r LEFT JOIN r.reviewLikeDislikes l "

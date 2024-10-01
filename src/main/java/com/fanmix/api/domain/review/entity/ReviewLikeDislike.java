@@ -32,10 +32,12 @@ public class ReviewLikeDislike extends BaseEntity {
 	@Column(name = "is_like")
 	private Boolean isLike;
 
+	@NotNull
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "review_id")
 	private Review review;
 
+	@NotNull
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "member_id")
 	private Member member;
