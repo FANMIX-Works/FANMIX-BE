@@ -35,7 +35,7 @@ public class PostResponse {
 		this.viewCount = post.getViewCount();
 		this.likeCount = post.getLikeCount();
 		this.dislikeCount = post.getDislikeCount();
-		this.commentCount = post.getComments().size();
+		this.commentCount = post.getComments() != null ? post.getComments().size() : 0;
 		this.crDate = post.getCrDate();
 		this.uDate = post.getUDate();
 		this.isDelete = post.isDelete();
