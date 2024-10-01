@@ -28,6 +28,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -52,10 +53,16 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, OAuth2User>, OAuthClient {
 
-	private final MemberRepository memberRepository;
-	private final String clientId;
-	private final String clientSecret;
-	private final String redirectUri;
+	@Autowired
+	private MemberRepository memberRepository;
+	@Value("${oauth.google.client-id}")
+	private String clientId;
+	@Value("${oauth.google.client-secret}")
+	private String clientSecret;
+	@Value("${oauth.google.redirect-uri}")
+	String redirectUri_value;
+
+	private String redirectUri;
 	@Value("${jwt.secret}")
 	private String secretKey;
 	private final Random random = new Random();
@@ -64,24 +71,18 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 	private RestTemplate restTemplate;
 	private String refreshToken;
 
-	public GoogleLoginService(MemberRepository memberRepository, @Value("${oauth.google.client-id}") String clientId,
-		@Value("${oauth.google.client-secret}") String clientSecret,
-		@Value("${oauth.google.redirect-uri}") String redirectUri) {
-		this.memberRepository = memberRepository;
-		this.clientId = clientId;
-		this.clientSecret = clientSecret;
-		this.redirectUri = redirectUri;
-		//this.jwtKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);    //알고리즘
-		this.secretKey = secretKey;
-		// int keySize = jwtKey.getEncoded().length * 8;
-		// if (keySize < 256) {
-		// 	throw new WeakKeyException("The signing key's size is not secure enough for the HS256 algorithm.");
-		// }
-	}
-
 	@Override
 	public SocialType social_type() {
 		return SocialType.GOOGLE;
+	}
+
+	public void setRedirectUri(String redirectUri) {
+		if (redirectUri == null) {
+			this.redirectUri = redirectUri_value;
+		} else {
+			this.redirectUri = redirectUri;
+		}
+
 	}
 
 	@Override
@@ -100,10 +101,11 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 
 			MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 			params.add("code", authorizationCode);
-			params.add("redirect_uri", redirectUri);
+			params.add("redirect_uri", redirectUri);    //클라이언트가 함수 호출할때 넘겨주도록 수정됨. 비었을경우 설정파일값 참조
 			params.add("client_id", clientId);
 			params.add("client_secret", clientSecret);
 			params.add("grant_type", "authorization_code");
+			log.info("구글로그인 서비스가 어세스토큰 요청 받았을때 파악하고 있는 params : " + params);
 
 			HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(params, httpHeaders);
 			String url = "https://oauth2.googleapis.com/token";
@@ -120,7 +122,11 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 			}
 
 			log.debug("발급받은 어세스토큰 등 JsonNode : " + responseNode);
-			refreshToken = responseNode.get("refresh_token").asText();
+			JsonNode refreshTokenNode = responseNode.get("refresh_token");
+			if (refreshTokenNode != null && !refreshTokenNode.isNull()) {
+				log.info("리프레쉬토큰 비었음");
+				refreshToken = refreshTokenNode.asText();
+			}
 
 			return responseNode;
 
@@ -130,32 +136,48 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 			throw new MemberException(JSON_PROCESSING_ERROR);
 		} catch (JpaSystemException e) {
 			//InvalidDataAccessResourceUsageException은 SQLGrammarException를 래핑하고 JpaSystemException 내부예외임
-			log.debug("멤버 테이블 없음");
+			log.error("멤버 테이블 없음");
 			e.printStackTrace();
 			throw new MemberException(SQL_ERROR);
+		} catch (HttpClientErrorException e) {
+			try {
+				JsonNode errorNode = new ObjectMapper().readTree(e.getResponseBodyAsString());
+				if (errorNode.has("error") && errorNode.get("error").asText().equals("invalid_grant")) {
+					log.error("invalid_grant. 일회용인 인가코드 한번 더 쓴 에러");
+					throw new MemberException(INVALID_GRANT);
+				} else {
+					log.error("인증 실패. 오류 코드: {}", errorNode.get("error").asText());
+					throw new MemberException(FAIL_AUTH);
+				}
+			} catch (JsonProcessingException ex) {
+				// JSON 처리 중 발생한 예외 처리
+				log.error("json파싱중 에러");
+				throw new MemberException(JSON_PROCESSING_ERROR);
+			}
 		} catch (RestClientException e) {
 			// REST 요청 중 발생한 예외 처리
 			e.printStackTrace();
 			if (e.getRootCause() instanceof InvalidDataAccessResourceUsageException) {
-				log.debug("멤버 테이블 없음");
+				log.error("멤버 테이블 없음");
 				e.printStackTrace();
 				throw new MemberException(SQL_ERROR);
 			} else {
 				e.printStackTrace();
+				log.error("REST 요청중 에러");
 				// 기타 예외 처리
-				throw new MemberException(FAIL_AUTH);
+				throw new MemberException(REST_CLIENT_ERROR);
 			}
 		} catch (Exception e) {
 			// 기타 예외 처리
 			e.printStackTrace();
 			if (e instanceof JpaSystemException
 				&& ((JpaSystemException)e).getRootCause() instanceof InvalidDataAccessResourceUsageException) {
-				log.debug("멤버 테이블 없음");
+				log.error("멤버 테이블 없음");
 				e.printStackTrace();
 				throw new MemberException(SQL_ERROR);
 			} else {
 				e.printStackTrace();
-				log.error("기타 예외 처리");
+				log.error("처리하지못한 예외 처리", e);
 				// 기타 예외 처리
 				throw new MemberException(FAIL_AUTH);
 			}

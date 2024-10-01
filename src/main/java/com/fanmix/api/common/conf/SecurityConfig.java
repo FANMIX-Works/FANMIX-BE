@@ -1,6 +1,7 @@
 package com.fanmix.api.common.conf;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -16,6 +18,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.fanmix.api.common.security.filter.JwtTokenFilter;
@@ -45,6 +50,10 @@ public class SecurityConfig {
 		http
 			// CSRF 보호 비활성화 (RESTful API에서는 일반적으로 불필요)
 			.csrf(csrf -> csrf.disable())
+			// 스프링시큐리티에서 cors 정책
+			.cors(cors -> cors
+				.configurationSource(corsConfigurationSource())
+			)
 			// 세션 관리 설정
 			.sessionManagement(session -> session
 				.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -54,7 +63,10 @@ public class SecurityConfig {
 			// hasRole을 쓰면 자동으로 앞에 'ROLE_' 를 붙인다.
 			.authorizeHttpRequests((authz) -> authz
 				.requestMatchers("/", "/login", "/profile", "/oauth2/**", "/auth/redirect", "/error",
-					"/api/members/oauth/google")
+					"/api/members/oauth/google", "https://fanmix.vercel.app/auth/redirect",
+
+					/* 스웨거 관련 */
+					"/swagger-resources/**", "/v3/api-docs/**", "/swagger-ui/**", "/api-docs")
 				.permitAll()
 				/* 관리자 */
 				.requestMatchers("/api/admin/**")
@@ -64,9 +76,19 @@ public class SecurityConfig {
 				.hasAnyAuthority("MEMBER", "ADMIN")
 
 				/* 인플루언서 */
-				.requestMatchers("/api/influencers/search", "/api/influencers/hot10", "/api/influencers/recent10",
-					"/api/influencers/{influencerId}", "/api/influencers/reviews/hot5")
+				.requestMatchers(HttpMethod.GET, "/api/influencers/**")
 				.permitAll()
+				.requestMatchers(HttpMethod.POST, "/api/influencers/**")
+				.hasAnyAuthority("MEMBER", "ADMIN")
+				.requestMatchers(HttpMethod.PUT, "/api/influencers/**")
+				.hasAnyAuthority("MEMBER", "ADMIN")
+				.requestMatchers(HttpMethod.PATCH, "/api/influencers/**")
+				.hasAnyAuthority("MEMBER", "ADMIN")
+				.requestMatchers(HttpMethod.DELETE, "/api/influencers/**")
+				.hasAnyAuthority("MEMBER", "ADMIN")
+				.requestMatchers(HttpMethod.GET, "/api/influencers/{influencerId}/follow-status",
+					"/api/influencers/{influencerId}/reviews/my-latest-review")
+				.hasAnyAuthority("MEMBER", "ADMIN")
 
 				.requestMatchers("/api/influencers/{influencerId}/reviews")
 				.hasAnyAuthority("MEMBER", "ADMIN")
@@ -102,8 +124,7 @@ public class SecurityConfig {
 			)
 			//스프링시큐리티 필터체인전에 JwtTokenFilter체인 추가.  먼저 JWT토큰을 검사하고 유효하면 인증된 사용자를 스프링시큐리티 컨텍스트 홀더에 저장
 			.addFilterBefore(new JwtTokenFilter(memberService, secretKey), UsernamePasswordAuthenticationFilter.class)
-			.addFilterAfter(new LoggingFilter(), JwtTokenFilter.class)
-		;
+			.addFilterAfter(new LoggingFilter(), JwtTokenFilter.class);
 		return http.build();
 	}
 
@@ -121,5 +142,19 @@ public class SecurityConfig {
 	@Bean
 	public PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
+	}
+
+	@Bean
+	public CorsConfigurationSource corsConfigurationSource() {
+		CorsConfiguration configuration = new CorsConfiguration();
+		configuration.setAllowCredentials(true);
+		configuration.setAllowedOrigins(
+			Arrays.asList("http://localhost:3000", "https://prism-fe.vercel.app", "https://prism.swygbro.com",
+				"https://fanmix.vercel.app"));
+		configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
+		configuration.setAllowedMethods(Arrays.asList("GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+		source.registerCorsConfiguration("/**", configuration);
+		return source;
 	}
 }

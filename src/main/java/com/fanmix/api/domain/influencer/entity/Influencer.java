@@ -98,6 +98,10 @@ public class Influencer extends BaseEntity {
 	@OneToMany(mappedBy = "influencer", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<SocialMedia> socialMediaAddresses = new ArrayList<>();
 
+	public void increaseTotalViewCount() {
+		this.totalViewCount++;
+	}
+
 	@OneToMany(mappedBy = "influencer", cascade = CascadeType.ALL, orphanRemoval = true)
 	List<Fan> followerList = new ArrayList<>();
 }
