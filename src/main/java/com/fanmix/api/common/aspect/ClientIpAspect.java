@@ -21,7 +21,8 @@ public class ClientIpAspect {
 	// ThreadLocal 에 IP 저장 그리고 로깅
 	@Around("@annotation(ClientIp)")
 	public Object logClientIp(ProceedingJoinPoint joinPoint) throws Throwable {
-		HttpServletRequest request = ((ServletRequestAttributes)RequestContextHolder.currentRequestAttributes()).getRequest();
+		HttpServletRequest request = ((ServletRequestAttributes)RequestContextHolder
+			.currentRequestAttributes()).getRequest();
 		String ipAddress = request.getHeader("X-Forwarded-For");
 		if (ipAddress != null && !ipAddress.isEmpty()) {
 			ipAddress = ipAddress.split(",")[0].trim();

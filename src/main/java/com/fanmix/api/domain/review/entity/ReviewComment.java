@@ -53,4 +53,8 @@ public class ReviewComment extends BaseEntity {
 		this.review = review;
 		this.member = member;
 	}
+
+	public void deleteComment() {
+		this.isDeleted = true;
+	}
 }
