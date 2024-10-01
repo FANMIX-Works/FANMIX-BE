@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fanmix.api.common.response.Response;
+import com.fanmix.api.domain.review.dto.request.ReviewLikeOrDislikeRequestDto;
 import com.fanmix.api.domain.review.dto.request.ReviewRequestDto;
 import com.fanmix.api.domain.review.service.ReviewService;
 
@@ -45,6 +46,14 @@ public class ReviewController {
 	public ResponseEntity<Response<Void>> deleteReview(
 		@PathVariable Integer influencerId, @PathVariable Long reviewId, @AuthenticationPrincipal String email) {
 		reviewService.deleteReview(influencerId, reviewId, email);
+		return ResponseEntity.ok(Response.success());
+	}
+
+	@PostMapping("/influencers/{influencerId}/reviews/{reviewId}/like")
+	public ResponseEntity<Response<Void>> likeOrDislikeReview(
+		@PathVariable Integer influencerId, @AuthenticationPrincipal String email, @PathVariable Long reviewId,
+		@RequestBody @Valid ReviewLikeOrDislikeRequestDto requestDto) {
+		reviewService.likeOrDislikeReview(influencerId, email, reviewId, requestDto);
 		return ResponseEntity.ok(Response.success());
 	}
 }
