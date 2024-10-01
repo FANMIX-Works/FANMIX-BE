@@ -9,6 +9,7 @@ import java.util.List;
 
 import com.fanmix.api.domain.common.Gender;
 import com.fanmix.api.domain.influencer.entity.Influencer;
+import com.fanmix.api.domain.influencer.entity.InfluencerRatingCache;
 import com.fanmix.api.domain.influencer.entity.PlatformType;
 import com.fanmix.api.domain.influencer.entity.SocialMedia;
 import com.fanmix.api.domain.influencer.entity.SocialMediaType;
@@ -20,11 +21,11 @@ import lombok.Getter;
 @Getter
 public class InfluencerResponseDto {
 	public record Details(Integer influencerId, String influencerName, String influencerImageUrl,
-						String selfIntroduction, Gender gender, String nationality,
-						List<PlatformLink> snsList, List<PlatformLink> mediaList, List<PlatformLink> plusList,
-						List<Integer> contentsOrientationList, List<String> tagList, LocalDateTime latestReviewDate,
-						Double averageRating, Double contentsRating, Double communicationRating, Double trustRating,
-						Long totalReviewCount, Boolean isAuthenticated, Boolean isFollowing, BestReview bestReview) {
+						  String selfIntroduction, Gender gender, String nationality,
+						  List<PlatformLink> snsList, List<PlatformLink> mediaList, List<PlatformLink> plusList,
+						  List<Integer> contentsOrientationList, List<String> tagList, LocalDateTime latestReviewDate,
+						  Double averageRating, Double contentsRating, Double communicationRating, Double trustRating,
+						  Long totalReviewCount, Boolean isAuthenticated, Boolean isFollowing, BestReview bestReview) {
 
 		public static Details of(Influencer influencer, List<String> tagList, LocalDateTime latestReviewDate,
 			Double contentsRating, Double communicationRating, Double trustRating, Long totalReviewCount,
@@ -65,9 +66,9 @@ public class InfluencerResponseDto {
 	}
 
 	private record BestReview(Integer reviewerId, String reviewerNickName, Double averageRating, Integer contentsRating,
-						Integer communicationRating, Integer trustRating, LocalDateTime reviewDate,
-						String reviewContent, Long reviewLikeCount, Long reviewDislikeCount,
-						Long reviewCommentsCount) {
+							  Integer communicationRating, Integer trustRating, LocalDateTime reviewDate,
+							  String reviewContent, Long reviewLikeCount, Long reviewDislikeCount,
+							  Long reviewCommentsCount) {
 		public static BestReview of(Review review, Long reviewLikeCount, Long reviewDislikeCount,
 			Long reviewCommentsCount) {
 			if (review == null) {
@@ -83,5 +84,21 @@ public class InfluencerResponseDto {
 	}
 
 	private record PlatformLink(PlatformType platformType, String url) {
+	}
+
+	public record Search(Integer influencerId, String influencerName, String influencerImageUrl,
+						 List<String> tagList, LocalDateTime latestReviewDate,
+						 Double averageRating, Double contentsRating, Double communicationRating, Double trustRating,
+						 Boolean isAuthenticated) {
+
+		public static Search of(InfluencerRatingCache influencerRatingCache) {
+			List<String> tagList = List.of(influencerRatingCache.getTag1(), influencerRatingCache.getTag2(),
+				influencerRatingCache.getTag3());
+			return new Search(influencerRatingCache.getInfluencer().getId(), influencerRatingCache.getInfluencerName(),
+				influencerRatingCache.getInfluencerImageUrl(), tagList,
+				influencerRatingCache.getLatestReviewDate(), influencerRatingCache.getAverageRating(),
+				influencerRatingCache.getContentsRating(), influencerRatingCache.getCommunicationRating(),
+				influencerRatingCache.getTrustRating(), influencerRatingCache.getIsAuthenticated());
+		}
 	}
 }

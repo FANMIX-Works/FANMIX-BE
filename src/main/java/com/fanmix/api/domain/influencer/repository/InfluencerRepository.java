@@ -7,8 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.fanmix.api.domain.influencer.entity.Influencer;
 
-public interface InfluencerRepository
-	extends JpaRepository<Influencer, Integer> {
+public interface InfluencerRepository extends JpaRepository<Influencer, Integer> {
 
 	List<Influencer> findAllByCrDateAfter(LocalDateTime dateTime);
 }
