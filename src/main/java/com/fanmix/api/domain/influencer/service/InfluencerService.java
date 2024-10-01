@@ -1,9 +1,11 @@
 package com.fanmix.api.domain.influencer.service;
 
+import static com.fanmix.api.common.redis.constants.InfluencerRedisConstants.*;
 import static com.fanmix.api.domain.influencer.exception.InfluencerErrorCode.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,6 +14,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fanmix.api.common.aspect.ClientIpAspect;
+import com.fanmix.api.common.redis.RedisService;
 import com.fanmix.api.domain.fan.repository.FanRepository;
 import com.fanmix.api.domain.influencer.dto.response.InfluencerResponseDto;
 import com.fanmix.api.domain.influencer.entity.Influencer;
@@ -43,15 +47,17 @@ public class InfluencerService {
 	private final ReviewCommentRepository reviewCommentRepository;
 	private final MemberRepository memberRepository;
 	private final FanRepository fanRepository;
+	private final RedisService redisService;
 
 	@Transactional
 	public InfluencerResponseDto.Details getInfluencerDetails(Integer influencerId, String email) {
 		final Influencer influencer = influencerRepository.findById(influencerId)
 			.orElseThrow(() -> new InfluencerException(INFLUENCER_NOT_FOUND));
-		influencer.increaseTotalViewCount();
 
 		final Member member = (email.equals("anonymousUser")) ? null :
 			memberRepository.findByEmail(email).orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
+
+		updateInfluencerViewCount(influencer, member);
 
 		final List<String> tagList = influencerTagMapperRepository.findByInfluencer(influencer)
 			.stream()
@@ -90,5 +96,32 @@ public class InfluencerService {
 			((BigDecimal)averageRatings[1]).doubleValue(), ((BigDecimal)averageRatings[2]).doubleValue(),
 			totalReviewCount, isFollowing, bestReview,
 			bestReviewLikeCount, bestReviewDislikeCount, bestReviewCommentsCount);
+	}
+
+	private void updateInfluencerViewCount(Influencer influencer, Member member) {
+
+		String clientIp = ClientIpAspect.getClientIp();
+		String identifier = member == null ? clientIp : member.getEmail();
+
+		// 하루에 한번만 조회수 증가
+		if (!isViewed(influencer.getId(), identifier)) {
+			setViewed(influencer.getId(), identifier);
+			influencer.increaseTotalViewCount();
+		}
+	}
+
+	private boolean isViewed(Integer influencerId, String memberIdentifier) {
+		String key = String.format("%s:%d:%s", INFLUENCER_VIEW_REDIS_PREFIX, influencerId, memberIdentifier);
+		return redisService.get(key, String.class).isPresent();
+	}
+
+	private void setViewed(Integer influencerId, String memberIdentifier) {
+		String key = String.format("%s:%d:%s", INFLUENCER_VIEW_REDIS_PREFIX, influencerId, memberIdentifier);
+
+		LocalDateTime now = LocalDateTime.now();
+		LocalDateTime tomorrowMidnight = now.plusDays(1).toLocalDate().atStartOfDay();
+
+		long expiration = ChronoUnit.MILLIS.between(now, tomorrowMidnight);
+		redisService.setWithExpiration(key, INFLUENCER_VIEW_REDIS_VALUE, expiration);
 	}
 }

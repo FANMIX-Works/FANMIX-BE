@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fanmix.api.common.aspect.ClientIp;
 import com.fanmix.api.common.response.Response;
 import com.fanmix.api.domain.influencer.dto.response.InfluencerResponseDto;
 import com.fanmix.api.domain.influencer.service.InfluencerService;
@@ -21,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 public class InfluencerController {
 	private final InfluencerService influencerService;
 
+	@ClientIp
 	@GetMapping("/{influencerId}")
 	public ResponseEntity<Response<InfluencerResponseDto.Details>> getInfluencerDetails(
 		@PathVariable Integer influencerId, @AuthenticationPrincipal String email) {
