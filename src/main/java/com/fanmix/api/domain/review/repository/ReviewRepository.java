@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.fanmix.api.domain.influencer.entity.Influencer;
 import com.fanmix.api.domain.member.entity.Member;
@@ -50,4 +51,13 @@ public interface ReviewRepository extends JpaRepository<Review, Long>, ReviewQue
 		+ "JOIN FETCH r.member "
 		+ "WHERE r.id = :reviewId")
 	Optional<Review> findWithMemberById(Long reviewId);
+
+	@Query(value = "SELECT r.*  "
+		+ "FROM Review r "
+		+ "JOIN Member m "
+		+ "ON r.member_id = m.id "
+		+ "WHERE r.member_id = :memberId "
+		+ "ORDER BY r.u_date desc "
+		, nativeQuery = true)
+	List<Review> findReviewListByMember(@Param("memberId") int memberId);
 }

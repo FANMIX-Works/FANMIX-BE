@@ -34,10 +34,12 @@ import com.fanmix.api.domain.review.repository.ReviewLikeDislikeRepository;
 import com.fanmix.api.domain.review.repository.ReviewRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class ReviewService {
 
 	private final InfluencerRepository influencerRepository;
@@ -238,5 +240,27 @@ public class ReviewService {
 			);
 		}
 		return allReviewsToReturn;
+	}
+
+	@Transactional
+	public List<Review> getReviewListByMember(int targetMemberId, String email) {
+		Member targetMember = memberRepository.findById(targetMemberId)
+			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
+		Optional<Member> loginMember = memberRepository.findByEmail(email);
+		;
+		if (loginMember.isPresent()) {
+			if (targetMember.getId() == loginMember.get().getId()) {    //내 리뷰 조회
+				log.debug("내 리뷰 조회");
+			} else {    // 다른사람 리뷰 조회
+				log.debug("다른사람 리뷰 조회");
+				// 권한 체크 코드 들어갈 부분
+			}
+		} else {
+			log.debug("로그인 유저가 없음");
+			// 로그인 유저가 없을 때의 처리
+		}
+
+		List<Review> reviewList = reviewRepository.findReviewListByMember(targetMember.getId());
+		return reviewList;
 	}
 }

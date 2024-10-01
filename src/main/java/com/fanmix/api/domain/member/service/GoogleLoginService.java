@@ -132,12 +132,11 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 
 		} catch (JsonProcessingException e) {
 			// JSON 처리 중 발생한 예외 처리
-			e.printStackTrace();
+			log.error("어세스토큰 얻는중 json파싱 에러 발생");
 			throw new MemberException(JSON_PROCESSING_ERROR);
 		} catch (JpaSystemException e) {
 			//InvalidDataAccessResourceUsageException은 SQLGrammarException를 래핑하고 JpaSystemException 내부예외임
-			log.error("멤버 테이블 없음");
-			e.printStackTrace();
+			log.error("어세스토큰 얻는중 멤버 테이블 없음");
 			throw new MemberException(SQL_ERROR);
 		} catch (HttpClientErrorException e) {
 			try {
@@ -156,27 +155,22 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 			}
 		} catch (RestClientException e) {
 			// REST 요청 중 발생한 예외 처리
-			e.printStackTrace();
 			if (e.getRootCause() instanceof InvalidDataAccessResourceUsageException) {
-				log.error("멤버 테이블 없음");
-				e.printStackTrace();
+				log.error("REST 요청중 멤버 테이블 없음");
 				throw new MemberException(SQL_ERROR);
 			} else {
-				e.printStackTrace();
 				log.error("REST 요청중 에러");
 				// 기타 예외 처리
 				throw new MemberException(REST_CLIENT_ERROR);
 			}
 		} catch (Exception e) {
 			// 기타 예외 처리
-			e.printStackTrace();
+			log.error("어세스토큰 얻는중 처리하지 못한 예외 발생");
 			if (e instanceof JpaSystemException
 				&& ((JpaSystemException)e).getRootCause() instanceof InvalidDataAccessResourceUsageException) {
 				log.error("멤버 테이블 없음");
-				e.printStackTrace();
 				throw new MemberException(SQL_ERROR);
 			} else {
-				e.printStackTrace();
 				log.error("처리하지못한 예외 처리", e);
 				// 기타 예외 처리
 				throw new MemberException(FAIL_AUTH);
@@ -297,7 +291,7 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 
 			return newAccessToken;
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("어세스토큰 재발급중 예외발생", e);
 			throw new MemberException(FAIL_NEW_ACCESSCODE);
 		}
 	}
@@ -307,7 +301,7 @@ public class GoogleLoginService implements OAuth2UserService<OAuth2UserRequest, 
 			parser().setSigningKey(secretKey.getBytes()).parseClaimsJws(jwt);
 			return true;
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("jwt 유효성 테스트 예외발생", e);
 			//토큰생성시 사용한 키와 토큰 검사시 사용키가 다름
 			//io.jsonwebtoken.security.SignatureException: JWT signature does not match locally computed signature. JWT validity cannot be asserted and should not be trusted.
 			//토큰의 만료시간이 지남

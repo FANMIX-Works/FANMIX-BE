@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fanmix.api.domain.common.Gender;
+import com.fanmix.api.domain.common.UserMode;
 import com.fanmix.api.domain.member.dto.MemberResponseDto;
 import com.fanmix.api.domain.member.dto.MemberSignUpDto;
 import com.fanmix.api.domain.member.entity.Member;
@@ -139,6 +140,12 @@ public class MemberService implements UserDetailsService {
 	public Member updateBirthYear(int id, int birthYear) {
 		Member member = memberRepository.findById(id).orElseThrow(() -> new MemberException(NO_USER_EXIST));
 		member.setBirthYear(birthYear);
+		return memberRepository.save(member);
+	}
+
+	public Member updateMode(int id, UserMode mode) {
+		Member member = memberRepository.findById(id).orElseThrow(() -> new MemberException(NO_USER_EXIST));
+		member.setUserMode(mode);
 		return memberRepository.save(member);
 	}
 
