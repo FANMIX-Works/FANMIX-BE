@@ -1,16 +1,22 @@
 package com.fanmix.api.domain.community.service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fanmix.api.domain.common.Role;
 import com.fanmix.api.domain.community.dto.AddFanChannelRequest;
+import com.fanmix.api.domain.community.dto.FanChannelResponse;
 import com.fanmix.api.domain.community.dto.UpdateFanChannelRequest;
 import com.fanmix.api.domain.community.entity.Community;
 import com.fanmix.api.domain.community.exception.CommunityErrorCode;
 import com.fanmix.api.domain.community.exception.CommunityException;
 import com.fanmix.api.domain.community.repository.CommunityRepository;
+import com.fanmix.api.domain.fan.entity.FanRepository;
 import com.fanmix.api.domain.influencer.entity.Influencer;
 import com.fanmix.api.domain.influencer.entity.InfluencerRepository;
 import com.fanmix.api.domain.member.entity.Member;
@@ -26,6 +32,7 @@ public class FanChannelService {
 	private final CommunityRepository communityRepository;
 	private final MemberRepository memberRepository;
 	private final InfluencerRepository influencerRepository;
+	private final FanRepository fanRepository;
 
 	// 팬채널 추가
 	@Transactional
@@ -53,18 +60,30 @@ public class FanChannelService {
 	}
 
 	// 팬채널 리스트 정렬
-	// @Transactional(readOnly = true)
-	// public List<FanChannelResponse> fanChannelList(String sort) {
-	// 	List<Community> fanChannelList = switch (sort) {
-	// 		case "FOLLOWER_COUNT" -> communityRepository.findAllByOrderByFollowerCountDesc();
-	// 		case "LATEST_CHANNEL" -> communityRepository.findAllByOrderByConfirmDateDesc();
-	// 		default -> communityRepository.findAllByOrderByName();
-	// 	};
-	// 	return fanChannelList
-	// 		.stream()
-	// 		.map(FanChannelListResponse::new)
-	// 		.collect(Collectors.toList());
-	// }
+	@Transactional(readOnly = true)
+	public List<FanChannelResponse> fanChannelList(String sort) {
+		Sort followerCountDesc = Sort.by(
+			Sort.Order.desc("influencer.followerCount"),
+			Sort.Order.desc("crDate")
+		);
+		Sort latestConfirmDate = Sort.by(
+			Sort.Order.desc("influencer.confirmDate"),
+			Sort.Order.desc("crDate")
+		);
+		Sort nameAsc = Sort.by(Sort.Order.asc("name"));
+
+		List<Community> fanChannelList = switch (sort) {
+			// case "FOLLOWER_COUNT" -> communityRepository.findAllOrderByRegisteredFanCount();
+			case "LATEST_CHANNEL" -> communityRepository.findAll(latestConfirmDate);
+			default -> communityRepository.findAll(nameAsc);
+		};
+
+		return fanChannelList
+			.stream()
+			.filter(fanchannel -> fanchannel.getInfluencerId() != null || fanchannel.getInfluencerId() == 0)
+			.map(FanChannelResponse::new)
+			.collect(Collectors.toList());
+	}
 
 	// 팬채널 정보 조회
 	@Transactional(readOnly = true)

@@ -1,5 +1,7 @@
 package com.fanmix.api.domain.community.controller;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -8,11 +10,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fanmix.api.common.response.Response;
 import com.fanmix.api.domain.community.dto.AddFanChannelRequest;
-import com.fanmix.api.domain.community.dto.CommunityResponse;
 import com.fanmix.api.domain.community.dto.FanChannelResponse;
 import com.fanmix.api.domain.community.dto.UpdateFanChannelRequest;
 import com.fanmix.api.domain.community.entity.Community;
@@ -32,12 +34,12 @@ public class FanChannelController {
 		return ResponseEntity.ok(Response.success());
 	}
 
-	// // 팬채널 리스트 정렬
-	// @GetMapping("/api/fanchannels")
-	// public ResponseEntity<Response<List<FanChannelResponse>>> fanChannelList(
-	// 	@RequestParam(value = "sort", defaultValue = "LATEST_CHANNEL") String sort) {
-	// 	return ResponseEntity.ok(Response.success(fanChannelService.fanChannelList(sort)));
-	// }
+	// 팬채널 리스트 정렬
+	@GetMapping("/api/fanchannels")
+	public ResponseEntity<Response<List<FanChannelResponse>>> fanChannelList(
+		@RequestParam(value = "sort", defaultValue = "LATEST_CHANNEL") String sort) {
+		return ResponseEntity.ok(Response.success(fanChannelService.fanChannelList(sort)));
+	}
 
 	// 팬채널 정보 조회
 	@GetMapping("/api/fanchannels/{communityId}/info")

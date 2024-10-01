@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.fanmix.api.domain.common.Gender;
 import com.fanmix.api.domain.common.entity.BaseEntity;
+import com.fanmix.api.domain.fan.entity.Fan;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -96,4 +97,7 @@ public class Influencer extends BaseEntity {
 
 	@OneToMany(mappedBy = "influencer", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<SocialMedia> socialMediaAddresses = new ArrayList<>();
+
+	@OneToMany(mappedBy = "influencer", cascade = CascadeType.ALL, orphanRemoval = true)
+	List<Fan> followerList = new ArrayList<>();
 }
