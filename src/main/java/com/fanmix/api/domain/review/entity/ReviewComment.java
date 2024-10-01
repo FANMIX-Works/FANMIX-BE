@@ -14,6 +14,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -35,11 +36,21 @@ public class ReviewComment extends BaseEntity {
 	@Column(name = "is_deleted")
 	private Boolean isDeleted;
 
+	@NotNull
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "review_id")
 	private Review review;
 
+	@NotNull
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "member_id")
 	private Member member;
+
+	@Builder
+	public ReviewComment(String content, Review review, Member member) {
+		this.content = content;
+		this.isDeleted = false;
+		this.review = review;
+		this.member = member;
+	}
 }

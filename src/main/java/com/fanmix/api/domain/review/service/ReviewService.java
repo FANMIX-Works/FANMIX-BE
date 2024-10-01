@@ -17,6 +17,7 @@ import com.fanmix.api.domain.member.entity.Member;
 import com.fanmix.api.domain.member.exception.MemberErrorCode;
 import com.fanmix.api.domain.member.exception.MemberException;
 import com.fanmix.api.domain.member.repository.MemberRepository;
+import com.fanmix.api.domain.review.dto.request.ReviewCommentRequestDto;
 import com.fanmix.api.domain.review.dto.request.ReviewLikeOrDislikeRequestDto;
 import com.fanmix.api.domain.review.dto.request.ReviewRequestDto;
 import com.fanmix.api.domain.review.entity.Review;
@@ -138,5 +139,25 @@ public class ReviewService {
 		}
 
 		reviewLikeDislikeRepository.save(requestDto.toEntity(member, review));
+	}
+
+	@Transactional
+	public void postReviewComment(Integer influencerId, Long reviewId, String email,
+		ReviewCommentRequestDto commentRequestDto) {
+
+		final Influencer influencer = influencerRepository.findById(influencerId)
+			.orElseThrow(() -> new InfluencerException(INFLUENCER_NOT_FOUND));
+
+		final Member member = memberRepository.findByEmail(email)
+			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
+
+		final Review review = reviewRepository.findWithMemberById(reviewId)
+			.orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND));
+
+		if (review.getIsDeleted()) {
+			throw new ReviewException(REVIEW_ALREADY_DELETED);
+		}
+
+		reviewCommentRepository.save(commentRequestDto.toEntity(member, review));
 	}
 }
