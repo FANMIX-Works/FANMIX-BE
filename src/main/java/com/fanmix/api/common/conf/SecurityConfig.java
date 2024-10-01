@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -62,7 +63,10 @@ public class SecurityConfig {
 			// hasRole을 쓰면 자동으로 앞에 'ROLE_' 를 붙인다.
 			.authorizeHttpRequests((authz) -> authz
 				.requestMatchers("/", "/login", "/profile", "/oauth2/**", "/auth/redirect", "/error",
-					"/api/members/oauth/google", "https://fanmix.vercel.app/auth/redirect")
+					"/api/members/oauth/google", "https://fanmix.vercel.app/auth/redirect",
+
+					/* 스웨거 관련 */
+					"/swagger-resources/**", "/v3/api-docs/**", "/swagger-ui/**", "/api-docs")
 				.permitAll()
 				/* 관리자 */
 				.requestMatchers("/api/admin/**")
@@ -72,9 +76,19 @@ public class SecurityConfig {
 				.hasAnyAuthority("MEMBER", "ADMIN")
 
 				/* 인플루언서 */
-				.requestMatchers("/api/influencers/search", "/api/influencers/hot10", "/api/influencers/recent10",
-					"/api/influencers/{influencerId}", "/api/influencers/reviews/hot5")
+				.requestMatchers(HttpMethod.GET, "/api/influencers/**")
 				.permitAll()
+				.requestMatchers(HttpMethod.POST, "/api/influencers/**")
+				.hasAnyAuthority("MEMBER", "ADMIN")
+				.requestMatchers(HttpMethod.PUT, "/api/influencers/**")
+				.hasAnyAuthority("MEMBER", "ADMIN")
+				.requestMatchers(HttpMethod.PATCH, "/api/influencers/**")
+				.hasAnyAuthority("MEMBER", "ADMIN")
+				.requestMatchers(HttpMethod.DELETE, "/api/influencers/**")
+				.hasAnyAuthority("MEMBER", "ADMIN")
+				.requestMatchers(HttpMethod.GET, "/api/influencers/{influencerId}/follow-status",
+					"/api/influencers/{influencerId}/reviews/my-latest-review")
+				.hasAnyAuthority("MEMBER", "ADMIN")
 
 				.requestMatchers("/api/influencers/{influencerId}/reviews")
 				.hasAnyAuthority("MEMBER", "ADMIN")
@@ -110,8 +124,7 @@ public class SecurityConfig {
 			)
 			//스프링시큐리티 필터체인전에 JwtTokenFilter체인 추가.  먼저 JWT토큰을 검사하고 유효하면 인증된 사용자를 스프링시큐리티 컨텍스트 홀더에 저장
 			.addFilterBefore(new JwtTokenFilter(memberService, secretKey), UsernamePasswordAuthenticationFilter.class)
-			.addFilterAfter(new LoggingFilter(), JwtTokenFilter.class)
-		;
+			.addFilterAfter(new LoggingFilter(), JwtTokenFilter.class);
 		return http.build();
 	}
 
