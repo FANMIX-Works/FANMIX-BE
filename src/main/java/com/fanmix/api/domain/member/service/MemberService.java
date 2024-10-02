@@ -28,7 +28,7 @@ import com.fanmix.api.domain.influencer.entity.tag.InfluencerTagMapper;
 import com.fanmix.api.domain.influencer.repository.InfluencerRepository;
 import com.fanmix.api.domain.influencer.repository.cache.InfluencerRatingCacheRepository;
 import com.fanmix.api.domain.influencer.repository.tag.InfluencerTagMapperRepository;
-import com.fanmix.api.domain.member.dto.MemberActivityDto;
+import com.fanmix.api.domain.member.dto.MemberActivityReviewDto;
 import com.fanmix.api.domain.member.dto.MemberResponseDto;
 import com.fanmix.api.domain.member.dto.MemberSignUpDto;
 import com.fanmix.api.domain.member.entity.Member;
@@ -210,7 +210,7 @@ public class MemberService implements UserDetailsService {
 	}
 
 	@Transactional
-	public List<MemberActivityDto.Details> getMemberDetailsReview(Integer MemberId, String email) {
+	public List<MemberActivityReviewDto.Details> getMemberDetailsReview(Integer MemberId, String email) {
 		//멤버 가져오기
 		//로그인이 안되어있으면 null반환. 로그인이 되어있다면
 		final Member member = (email.equals("anonymousUser")) ? null :
@@ -251,7 +251,52 @@ public class MemberService implements UserDetailsService {
 			}
 		}
 
-		return MemberActivityDto.Details.of(influencers, tagLists, reviews, isFollowings);
+		return MemberActivityReviewDto.Details.of(influencers, tagLists, reviews, isFollowings);
+	}
+
+	@Transactional
+	public List<MemberActivityReviewDto.Details> getMemberDetailsPosts(Integer MemberId, String email) {
+		//멤버 가져오기
+		//로그인이 안되어있으면 null반환. 로그인이 되어있다면
+		final Member member = (email.equals("anonymousUser")) ? null :
+			memberRepository.findById(MemberId).orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
+		log.debug("멤버가져오기 완료 : " + member.getId());
+
+		//나의 팬 정보 가져오기
+		final List<Fan> fans = fanRepository.findByMember(member);
+		if (fans.isEmpty()) {
+			throw new MemberException(MemberErrorCode.NO_FAN);
+		}
+		log.debug("팬 가져오기 완료. 내가 팔로운한 인플루언서의 갯수 : " + fans.size());
+
+		// 인플루언서 가져오기
+		List<Influencer> influencers = new ArrayList<>();
+		List<List<String>> tagLists = new ArrayList<>();
+		List<Review> reviews = new ArrayList<>();
+		List<Boolean> isFollowings = new ArrayList<>();
+
+		for (Fan fan : fans) {
+			Influencer influencer = fan.getInfluencer();
+			if (influencer != null) {
+				influencers.add(influencer);
+
+				List<String> tagList = influencerTagMapperRepository.findByInfluencer(influencer)
+					.stream()
+					.map(InfluencerTagMapper::getInfluencerTag)
+					.map(InfluencerTag::getTagName)
+					.toList();
+				tagLists.add(tagList);
+
+				Review review = reviewRepository.findTopByMemberAndInfluencerAndIsDeletedOrderByCrDateDesc(
+					member, influencer, false).orElse(null);
+				reviews.add(review);
+
+				Boolean isFollowing = fanRepository.existsByInfluencerAndMember(influencer, member);
+				isFollowings.add(isFollowing);
+			}
+		}
+
+		return MemberActivityReviewDto.Details.of(influencers, tagLists, reviews, isFollowings);
 	}
 
 }

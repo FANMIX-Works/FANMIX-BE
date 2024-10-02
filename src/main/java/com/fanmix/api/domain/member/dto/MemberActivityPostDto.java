@@ -18,7 +18,7 @@ import lombok.Getter;
 // 필드, 생성자, equals, hashCode, toString 자동으로 생성해준다.
 // 기본적으로 불변 객체로 설계되어 멀티 스레드 환경에서 안정성을 높인다.
 @Getter
-public class MemberActivityDto {
+public class MemberActivityReviewDto {
 	public record Details(
 		Integer influencerId, // 인플루언서 ID
 		String influencerName, // 인플루언서 이름

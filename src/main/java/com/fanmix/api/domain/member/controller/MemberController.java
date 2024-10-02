@@ -27,7 +27,7 @@ import com.fanmix.api.domain.common.Gender;
 import com.fanmix.api.domain.common.UserMode;
 import com.fanmix.api.domain.influencer.service.InfluencerService;
 import com.fanmix.api.domain.member.dto.AuthResponse;
-import com.fanmix.api.domain.member.dto.MemberActivityDto;
+import com.fanmix.api.domain.member.dto.MemberActivityReviewDto;
 import com.fanmix.api.domain.member.dto.MemberResponseDto;
 import com.fanmix.api.domain.member.entity.Member;
 import com.fanmix.api.domain.member.exception.MemberException;
@@ -318,7 +318,7 @@ public class MemberController {
 
 	//특정유저의 활동내역 (한줄리뷰)
 	@GetMapping("/api/public/members/{memberId}/activity/reviews")
-	public ResponseEntity<Response<List<MemberActivityDto.Details>>> getMyActivityReview(
+	public ResponseEntity<Response<List<MemberActivityReviewDto.Details>>> getMyActivityReview(
 		@PathVariable int memberId,
 		@AuthenticationPrincipal String email) {
 		return ResponseEntity.ok(Response.success(memberService.getMemberDetailsReview(memberId, email)));
