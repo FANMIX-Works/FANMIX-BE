@@ -16,7 +16,7 @@ public class FanChannelPostResponse {
 	private int uMember;
 	private String title;
 	private String contents;
-	private List<String> imgUrls;
+	private String imgUrl;
 	private int viewCount;
 	private int likeCount;
 	private int commentCount;
@@ -32,7 +32,7 @@ public class FanChannelPostResponse {
 		this.uMember = post.getUMember();
 		this.title = post.getTitle();
 		this.contents = post.getContent();
-		this.imgUrls = post.getImgUrls();
+		this.imgUrl = post.getImgUrl();
 		this.viewCount = post.getViewCount();
 		this.likeCount = post.getLikes().size();
 		this.commentCount = post.getComments().size();

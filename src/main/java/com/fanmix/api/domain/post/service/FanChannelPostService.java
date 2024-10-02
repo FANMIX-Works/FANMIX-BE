@@ -1,15 +1,5 @@
 package com.fanmix.api.domain.post.service;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
-
 import com.fanmix.api.common.image.service.ImageService;
 import com.fanmix.api.domain.common.Role;
 import com.fanmix.api.domain.community.entity.Community;
@@ -29,16 +19,21 @@ import com.fanmix.api.domain.post.exception.PostErrorCode;
 import com.fanmix.api.domain.post.exception.PostException;
 import com.fanmix.api.domain.post.repository.PostLikeDisLikeRepository;
 import com.fanmix.api.domain.post.repository.PostRepository;
-
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class FanChannelPostService {
-	private static final Logger log = LoggerFactory.getLogger(FanChannelPostService.class);
 	private final CommunityRepository communityRepository;
 	private final PostRepository postRepository;
 	private final MemberRepository memberRepository;
@@ -47,22 +42,22 @@ public class FanChannelPostService {
 
 	// 팬채널 글 추가
 	@Transactional
-	public Post save(AddPostRequest request, List<MultipartFile> images, String email) {
+	public Post save(AddPostRequest request, MultipartFile image, String email) {
 		Community community = communityRepository.findById(request.getCommunityId())
 			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
 
 		Member member = memberRepository.findByEmail(email)
-			.orElseThrow(() -> new MemberException(MemberErrorCode.FAIL_GET_OAUTHINFO));
+			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if (!member.getRole().equals(Role.MEMBER)) {
+		if (!member.getRole().equals(Role.COMMUNITY)) {
 			throw new PostException(PostErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
 		Post post = request.toEntity(community, member);
 
-		if(images != null && !images.isEmpty()) {
-			List<String> imageUrls = imageService.saveImagesAndReturnUrls(images);
-			post.addImages(imageUrls);
+		if(image != null && !image.isEmpty()) {
+			String imageUrl = imageService.saveImageAndReturnUrl(image);
+			post.addImage(imageUrl);
 		}
 
 		return postRepository.save(post);
@@ -74,8 +69,8 @@ public class FanChannelPostService {
 		Community community = communityRepository.findById(communityId)
 			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
 
-		Integer influencerId = community.getInfluencerId();
-		if(influencerId == null || influencerId <= 0) {
+		int influencerId = community.getInfluencer().getId();
+		if(influencerId <= 0) {
 			throw new CommunityException(CommunityErrorCode.NOT_A_FANCHANNEL);
 		}
 
@@ -116,34 +111,35 @@ public class FanChannelPostService {
 		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if(!member.getRole().equals(Role.COMMUNITY)) {
+		if(member.getRole().equals(Role.COMMUNITY)) {
 			throw new PostException(PostErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
-		post.updateViewCount(post.getViewCount());
+		post.updateViewCount();
 
 		return post;
 	}
 
 	// 팬채널 글 수정
 	@Transactional
-	public void updateFanChannelPost(int postId, UpdatePostRequest request, List<MultipartFile> images, String email) {
+	public Post updateFanChannelPost(int postId, UpdatePostRequest request, MultipartFile image, String email) {
 		Post post = postRepository.findById(postId)
 			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_EXIST));
 
 		Member member = memberRepository.findByEmail(email)
 				.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if(!member.getRole().equals(Role.COMMUNITY)) {
+		if(member.getRole().equals(Role.COMMUNITY)) {
 			throw new PostException(PostErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
-		if(images != null && !images.isEmpty()) {
-			List<String> imgUrls = imageService.saveImagesAndReturnUrls(images);
-			post.addImages(imgUrls);
+		if(image != null && !image.isEmpty()) {
+			String imgUrl = imageService.saveImageAndReturnUrl(image);
+			post.addImage(imgUrl);
 		}
 
-		post.update(request.getTitle(), request.getContent(), request.getImages());
+		post.update(request.getTitle(), request.getContent(), request.getImage());
+		return post;
 	}
 
 	// 팬채널 글 삭제
@@ -155,7 +151,7 @@ public class FanChannelPostService {
 		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if(!member.getRole().equals(Role.COMMUNITY)) {
+		if(member.getRole().equals(Role.COMMUNITY)) {
 			throw new PostException(PostErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 		post.updateByIsDelete();
@@ -170,7 +166,7 @@ public class FanChannelPostService {
 		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if(!member.getRole().equals(Role.COMMUNITY)) {
+		if(member.getRole().equals(Role.COMMUNITY)) {
 			throw new PostException(PostErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
@@ -207,18 +203,20 @@ public class FanChannelPostService {
 
 		if(oldCookie != null) {
 			if(oldCookie.getValue().contains("[" + postId + "]")) {
-				post.updateViewCount(postId);
+				post.updateViewCount();
 				oldCookie.setValue(oldCookie.getValue() + "[" + postId + "]");
 				oldCookie.setPath("/");
 				oldCookie.setMaxAge(60 * 60 * 24);
 				response.addCookie(oldCookie);
 			}
 		} else {
-			post.updateViewCount(post.getViewCount());
+			post.updateViewCount();
 			Cookie newCookie = new Cookie("viewCount", "[" + postId + "]");
 			newCookie.setPath("/");
 			newCookie.setMaxAge(60 * 60 * 24);
 			response.addCookie(newCookie);
 		}
+
+		postRepository.save(post);
 	}
 }

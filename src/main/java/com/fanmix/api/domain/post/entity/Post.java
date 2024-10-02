@@ -61,7 +61,6 @@ public class Post extends BaseEntity {
 	private boolean isDelete;
 
 	private int viewCount;				// 조회수
-	private LocalDateTime lastViewed;	// 마지막 조회 시간
 
 	@OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE, orphanRemoval = true)
 	private List<Comment> comments = new ArrayList<>();        // 댓글
@@ -76,25 +75,25 @@ public class Post extends BaseEntity {
 	private int dislikeCount;
 
 	@Builder
-	public Post(Community community, Member member, String title, String content, List<String> imgUrls) {
+	public Post(Community community, Member member, String title, String content, String imgUrl) {
 		this.community = community;
 		this.member = member;
 		this.title = title;
 		this.content = content;
-		this.imgUrls = imgUrls;
+		this.imgUrl = imgUrl;
 	}
-	public void update(String title, String content, List<String> imgUrls) {
+	public void update(String title, String content, String imgUrl) {
 		this.title = title;
 		this.content = content;
-		this.imgUrls = imgUrls;
+		this.imgUrl = imgUrl;
 	}
 
 	public void updateByIsDelete() {
 		this.isDelete = true;
 	}
 
-	public void addImages(List<String> imgUrls) {
-		this.imgUrls = imgUrls;
+	public void addImage(String imgUrl) {
+		this.imgUrl = imgUrl;
 	}
 
 	public void addLikeCount(int likeCount) {
@@ -105,7 +104,7 @@ public class Post extends BaseEntity {
 		this.dislikeCount = dislikeCount;
 	}
 
-	public void updateViewCount(int viewCount) {
-		this.viewCount = viewCount + 1;
+	public void updateViewCount() {
+		this.viewCount += 1;
 	}
 }

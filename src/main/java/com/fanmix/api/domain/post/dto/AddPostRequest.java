@@ -17,7 +17,7 @@ public class AddPostRequest {
 	private int communityId;
 	private String title;
 	private String content;
-	private List<String> images;
+	private String image;
 
 	public Post toEntity(Community community, Member member) {
 		return Post.builder()
@@ -25,7 +25,7 @@ public class AddPostRequest {
 			.member(member)
 			.title(title)
 			.content(content)
-			.imgUrls(images)
+			.imgUrl(image)
 			.build();
 	}
 }

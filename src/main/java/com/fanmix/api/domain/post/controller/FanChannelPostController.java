@@ -36,14 +36,14 @@ public class FanChannelPostController {
 	@PostMapping("/api/fanchannels/posts")
 	public ResponseEntity<Response<Post>> addPost(
 		@RequestPart @Validated AddPostRequest request,
-		@RequestPart(value = "images", required = false) List<MultipartFile> images,
+		@RequestPart(value = "images", required = false) MultipartFile image,
 		@AuthenticationPrincipal String email) {
-		fanChannelPostService.save(request, images, email);
+		fanChannelPostService.save(request, image, email);
 		return ResponseEntity.ok(Response.success());
 	}
 
 	// 팬채널 글 목록 조회
-	@GetMapping("/api/fanchannels/{communityId}")
+	@GetMapping("/api/fanchannels/{communityId}/posts")
 	public ResponseEntity<Response<List<PostListResponse>>> fanChannelPosts(
 		@PathVariable int communityId,
 		@AuthenticationPrincipal String email,
@@ -64,9 +64,9 @@ public class FanChannelPostController {
 	public ResponseEntity<Response<Post>> updateFanChannelPost(
 		@PathVariable int postId,
 		@RequestPart @Validated UpdatePostRequest request,
-		@RequestPart(value = "images", required = false) List<MultipartFile> images,
+		@RequestPart(value = "images", required = false) MultipartFile image,
 		@AuthenticationPrincipal String email) {
-		fanChannelPostService.updateFanChannelPost(postId, request, images, email);
+		fanChannelPostService.updateFanChannelPost(postId, request, image, email);
 		return ResponseEntity.ok(Response.success());
 	}
 

@@ -25,7 +25,7 @@ public class PostListResponse {
 		this.communityName = post.getCommunity().getName();
 		this.postTitle = post.getTitle();
 		this.postContents = post.getContent();
-		this.postImageUrl = post.getImgUrls().toString();
+		this.postImageUrl = post.getImgUrl();
 		this.viewCount = post.getViewCount();
 		this.likeCount = post.getLikes() != null ? post.getLikes().size() : 0;
 		this.commentCount = post.getComments().size();

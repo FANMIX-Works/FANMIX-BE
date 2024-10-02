@@ -1,33 +1,17 @@
 package com.fanmix.api.domain.post.controller;
 
-import java.util.List;
-
+import com.fanmix.api.common.response.Response;
+import com.fanmix.api.domain.post.dto.*;
+import com.fanmix.api.domain.post.entity.PostLikeDislike;
+import com.fanmix.api.domain.post.service.PostService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.fanmix.api.common.response.Response;
-import com.fanmix.api.domain.post.dto.AddPostLikeDislikeRequest;
-import com.fanmix.api.domain.post.dto.AddPostRequest;
-import com.fanmix.api.domain.post.dto.PopularPostsResponse;
-import com.fanmix.api.domain.post.dto.PostListResponse;
-import com.fanmix.api.domain.post.dto.PostResponse;
-import com.fanmix.api.domain.post.dto.UpdatePostRequest;
-import com.fanmix.api.domain.post.entity.Post;
-import com.fanmix.api.domain.post.entity.PostLikeDislike;
-import com.fanmix.api.domain.post.service.PostService;
-
-import lombok.RequiredArgsConstructor;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -38,37 +22,37 @@ public class PostController {
 	@PostMapping("/api/communities/posts")
 	public ResponseEntity<Response<PostResponse>> addPost(
 		@RequestPart @Validated AddPostRequest request,
-		@RequestPart(value = "images", required = false) List<MultipartFile> images,
+		@RequestPart(value = "images", required = false) MultipartFile image,
 		@AuthenticationPrincipal String email) {
-		postService.save(request, images, email);
+		postService.save(request, image, email);
 		return ResponseEntity.ok(Response.success());
 	}
 
 	// 전체 커뮤니티 종합 글 리스트 조회
-	@GetMapping("/api/communities")
+	@GetMapping("/api/communities/posts")
 	public ResponseEntity<Response<List<PostListResponse>>> allCommunityPosts(
 		@RequestParam(value = "sort", defaultValue = "LATEST_POST") String sort) {
 		return ResponseEntity.ok(Response.success(postService.findAllCommunityPosts(sort)));
 	}
 
 	// 특정 커뮤니티 게시글 리스트 조회
-	@GetMapping("/api/communities/{communityId}")
+	@GetMapping("/api/communities/{communityId}/posts")
 	public ResponseEntity<Response<List<PostListResponse>>> communityPosts(
 		@PathVariable int communityId,
 		@RequestParam(value = "sort", defaultValue = "LATEST_POST") String sort) {
 		return ResponseEntity.ok(Response.success(postService.findAllByCommunityId(communityId, sort)));
 	}
 
-	// 게시물 목록 조회
-	@GetMapping("/api/communities/{communityId}/posts")
-	public ResponseEntity<Response<List<PostResponse>>> findAllPost(
-		@PathVariable int communityId, @AuthenticationPrincipal String email) {
-		return ResponseEntity.ok(Response.success(postService.findAll(communityId, email)
-			.stream()
-			.map(PostResponse::new)
-			.toList()
-		));
-	}
+//	// 게시물 목록 조회
+//	@GetMapping("/api/communities/{communityId}/posts")
+//	public ResponseEntity<Response<List<PostResponse>>> findAllPost(
+//		@PathVariable int communityId, @AuthenticationPrincipal String email) {
+//		return ResponseEntity.ok(Response.success(postService.findAll(communityId, email)
+//			.stream()
+//			.map(PostResponse::new)
+//			.toList()
+//		));
+//	}
 
 	// 게시물 조회
 	@GetMapping("/api/communities/{communityId}/posts/{postId}")
@@ -83,9 +67,9 @@ public class PostController {
 		@PathVariable int communityId,
 		@PathVariable int postId,
 		@RequestPart @Validated UpdatePostRequest request,
-		@RequestPart(value = "images", required = false) List<MultipartFile> images,
+		@RequestPart(value = "images", required = false) MultipartFile image,
 		@AuthenticationPrincipal String email) {
-		postService.update(communityId, postId, request, images, email);
+		postService.update(communityId, postId, request, image, email);
 		return ResponseEntity.ok(Response.success());
 	}
 
