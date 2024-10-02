@@ -29,12 +29,9 @@ public class ReviewComment extends BaseEntity {
 	private Long id;
 
 	@NotNull
-	@Column(name = "content")
-	private String content;
-
-	@NotNull
-	@Column(name = "is_deleted")
-	private Boolean isDeleted;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "member_id")
+	private Member member;
 
 	@NotNull
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -42,9 +39,12 @@ public class ReviewComment extends BaseEntity {
 	private Review review;
 
 	@NotNull
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "member_id")
-	private Member member;
+	@Column(name = "content")
+	private String content;
+
+	@NotNull
+	@Column(name = "is_deleted")
+	private Boolean isDeleted;
 
 	@Builder
 	public ReviewComment(String content, Review review, Member member) {

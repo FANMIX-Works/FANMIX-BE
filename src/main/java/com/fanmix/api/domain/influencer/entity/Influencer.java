@@ -37,6 +37,12 @@ public class Influencer extends BaseEntity {
 	@Column(name = "id")
 	private Integer id;
 
+	@OneToMany(mappedBy = "influencer", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<SocialMedia> socialMediaAddresses = new ArrayList<>();
+
+	@OneToMany(mappedBy = "influencer")
+	private List<Review> reviews = new ArrayList<>();
+
 	@NotNull
 	@Enumerated(EnumType.STRING)
 	@Column(name = "gender")
@@ -67,17 +73,19 @@ public class Influencer extends BaseEntity {
 	@Column(name = "authentication_status")
 	private AuthenticationStatus authenticationStatus;
 
-	@NotNull
 	@Column(name = "authentication_request_date")
 	private LocalDateTime authenticationRequestDate;
 
-	@NotNull
 	@Column(name = "authentication_confirm_date")
 	private LocalDateTime authenticationConfirmDate;
 
 	@PositiveOrZero
 	@Column(name = "total_view_count")
 	private Integer totalViewCount = 0;
+
+	@PositiveOrZero
+	@Column(name = "weekly_view_count")
+	private Integer weeklyViewCount = 0;
 
 	//이렇게 integer 3개는 점수로 판별이 더 나을거 같아서 1부터 5로 할거
 	@Min(1)
@@ -94,12 +102,6 @@ public class Influencer extends BaseEntity {
 	@Max(5)
 	@Column(name = "contents_dynamic")
 	private Integer contentsDynamic;
-
-	@OneToMany(mappedBy = "influencer", cascade = CascadeType.ALL, orphanRemoval = true)
-	private List<SocialMedia> socialMediaAddresses = new ArrayList<>();
-
-	@OneToMany(mappedBy = "influencer")
-	private List<Review> reviews = new ArrayList<>();
 
 	public void increaseTotalViewCount() {
 		this.totalViewCount++;

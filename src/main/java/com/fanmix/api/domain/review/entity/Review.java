@@ -36,6 +36,19 @@ public class Review extends BaseEntity {
 	private Long id;
 
 	@NotNull
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "member_id")
+	private Member member;
+
+	@NotNull
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "influencer_id")
+	private Influencer influencer;
+
+	@OneToMany(mappedBy = "review")
+	private List<ReviewLikeDislike> reviewLikeDislikes = new ArrayList<>();
+
+	@NotNull
 	@Column(name = "content")
 	private String content;
 
@@ -57,19 +70,6 @@ public class Review extends BaseEntity {
 	@NotNull
 	@Column(name = "is_deleted")
 	private Boolean isDeleted;
-
-	@NotNull
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "influencer_id")
-	private Influencer influencer;
-
-	@NotNull
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "member_id")
-	private Member member;
-
-	@OneToMany(mappedBy = "review")
-	private List<ReviewLikeDislike> reviewLikeDislikes = new ArrayList<>();
 
 	@Builder
 	public Review(String content, Integer contentsRating, Integer communicationRating, Integer trustRating,

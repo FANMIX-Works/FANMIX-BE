@@ -57,7 +57,7 @@ public interface ReviewRepository extends JpaRepository<Review, Long>, ReviewQue
 		+ "JOIN Member m "
 		+ "ON r.member_id = m.id "
 		+ "WHERE r.member_id = :memberId "
-		+ "ORDER BY r.u_date desc "
-		, nativeQuery = true)
+		+ "ORDER BY r.u_date desc ",
+		nativeQuery = true)
 	List<Review> findReviewListByMember(@Param("memberId") int memberId);
 }

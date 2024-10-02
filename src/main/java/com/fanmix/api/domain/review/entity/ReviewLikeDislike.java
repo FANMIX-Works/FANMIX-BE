@@ -29,8 +29,9 @@ public class ReviewLikeDislike extends BaseEntity {
 	private Long id;
 
 	@NotNull
-	@Column(name = "is_like")
-	private Boolean isLike;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "member_id")
+	private Member member;
 
 	@NotNull
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -38,9 +39,8 @@ public class ReviewLikeDislike extends BaseEntity {
 	private Review review;
 
 	@NotNull
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "member_id")
-	private Member member;
+	@Column(name = "is_like")
+	private Boolean isLike;
 
 	@Builder
 	public ReviewLikeDislike(Boolean isLike, Review review, Member member) {
