@@ -91,7 +91,7 @@ public class FanChannelService {
 		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if(member.getRole().equals(Role.COMMUNITY)) {
+		if(!member.getRole().equals(Role.COMMUNITY)) {
 			throw new CommunityException(CommunityErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 		return communityRepository.findById(communityId)
@@ -102,7 +102,7 @@ public class FanChannelService {
 	@Transactional
 	public Community fanChannelUpdate(int communityId, UpdateFanChannelRequest request, String email) {
 		Member member = memberRepository.findByEmail(email)
-			.orElseThrow(() -> new MemberException(MemberErrorCode.FAIL_GET_OAUTHINFO));
+			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
 		if(!member.getRole().equals(Role.ADMIN)) {
 			throw new CommunityException(CommunityErrorCode.NOT_EXISTS_AUTHORIZATION);
@@ -111,7 +111,7 @@ public class FanChannelService {
 		Community community = communityRepository.findById(communityId)
 			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
 
-		community.fanChannelUpdate(request.getName(), request.getIsShow());
+		community.fanChannelUpdate(request.getName(), request.getIsShow(), request.getPriv());
 
 		return community;
 	}

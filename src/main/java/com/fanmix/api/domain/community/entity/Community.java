@@ -56,9 +56,10 @@ public class Community extends BaseEntity {
 	}
 
 	// 팬채널 수정
-	public void fanChannelUpdate(String name, Boolean isShow) {
+	public void fanChannelUpdate(String name, Boolean isShow, Role priv) {
 		this.name = name;
 		this.isShow = isShow;
+		this.priv = priv;
 	}
 
 	// 팬채널 삭제

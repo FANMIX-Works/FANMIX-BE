@@ -1,26 +1,17 @@
 package com.fanmix.api.domain.community.controller;
 
-import java.util.List;
-
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.fanmix.api.common.response.Response;
 import com.fanmix.api.domain.community.dto.AddFanChannelRequest;
 import com.fanmix.api.domain.community.dto.FanChannelResponse;
 import com.fanmix.api.domain.community.dto.UpdateFanChannelRequest;
 import com.fanmix.api.domain.community.entity.Community;
 import com.fanmix.api.domain.community.service.FanChannelService;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -49,11 +40,12 @@ public class FanChannelController {
 
 	// 팬채널 수정
 	@PutMapping("/api/fanchannels/{communityId}")
-	public ResponseEntity<Response<Community>> updateFanChannel(
+	public ResponseEntity<Response<FanChannelResponse>> updateFanChannel(
 		@PathVariable int communityId,
 		@RequestBody UpdateFanChannelRequest request,
 		@AuthenticationPrincipal String email) {
-		return ResponseEntity.ok(Response.success(fanChannelService.fanChannelUpdate(communityId, request, email)));
+		fanChannelService.fanChannelUpdate(communityId, request, email);
+		return ResponseEntity.ok(Response.success());
 	}
 
 	// 팬채널 삭제
