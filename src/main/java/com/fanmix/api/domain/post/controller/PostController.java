@@ -4,6 +4,8 @@ import com.fanmix.api.common.response.Response;
 import com.fanmix.api.domain.post.dto.*;
 import com.fanmix.api.domain.post.entity.PostLikeDislike;
 import com.fanmix.api.domain.post.service.PostService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -57,10 +59,13 @@ public class PostController {
 	// 게시물 조회
 	@GetMapping("/api/communities/{communityId}/posts/{postId}")
 	public ResponseEntity<Response<PostResponse>> findPost(
-		@PathVariable int communityId,
-		@PathVariable int postId) {
+			@PathVariable int communityId,
+			@PathVariable int postId,
+			HttpServletRequest request, HttpServletResponse response) {
+		postService.updateViewCount(postId, request, response);
 		return ResponseEntity.ok(Response.success(new PostResponse(postService.findById(communityId, postId))));
 	}
+
 	// 게시물 수정
 	@PutMapping("/api/communities/{communityId}/posts/{postId}")
 	public ResponseEntity<Response<PostResponse>> updatePost(
