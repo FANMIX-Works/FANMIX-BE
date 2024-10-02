@@ -1,5 +1,7 @@
 package com.fanmix.api.domain.fan.entity;
 
+import java.time.LocalDateTime;
+
 import com.fanmix.api.domain.common.entity.BaseEntity;
 import com.fanmix.api.domain.influencer.entity.Influencer;
 import com.fanmix.api.domain.member.entity.Member;
@@ -36,6 +38,12 @@ public class Fan extends BaseEntity {
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "member_id")
 	private Member member;
+
+	@JoinColumn(name = "is_onepick")
+	private boolean is_onepick;    //원픽인플루언서 유무   1:원픽, 0: 일반팬
+
+	@JoinColumn(name = "onepick_enrolltime")
+	private LocalDateTime onepick_enrolltime;    //원픽인플루언서지정시간
 
 	@Builder
 	public Fan(Influencer influencer, Member member) {
