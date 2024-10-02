@@ -85,4 +85,10 @@ public class ReviewController {
 		@AuthenticationPrincipal String email) {
 		return ResponseEntity.ok(Response.success(reviewService.getAllReviews(email, sort)));
 	}
+
+	@GetMapping("/influencers/{influencerId}/reviews")
+	public ResponseEntity<Response<List<ReviewResponseDto.ForInfluencerAllReview>>> getInfluencerReviews(
+		@PathVariable Integer influencerId, @RequestParam Sort sort, @AuthenticationPrincipal String email) {
+		return ResponseEntity.ok(Response.success(reviewService.getInfluencerReviews(influencerId, email, sort)));
+	}
 }

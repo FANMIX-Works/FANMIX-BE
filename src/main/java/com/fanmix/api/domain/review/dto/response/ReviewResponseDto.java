@@ -33,8 +33,29 @@ public class ReviewResponseDto {
 				review.getId(), reviewer.getId(), reviewer.getNickName(),
 				averageRating, review.getContentsRating(), review.getCommunicationRating(), review.getTrustRating(),
 				review.getCrDate(), review.getContent(), reviewLikeCount, reviewDislikeCount, reviewCommentsCount,
-				isMyReview, isLiked,
-				isDisliked);
+				isMyReview, isLiked, isDisliked);
+		}
+	}
+
+	public record ForInfluencerAllReview(Long reviewId, Integer reviewerId, String reviewerNickName,
+										 Double averageRating, Integer contentsRating,
+										 Integer communicationRating, Integer trustRating, LocalDateTime reviewDate,
+										 String reviewContent, Long reviewLikeCount, Long reviewDislikeCount,
+										 Long reviewCommentsCount, Boolean isMyReview, Boolean isLiked,
+										 Boolean isDisliked) {
+
+		public static ForInfluencerAllReview of(Member reviewer, Review review,
+			Long reviewLikeCount, Long reviewDislikeCount, Long reviewCommentsCount,
+			Boolean isMyReview, Boolean isLiked, Boolean isDisliked) {
+
+			double averageRating =
+				(review.getContentsRating() + review.getCommunicationRating() + review.getTrustRating()) / 3.0;
+
+			return new ForInfluencerAllReview(
+				review.getId(), reviewer.getId(), reviewer.getNickName(),
+				averageRating, review.getContentsRating(), review.getCommunicationRating(), review.getTrustRating(),
+				review.getCrDate(), review.getContent(), reviewLikeCount, reviewDislikeCount, reviewCommentsCount,
+				isMyReview, isLiked, isDisliked);
 		}
 	}
 }
