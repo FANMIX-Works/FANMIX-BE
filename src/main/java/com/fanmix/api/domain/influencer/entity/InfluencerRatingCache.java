@@ -49,19 +49,15 @@ public class InfluencerRatingCache {
 	@Column(name = "is_authenticated")
 	private Boolean isAuthenticated;
 
-	@NotNull
 	@Column(name = "tag1")
 	private String tag1;
 
-	@NotNull
 	@Column(name = "tag2")
 	private String tag2;
 
-	@NotNull
 	@Column(name = "tag3")
 	private String tag3;
 
-	@NotNull
 	@Column(name = "latest_review_date")
 	private LocalDateTime latestReviewDate;
 
