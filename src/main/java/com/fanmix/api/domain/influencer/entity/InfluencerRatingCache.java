@@ -12,6 +12,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
@@ -30,6 +31,11 @@ public class InfluencerRatingCache {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id")
 	private Integer id;
+
+	@NotNull
+	@OneToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "influencer_id")
+	private Influencer influencer;
 
 	@NotNull
 	@Column(name = "influencer_image_url")
@@ -80,9 +86,6 @@ public class InfluencerRatingCache {
 	private Integer totalViewCount;
 
 	@NotNull
-	@OneToOne(fetch = FetchType.LAZY)
-	private Influencer influencer;
-
 	@LastModifiedDate
 	@Column(name = "updated_at")
 	private LocalDateTime updatedAt;
