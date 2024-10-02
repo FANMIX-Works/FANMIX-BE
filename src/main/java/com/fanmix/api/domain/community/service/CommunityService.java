@@ -64,7 +64,7 @@ public class CommunityService {
 	public List<CommunityResponse> findAllCategories() {
 		return communityRepository.findAll()
 				.stream()
-				.filter(community -> community.getInfluencerId() == null)
+				.filter(community -> community.getInfluencer().getId() == null)
 				.map(CommunityResponse::new)
 				.toList();
 	}

@@ -13,7 +13,7 @@ public class CommunityResponse {
 
 	public CommunityResponse(Community community) {
 		this.communityId = community.getId();
-		this.influencerId = community.getInfluencerId() != null ? community.getInfluencerId() : 0;
+		this.influencerId = community.getInfluencer().getId();
 		this.name = community.getName();
 		this.isShow = community.getIsShow();
 	}

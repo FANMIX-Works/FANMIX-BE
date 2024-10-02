@@ -41,11 +41,12 @@ public class FanChannelService {
 			throw new CommunityException(CommunityErrorCode.INVALID_INFLUENCER_ID);
 		}
 
-		if(communityRepository.findByInfluencerId(request.getInfluencerId()).isPresent()) {
+		if(communityRepository.findByInfluencerId(influencerRepository.findById(request.getInfluencerId()).
+				orElseThrow(() -> new IllegalArgumentException("존재하지 않는 인플루언서"))).isPresent()) {
 			throw new CommunityException(CommunityErrorCode.INFLUENCER_ID_DUPLICATION);
 		}
 
-		influencerRepository.findById(request.getInfluencerId())
+		Influencer influencer = influencerRepository.findById(request.getInfluencerId())
 			.orElseThrow(() -> new InfluencerException(InfluencerErrorCode.INFLUENCER_NOT_FOUND));
 
 		Member member = memberRepository.findByEmail(email)
@@ -55,7 +56,7 @@ public class FanChannelService {
 			throw new CommunityException(CommunityErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
-		communityRepository.save(request.FanChannelToEntity());
+		communityRepository.save(request.FanChannelToEntity(influencer));
 	}
 
 	// 팬채널 리스트 정렬
@@ -79,7 +80,7 @@ public class FanChannelService {
 
 		return fanChannelList
 			.stream()
-			.filter(fanchannel -> fanchannel.getInfluencerId() != null || fanchannel.getInfluencerId() == 0)
+			.filter(fanchannel -> fanchannel.getInfluencer().getId() != null)
 			.map(FanChannelResponse::new)
 			.collect(Collectors.toList());
 	}
@@ -90,7 +91,7 @@ public class FanChannelService {
 		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if(!member.getRole().equals(Role.COMMUNITY)) {
+		if(member.getRole().equals(Role.COMMUNITY)) {
 			throw new CommunityException(CommunityErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 		return communityRepository.findById(communityId)
