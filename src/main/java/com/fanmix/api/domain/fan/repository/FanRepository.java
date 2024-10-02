@@ -1,5 +1,6 @@
 package com.fanmix.api.domain.fan.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,4 +13,6 @@ public interface FanRepository extends JpaRepository<Fan, Long> {
 	Boolean existsByInfluencerAndMember(Influencer influencer, Member member);
 
 	Optional<Fan> findByInfluencerAndMember(Influencer influencer, Member member);
+
+	List<Fan> findByMember(Member member);
 }

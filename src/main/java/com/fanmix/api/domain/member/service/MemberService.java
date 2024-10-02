@@ -17,28 +17,54 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fanmix.api.common.redis.RedisService;
 import com.fanmix.api.domain.common.Gender;
 import com.fanmix.api.domain.common.UserMode;
+import com.fanmix.api.domain.fan.entity.Fan;
+import com.fanmix.api.domain.fan.repository.FanRepository;
+import com.fanmix.api.domain.influencer.entity.Influencer;
+import com.fanmix.api.domain.influencer.entity.tag.InfluencerTag;
+import com.fanmix.api.domain.influencer.entity.tag.InfluencerTagMapper;
+import com.fanmix.api.domain.influencer.repository.InfluencerRepository;
+import com.fanmix.api.domain.influencer.repository.cache.InfluencerRatingCacheRepository;
+import com.fanmix.api.domain.influencer.repository.tag.InfluencerTagMapperRepository;
+import com.fanmix.api.domain.member.dto.MemberActivityDto;
 import com.fanmix.api.domain.member.dto.MemberResponseDto;
 import com.fanmix.api.domain.member.dto.MemberSignUpDto;
 import com.fanmix.api.domain.member.entity.Member;
+import com.fanmix.api.domain.member.exception.MemberErrorCode;
 import com.fanmix.api.domain.member.exception.MemberException;
 import com.fanmix.api.domain.member.repository.MemberRepository;
+import com.fanmix.api.domain.review.entity.Review;
+import com.fanmix.api.domain.review.repository.ReviewCommentRepository;
+import com.fanmix.api.domain.review.repository.ReviewLikeDislikeRepository;
+import com.fanmix.api.domain.review.repository.ReviewRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Slf4j
 public class MemberService implements UserDetailsService {
 
 	private final MemberRepository memberRepository;
 	private final PasswordEncoder passwordEncoder;
 
+	private final InfluencerRepository influencerRepository;
+	private final InfluencerRatingCacheRepository influencerRatingCacheRepository;
+	private final InfluencerTagMapperRepository influencerTagMapperRepository;
+	private final ReviewRepository reviewRepository;
+	private final ReviewLikeDislikeRepository reviewLikeDislikeRepository;
+	private final ReviewCommentRepository reviewCommentRepository;
+	private final FanRepository fanRepository;
+	private final RedisService redisService;
+
 	@Override
 	//오버라이드한 함수라 함수이름을 변경할수 없어서 username이지만 실제로는 이메일로 식별
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		System.out.println("loadUserByUsername() 함수 호출됨. username(이메일) : " + username);
+		log.debug("loadUserByUsername() 함수 호출됨. username(이메일) : " + username);
 		Member member = memberRepository.findByEmail(username)
 			.orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + username));
 		Authentication authentication = new UsernamePasswordAuthenticationToken(member, null, member.getAuthorities());
@@ -89,7 +115,7 @@ public class MemberService implements UserDetailsService {
 	}
 
 	public Member getMyInfo() {
-		System.out.println("MemberService의 getMyInfo()");
+		log.debug("MemberService의 getMyInfo()");
 		try {
 			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 			if (authentication == null || authentication.getPrincipal() == null) {
@@ -182,4 +208,50 @@ public class MemberService implements UserDetailsService {
 			throw new MemberException(NO_CONTEXT);
 		}
 	}
+
+	@Transactional
+	public List<MemberActivityDto.Details> getMemberDetailsReview(Integer MemberId, String email) {
+		//멤버 가져오기
+		//로그인이 안되어있으면 null반환. 로그인이 되어있다면
+		final Member member = (email.equals("anonymousUser")) ? null :
+			memberRepository.findById(MemberId).orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
+		log.debug("멤버가져오기 완료 : " + member.getId());
+
+		//나의 팬 정보 가져오기
+		final List<Fan> fans = fanRepository.findByMember(member);
+		if (fans.isEmpty()) {
+			throw new MemberException(MemberErrorCode.NO_FAN);
+		}
+		log.debug("팬 가져오기 완료. 내가 팔로운한 인플루언서의 갯수 : " + fans.size());
+
+		// 인플루언서 가져오기
+		List<Influencer> influencers = new ArrayList<>();
+		List<List<String>> tagLists = new ArrayList<>();
+		List<Review> reviews = new ArrayList<>();
+		List<Boolean> isFollowings = new ArrayList<>();
+
+		for (Fan fan : fans) {
+			Influencer influencer = fan.getInfluencer();
+			if (influencer != null) {
+				influencers.add(influencer);
+
+				List<String> tagList = influencerTagMapperRepository.findByInfluencer(influencer)
+					.stream()
+					.map(InfluencerTagMapper::getInfluencerTag)
+					.map(InfluencerTag::getTagName)
+					.toList();
+				tagLists.add(tagList);
+
+				Review review = reviewRepository.findTopByMemberAndInfluencerAndIsDeletedOrderByCrDateDesc(
+					member, influencer, false).orElse(null);
+				reviews.add(review);
+
+				Boolean isFollowing = fanRepository.existsByInfluencerAndMember(influencer, member);
+				isFollowings.add(isFollowing);
+			}
+		}
+
+		return MemberActivityDto.Details.of(influencers, tagLists, reviews, isFollowings);
+	}
+
 }

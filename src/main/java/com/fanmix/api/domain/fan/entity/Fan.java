@@ -44,7 +44,7 @@ public class Fan extends BaseEntity {
 
 	@NotNull
 	@JoinColumn(name = "is_onepick")
-	private boolean isOnepick = false;    //원픽인플루언서 유무   1:원픽, 0: 일반팬
+	private Boolean isOnepick = false;    //원픽인플루언서 유무   1:원픽, 0: 일반팬
 
 	@JoinColumn(name = "onepick_enrolltime")
 	private LocalDateTime onepickEnrolltime;    //원픽인플루언서지정시간

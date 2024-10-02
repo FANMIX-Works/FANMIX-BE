@@ -27,12 +27,12 @@ import com.fanmix.api.domain.common.Gender;
 import com.fanmix.api.domain.common.UserMode;
 import com.fanmix.api.domain.influencer.service.InfluencerService;
 import com.fanmix.api.domain.member.dto.AuthResponse;
+import com.fanmix.api.domain.member.dto.MemberActivityDto;
 import com.fanmix.api.domain.member.dto.MemberResponseDto;
 import com.fanmix.api.domain.member.entity.Member;
 import com.fanmix.api.domain.member.exception.MemberException;
 import com.fanmix.api.domain.member.service.GoogleLoginService;
 import com.fanmix.api.domain.member.service.MemberService;
-import com.fanmix.api.domain.review.entity.Review;
 import com.fanmix.api.domain.review.service.ReviewService;
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -318,15 +318,10 @@ public class MemberController {
 
 	//특정유저의 활동내역 (한줄리뷰)
 	@GetMapping("/api/public/members/{memberId}/activity/reviews")
-	@ResponseBody
-	public ResponseEntity<Response<List<Review>>> getMyActivityReview(
+	public ResponseEntity<Response<List<MemberActivityDto.Details>>> getMyActivityReview(
 		@PathVariable int memberId,
 		@AuthenticationPrincipal String email) {
-		List<Review> reviewList = reviewService.getReviewListByMember(memberId, email);
-		if (reviewList.isEmpty()) {
-			ResponseEntity.ok(Response.success(null));
-		}
-		return ResponseEntity.ok(Response.success(reviewList));
+		return ResponseEntity.ok(Response.success(memberService.getMemberDetailsReview(memberId, email)));
 	}
 
 }
