@@ -1,13 +1,5 @@
 package com.fanmix.api.domain.community.service;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.springframework.data.domain.Sort;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.fanmix.api.domain.common.Role;
 import com.fanmix.api.domain.community.dto.AddFanChannelRequest;
 import com.fanmix.api.domain.community.dto.FanChannelResponse;
@@ -16,15 +8,23 @@ import com.fanmix.api.domain.community.entity.Community;
 import com.fanmix.api.domain.community.exception.CommunityErrorCode;
 import com.fanmix.api.domain.community.exception.CommunityException;
 import com.fanmix.api.domain.community.repository.CommunityRepository;
-import com.fanmix.api.domain.fan.entity.FanRepository;
+import com.fanmix.api.domain.fan.repository.FanRepository;
 import com.fanmix.api.domain.influencer.entity.Influencer;
+import com.fanmix.api.domain.influencer.exception.InfluencerErrorCode;
+import com.fanmix.api.domain.influencer.exception.InfluencerException;
 import com.fanmix.api.domain.influencer.repository.InfluencerRepository;
 import com.fanmix.api.domain.member.entity.Member;
 import com.fanmix.api.domain.member.exception.MemberErrorCode;
 import com.fanmix.api.domain.member.exception.MemberException;
 import com.fanmix.api.domain.member.repository.MemberRepository;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -45,12 +45,11 @@ public class FanChannelService {
 			throw new CommunityException(CommunityErrorCode.INFLUENCER_ID_DUPLICATION);
 		}
 
-		// 인플루언서 존재 여부 예외처리(임시)
-		Influencer influencer = influencerRepository.findById(request.getInfluencerId())
-			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
+		influencerRepository.findById(request.getInfluencerId())
+			.orElseThrow(() -> new InfluencerException(InfluencerErrorCode.INFLUENCER_NOT_FOUND));
 
 		Member member = memberRepository.findByEmail(email)
-			.orElseThrow(() -> new MemberException(MemberErrorCode.FAIL_GET_OAUTHINFO));
+			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
 		if(!member.getRole().equals(Role.ADMIN)) {
 			throw new CommunityException(CommunityErrorCode.NOT_EXISTS_AUTHORIZATION);
