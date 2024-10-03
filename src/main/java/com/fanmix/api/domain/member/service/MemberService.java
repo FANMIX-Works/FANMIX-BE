@@ -1,5 +1,6 @@
 package com.fanmix.api.domain.member.service;
 
+import static com.fanmix.api.domain.influencer.exception.InfluencerErrorCode.*;
 import static com.fanmix.api.domain.member.exception.MemberErrorCode.*;
 
 import java.util.ArrayList;
@@ -19,11 +20,17 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.fanmix.api.domain.common.Gender;
 import com.fanmix.api.domain.common.UserMode;
+import com.fanmix.api.domain.influencer.entity.Influencer;
+import com.fanmix.api.domain.influencer.exception.InfluencerException;
+import com.fanmix.api.domain.influencer.repository.InfluencerRepository;
+import com.fanmix.api.domain.member.dto.LatestReviewResponseDto;
 import com.fanmix.api.domain.member.dto.MemberResponseDto;
 import com.fanmix.api.domain.member.dto.MemberSignUpDto;
 import com.fanmix.api.domain.member.entity.Member;
 import com.fanmix.api.domain.member.exception.MemberException;
 import com.fanmix.api.domain.member.repository.MemberRepository;
+import com.fanmix.api.domain.review.entity.Review;
+import com.fanmix.api.domain.review.repository.ReviewRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -33,6 +40,8 @@ import lombok.RequiredArgsConstructor;
 public class MemberService implements UserDetailsService {
 
 	private final MemberRepository memberRepository;
+	private final InfluencerRepository influencerRepository;
+	private final ReviewRepository reviewRepository;
 	private final PasswordEncoder passwordEncoder;
 
 	@Override
@@ -181,5 +190,21 @@ public class MemberService implements UserDetailsService {
 		} catch (Exception e) {
 			throw new MemberException(NO_CONTEXT);
 		}
+	}
+
+	public LatestReviewResponseDto getMyLatestReviewByInfluencer(Integer influencerId, String email) {
+		final Member member = memberRepository.findByEmail(email)
+			.orElse(null);
+		final Influencer influencer = influencerRepository.findById(influencerId)
+			.orElseThrow(() -> new InfluencerException(INFLUENCER_NOT_FOUND));
+
+		final Review latestReview = reviewRepository.findFirstByInfluencerAndMemberAndIsDeletedFalseOrderByCrDateDesc(
+				influencer,
+				member)
+			.orElse(null);
+
+		boolean isBefore15Days = !latestReview.getCrDate().isBefore(latestReview.getCrDate().minusDays(15));
+
+		return LatestReviewResponseDto.of(latestReview, isBefore15Days);
 	}
 }

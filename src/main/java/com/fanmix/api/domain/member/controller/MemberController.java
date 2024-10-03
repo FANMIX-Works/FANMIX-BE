@@ -27,6 +27,7 @@ import com.fanmix.api.domain.common.Gender;
 import com.fanmix.api.domain.common.UserMode;
 import com.fanmix.api.domain.influencer.service.InfluencerService;
 import com.fanmix.api.domain.member.dto.AuthResponse;
+import com.fanmix.api.domain.member.dto.LatestReviewResponseDto;
 import com.fanmix.api.domain.member.dto.MemberResponseDto;
 import com.fanmix.api.domain.member.entity.Member;
 import com.fanmix.api.domain.member.exception.MemberException;
@@ -329,4 +330,11 @@ public class MemberController {
 		return ResponseEntity.ok(Response.success(reviewList));
 	}
 
+	@GetMapping("/api/members/influencers/{influencerId}/reviews/latest")
+	@ResponseBody
+	public ResponseEntity<LatestReviewResponseDto> getMyLatestReviewByInfluencer(
+		@PathVariable Integer influencerId,
+		@AuthenticationPrincipal String email) {
+		return ResponseEntity.ok(memberService.getMyLatestReviewByInfluencer(influencerId, email));
+	}
 }
