@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fanmix.api.domain.comment.entity.Comment;
 import com.fanmix.api.domain.community.entity.Community;
 import com.fanmix.api.domain.influencer.entity.Influencer;
 import com.fanmix.api.domain.influencer.entity.InfluencerRatingCache;
@@ -30,29 +29,33 @@ public class MemberActivityPostDto {
 
 		Integer postLikeCount,            //좋아요수
 		Integer postDisLikeCount,        //싫어요수
-		List<Comment> comments            //댓글수 뽑기위한 댓글
+		Integer commentsCount            //댓글수
 	) {
 		public static List<Details> of(
-			List<Post> posts // 글 엔티티
+			List<Post> posts, // 글 엔티티
+			Integer commentsCount
 		) {
 			List<Details> detailsList = new ArrayList<>();
 
 			for (Post post : posts) {
 				Community community = post.getCommunity(); // 글에 속한 커뮤니티
 				Influencer influencer = community.getInfluencer(); // 커뮤니티에 연결된 인플루언서
+				// influencer가 null일 경우 기본값 설정 (있으면 팬채널, 없으면 그냥 커뮤니티)
+				Integer influencerId = influencer != null ? influencer.getId() : null;
+				String influencerName = influencer != null ? influencer.getInfluencerName() : null;
 
 				// Details 레코드 생성
 				detailsList.add(new Details(
 					community.getId(),
 					community.getName(),
-					influencer.getId(),
-					influencer.getInfluencerName(),
+					influencerId,
+					influencerName,
 					post.getId(),
 					post.getContent(),
 					post.getCrDate(),
 					post.getLikeCount(),
 					post.getDislikeCount(),
-					post.getComments()
+					post.getComments().size()
 				));
 			}
 

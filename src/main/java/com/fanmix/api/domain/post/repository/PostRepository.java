@@ -19,7 +19,12 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
 	List<Post> findTop5PopularPosts();
 
 	List<Post> findAllByCommunityIdOrderByCrDateDesc(int communityId);
+
 	List<Post> findAllByCommunityId(int communityId, Sort sort);
 
 	List<Post> findAllByCommunityIdBetween(int start, int end, Sort sort);
+
+	List<Post> findAllByCrMember(Integer crMember);
+
+	List<Post> findAllByMemberId(Integer memberId);
 }

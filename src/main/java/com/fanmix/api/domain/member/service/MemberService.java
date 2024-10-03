@@ -265,19 +265,23 @@ public class MemberService implements UserDetailsService {
 		//로그인이 안되어있으면 null반환. 로그인이 되어있다면
 		final Member member = (email.equals("anonymousUser")) ? null :
 			memberRepository.findById(MemberId).orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
-		log.debug("멤버가져오기 완료 : " + member.getId());
+		log.debug("멤버가져오기 완료. 멤버id : " + member.getId());
 
-		//나의 팬 정보 가져오기
-		final List<Post> posts = postRepository.findAllByCrMember(member);
+		//나의 글 정보 가져오기
+		//final List<Post> posts = postRepository.findAllByCrMember(member.getId());
+		final List<Post> posts = postRepository.findAllByMemberId(member.getId());
+		log.debug("내가쓴글 가져오기 완료. 글 갯수 : " + posts.size());
+		int commentsCount = 0;
 
 		for (Post post : posts) {
 			List<Comment> comments = post.getComments();
 			if (comments != null) {
-				log.debug("comments : " + comments);
+				log.debug("해당글의 댓글 가져오기 완료. " + comments);
+				commentsCount = comments.size();
 			}
 		}
 
-		return MemberActivityPostDto.Details.of(posts);
+		return MemberActivityPostDto.Details.of(posts, commentsCount);
 	}
 
 }
