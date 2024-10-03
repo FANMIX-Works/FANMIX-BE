@@ -110,10 +110,12 @@ public class SecurityConfig {
 
 				.anyRequest()
 				.authenticated()
-			).formLogin(form -> form    //formLogin은 로그인정보를 처리하는 기능까지 포함
-				.loginPage("/login")        //loginPage는 로그인정보를 입력하는 페이지만 제공
-				// .defaultSuccessUrl("/home")  RESTAPI용도의 백엔드여서 제거. 이제 특정 URL로 리다이렉트 하려고 시도안함고 대신 인증 성공시 200 OK 응답
-				.permitAll())
+			)
+			//.formLogin(form -> form    //formLogin은 로그인정보를 처리하는 기능까지 포함
+			// 	.loginPage("/login")        //loginPage는 로그인정보를 입력하는 페이지만 제공
+			// 	// .defaultSuccessUrl("/home")  RESTAPI용도의 백엔드여서 제거. 이제 특정 URL로 리다이렉트 하려고 시도안함고 대신 인증 성공시 200 OK 응답
+			// 	.permitAll())
+			//
 			// 로그아웃 설정
 			.logout(logout -> logout
 				.invalidateHttpSession(true)
