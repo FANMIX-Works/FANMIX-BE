@@ -5,6 +5,7 @@ import static com.fanmix.api.domain.member.exception.MemberErrorCode.*;
 import java.util.List;
 import java.util.Map;
 
+import com.fanmix.api.domain.member.dto.MemberActivityReviewDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -27,7 +28,6 @@ import com.fanmix.api.domain.common.Gender;
 import com.fanmix.api.domain.common.UserMode;
 import com.fanmix.api.domain.influencer.service.InfluencerService;
 import com.fanmix.api.domain.member.dto.AuthResponse;
-import com.fanmix.api.domain.member.dto.MemberActivityReviewDto;
 import com.fanmix.api.domain.member.dto.MemberResponseDto;
 import com.fanmix.api.domain.member.entity.Member;
 import com.fanmix.api.domain.member.exception.MemberException;
