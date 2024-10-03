@@ -271,7 +271,7 @@ public class ReviewService {
 
 		final Member member = memberRepository.findByEmail(email)
 			.orElse(null);
-		Influencer influencer = influencerRepository.findById(influencerId)
+		final Influencer influencer = influencerRepository.findById(influencerId)
 			.orElseThrow(() -> new InfluencerException(INFLUENCER_NOT_FOUND));
 
 		List<Review> allReviews = reviewRepository.findAllReviewsByInfluencerOrderBySort(influencer, sort);
@@ -294,9 +294,6 @@ public class ReviewService {
 				if (reviewLikeOrDislike.isPresent()) {
 					isLiked = reviewLikeOrDislike.get().getIsLike();
 					isDisliked = !isLiked;
-				} else {
-					isLiked = false;
-					isDisliked = false;
 				}
 			}
 
@@ -308,4 +305,49 @@ public class ReviewService {
 		}
 		return allReviewsToReturn;
 	}
+
+	public ReviewResponseDto.ForReviewComments getReviewComments(Integer influencerId, Long reviewId, String email) {
+
+		final Member member = memberRepository.findByEmail(email)
+			.orElse(null);
+		final Influencer influencer = influencerRepository.findById(influencerId)
+			.orElseThrow(() -> new InfluencerException(INFLUENCER_NOT_FOUND));
+		final Review review = reviewRepository.findWithMemberById(reviewId)
+			.orElseThrow(() -> new ReviewException(REVIEW_NOT_FOUND));
+
+		Long reviewLikeCount = reviewLikeDislikeRepository.countByReviewAndIsLike(review, true);
+		Long reviewDislikeCount = reviewLikeDislikeRepository.countByReviewAndIsLike(review, false);
+		Long reviewCommentsCount = reviewCommentRepository.countByReviewAndIsDeleted(review, false);
+
+		List<ReviewComment> reviewComments = review.getReviewComments();
+		List<Boolean> isMyCommentList = new ArrayList<>();
+
+		for (ReviewComment reviewComment : reviewComments) {
+			if (member != null) {
+				isMyCommentList.add(member.getId() == reviewComment.getMember().getId());
+			} else {
+				isMyCommentList.add(false);
+			}
+		}
+
+		if (member == null) {
+			return ReviewResponseDto.ForReviewComments.of(review.getMember(), review,
+				reviewLikeCount, reviewDislikeCount, reviewCommentsCount,
+				false, false, false, reviewComments, isMyCommentList);
+		} else {
+			boolean isMyReview = member.getId() == review.getMember().getId();
+			boolean isLiked = false;
+			boolean isDisliked = false;
+
+			Optional<ReviewLikeDislike> reviewLikeOrDislike = reviewLikeDislikeRepository.findByMember(member);
+			if (reviewLikeOrDislike.isPresent()) {
+				isLiked = reviewLikeOrDislike.get().getIsLike();
+				isDisliked = !isLiked;
+			}
+			return ReviewResponseDto.ForReviewComments.of(review.getMember(), review,
+				reviewLikeCount, reviewDislikeCount, reviewCommentsCount,
+				isMyReview, isLiked, isDisliked, reviewComments, isMyCommentList);
+		}
+	}
 }
+

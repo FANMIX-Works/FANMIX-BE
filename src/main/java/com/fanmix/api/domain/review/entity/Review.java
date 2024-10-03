@@ -48,6 +48,9 @@ public class Review extends BaseEntity {
 	@OneToMany(mappedBy = "review")
 	private List<ReviewLikeDislike> reviewLikeDislikes = new ArrayList<>();
 
+	@OneToMany(mappedBy = "review")
+	private List<ReviewComment> reviewComments = new ArrayList<>();
+
 	@NotNull
 	@Column(name = "content")
 	private String content;
