@@ -9,35 +9,33 @@ import lombok.Getter;
 
 @Getter
 public class PostResponse {
-	private int communityId;
-	private int postId;	// 게시물 Id
-	private int crMember;
-	private int uMember;
+	private String communityName;
+	private int postId;
+	private LocalDateTime crDate;
+	private String memberName;
+	private String memberImageUrl;
 	private String title;
-	private String contents;
-	private List<String> imgUrls;
+	private String content;
+	private String imgUrl;
 	private int viewCount;
 	private int likeCount;
 	private int dislikeCount;
 	private int commentCount;
-	private LocalDateTime crDate;
-	private LocalDateTime uDate;
-	private Boolean isDelete;
+	private boolean isDeleted;
 
 	public PostResponse(Post post) {
-		this.communityId = post.getCommunity().getId();
+		this.communityName = post.getCommunity().getName();
 		this.postId = post.getId();
-		this.crMember = post.getCrMember();
-		this.uMember = post.getUMember();
+		this.crDate = post.getCrDate();
+		this.memberName = post.getMember().getName();
+		this.memberImageUrl = post.getMember().getProfileImgUrl();
 		this.title = post.getTitle();
-		this.contents = post.getContent();
-		this.imgUrls = post.getImgUrls();
+		this.content = post.getContent();
+		this.imgUrl = post.getImgUrl();
 		this.viewCount = post.getViewCount();
 		this.likeCount = post.getLikeCount();
 		this.dislikeCount = post.getDislikeCount();
-		this.commentCount = post.getComments() != null ? post.getComments().size() : 0;
-		this.crDate = post.getCrDate();
-		this.uDate = post.getUDate();
-		this.isDelete = post.isDelete();
+		this.commentCount = post.getComments().size();
+		this.isDeleted = post.isDelete();
 	}
 }
