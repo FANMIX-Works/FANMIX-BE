@@ -24,12 +24,16 @@ import com.fanmix.api.common.image.service.ImageService;
 import com.fanmix.api.common.response.Response;
 import com.fanmix.api.common.security.util.JwtTokenUtil;
 import com.fanmix.api.domain.common.Gender;
+import com.fanmix.api.domain.common.UserMode;
+import com.fanmix.api.domain.influencer.service.InfluencerService;
 import com.fanmix.api.domain.member.dto.AuthResponse;
+import com.fanmix.api.domain.member.dto.MemberActivityReviewDto;
 import com.fanmix.api.domain.member.dto.MemberResponseDto;
 import com.fanmix.api.domain.member.entity.Member;
 import com.fanmix.api.domain.member.exception.MemberException;
 import com.fanmix.api.domain.member.service.GoogleLoginService;
 import com.fanmix.api.domain.member.service.MemberService;
+import com.fanmix.api.domain.review.service.ReviewService;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -49,6 +53,10 @@ public class MemberController {
 	private MemberService memberService;
 	@Autowired
 	private ImageService imageService;
+	@Autowired
+	private InfluencerService ifluencerService;
+	@Autowired
+	private ReviewService reviewService;
 
 	public MemberController() {
 	}
@@ -88,7 +96,9 @@ public class MemberController {
 	public boolean isValidateJwtToken(@RequestBody Map<String, String> request) {
 		String jwt = request.get("jwt").toString();
 		log.debug("컨트롤러의 isValidateJwtToken(). 전달받은 jwt : " + jwt);
-		return googleLoginService.isValidateJwtToken(jwt);
+		boolean result = googleLoginService.isValidateJwtToken(jwt);
+		log.debug("result : " + result);
+		return result;
 	}
 
 	@GetMapping("/login")
@@ -131,9 +141,10 @@ public class MemberController {
 	// 특정 회원의 정보를 가져오는 API
 	@GetMapping("/api/members/{id}")
 	@ResponseBody
-	public ResponseEntity<Response<Member>> getMember(@PathVariable int id) {
+	public ResponseEntity<Response<MemberResponseDto>> getMember(@PathVariable int id) {
 		Member member = memberService.getMemberById(id);
-		return ResponseEntity.ok(Response.success(member));
+		MemberResponseDto responseDto = MemberService.toResponseDto(member);
+		return ResponseEntity.ok(Response.success(responseDto));
 	}
 
 	// 현재 로그인한 회원의 정보를 가져오는 API
@@ -292,6 +303,25 @@ public class MemberController {
 		Member member = memberService.getMyInfo();
 		memberService.withDrawMember(member);
 		return ResponseEntity.ok(Response.success(true));
+	}
+
+	// 회원의 성별을 업데이트하는 API
+	@PatchMapping("/api/members/mode/user")
+	@ResponseBody
+	public ResponseEntity<Response<Member>> updateMode(@RequestBody Map<String, String> body) {
+		String mode = body.get("userMode");
+		UserMode userMode = UserMode.valueOf(mode.toUpperCase());
+		Member member = memberService.getMyInfo();
+		member = memberService.updateMode(member.getId(), userMode);
+		return ResponseEntity.ok(Response.success(member));
+	}
+
+	//특정유저의 활동내역 (한줄리뷰)
+	@GetMapping("/api/public/members/{memberId}/activity/reviews")
+	public ResponseEntity<Response<List<MemberActivityReviewDto.Details>>> getMyActivityReview(
+		@PathVariable int memberId,
+		@AuthenticationPrincipal String email) {
+		return ResponseEntity.ok(Response.success(memberService.getMemberDetailsReview(memberId, email)));
 	}
 
 }

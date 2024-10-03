@@ -1,5 +1,7 @@
 package com.fanmix.api.domain.influencer.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -27,6 +29,12 @@ public class SocialMedia {
 	private Integer id;
 
 	@NotNull
+	@ManyToOne
+	@JoinColumn(name = "influencer_id")
+	@JsonIgnore
+	private Influencer influencer;
+
+	@NotNull
 	@Enumerated(EnumType.STRING)
 	@Column(name = "social_media_type")
 	private SocialMediaType socialMediaType;
@@ -39,8 +47,4 @@ public class SocialMedia {
 	@NotNull
 	@Column(name = "address")
 	private String address;
-
-	@ManyToOne
-	@JoinColumn(name = "influencer_id")
-	private Influencer influencer;
 }

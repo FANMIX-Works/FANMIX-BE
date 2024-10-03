@@ -44,6 +44,10 @@ public class SecurityConfig {
 	private MemberService memberService;
 	@Value("${jwt.secret}")
 	private String secretKey;
+	@Autowired
+	CustomAccessDeniedHandler customAccessDeniedHandler;
+	@Autowired
+	CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -63,7 +67,7 @@ public class SecurityConfig {
 			// hasRole을 쓰면 자동으로 앞에 'ROLE_' 를 붙인다.
 			.authorizeHttpRequests((authz) -> authz
 				.requestMatchers("/", "/login", "/profile", "/oauth2/**", "/auth/redirect", "/error",
-					"/api/members/oauth/google", "https://fanmix.vercel.app/auth/redirect",
+					"/api/members/oauth/google", "https://fanmix.vercel.app/auth/redirect", "/api/public/**",
 
 					/* 스웨거 관련 */
 					"/swagger-resources/**", "/v3/api-docs/**", "/swagger-ui/**", "/api-docs")
@@ -121,6 +125,9 @@ public class SecurityConfig {
 				.userInfoEndpoint(userInfo -> userInfo
 					.userService(googleLoginService)
 				)
+			).exceptionHandling(authenticationManager -> authenticationManager
+				.accessDeniedHandler(customAccessDeniedHandler)
+				.authenticationEntryPoint(customAuthenticationEntryPoint)
 			)
 			//스프링시큐리티 필터체인전에 JwtTokenFilter체인 추가.  먼저 JWT토큰을 검사하고 유효하면 인증된 사용자를 스프링시큐리티 컨텍스트 홀더에 저장
 			.addFilterBefore(new JwtTokenFilter(memberService, secretKey), UsernamePasswordAuthenticationFilter.class)

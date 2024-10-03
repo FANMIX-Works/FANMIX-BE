@@ -2,6 +2,7 @@ package com.fanmix.api.domain.member.dto;
 
 import com.fanmix.api.domain.common.Gender;
 import com.fanmix.api.domain.common.Role;
+import com.fanmix.api.domain.common.UserMode;
 import com.fanmix.api.domain.member.entity.Member;
 
 import lombok.Getter;
@@ -22,13 +23,14 @@ public class MemberResponseDto {
 	private String profileImgUrl;         //프로필 이미지 경로
 	private String introduce;             //자기소개
 	private String email;
-	private Gender gender;            //MALE or FEMALE or UNKNOWN
+	private Gender gender;                //MALE or FEMALE or UNKNOWN
 	private int birthYear;               //탄생년도. 나이는 오늘날짜로부터 계산
 	private String nationality;          //국적
 	private int totalPoint;
 	private String refresh_token;
 	private Boolean firstLoginYn;
 	private Role role;
+	private UserMode userMode;        //USER, INFLUENCER
 
 	public MemberResponseDto(Member member) {
 		this.id = member.getId();
@@ -44,6 +46,7 @@ public class MemberResponseDto {
 		this.refresh_token = member.getRefreshToken();
 		this.firstLoginYn = member.getFirstLoginYn();
 		this.role = member.getRole();
+		this.userMode = member.getUserMode();
 	}
 
 }
