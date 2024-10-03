@@ -56,8 +56,10 @@ public class FanChannelPostService {
 		Post post = request.toEntity(community, member);
 
 		if(image != null && !image.isEmpty()) {
-			String imageUrl = imageService.saveImageAndReturnUrl(image);
-			post.addImage(imageUrl);
+			String imgUrl = imageService.saveImageAndReturnUrl(image);
+			post.addImage(imgUrl);
+		} else {
+			post.deleteImage();
 		}
 
 		return postRepository.save(post);
@@ -111,7 +113,7 @@ public class FanChannelPostService {
 		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if(member.getRole().equals(Role.COMMUNITY)) {
+		if(!member.getRole().equals(Role.COMMUNITY)) {
 			throw new PostException(PostErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
@@ -129,16 +131,18 @@ public class FanChannelPostService {
 		Member member = memberRepository.findByEmail(email)
 				.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if(member.getRole().equals(Role.COMMUNITY)) {
+		if(!member.getRole().equals(Role.COMMUNITY)) {
 			throw new PostException(PostErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
 		if(image != null && !image.isEmpty()) {
 			String imgUrl = imageService.saveImageAndReturnUrl(image);
 			post.addImage(imgUrl);
+		} else {
+			post.deleteImage();
 		}
 
-		post.update(request.getTitle(), request.getContent(), request.getImage());
+		post.update(request.getTitle(), request.getContent());
 		return post;
 	}
 
@@ -151,7 +155,7 @@ public class FanChannelPostService {
 		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if(member.getRole().equals(Role.COMMUNITY)) {
+		if(!member.getRole().equals(Role.COMMUNITY)) {
 			throw new PostException(PostErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 		post.updateByIsDelete();
@@ -166,7 +170,7 @@ public class FanChannelPostService {
 		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if(member.getRole().equals(Role.COMMUNITY)) {
+		if(!member.getRole().equals(Role.COMMUNITY)) {
 			throw new PostException(PostErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 

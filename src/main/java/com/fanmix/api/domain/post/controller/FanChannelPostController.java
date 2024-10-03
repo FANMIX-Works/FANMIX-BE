@@ -36,7 +36,7 @@ public class FanChannelPostController {
 	@PostMapping("/api/fanchannels/posts")
 	public ResponseEntity<Response<Post>> addPost(
 		@RequestPart @Validated AddPostRequest request,
-		@RequestPart(value = "images", required = false) MultipartFile image,
+		@RequestPart(value = "image", required = false) MultipartFile image,
 		@AuthenticationPrincipal String email) {
 		fanChannelPostService.save(request, image, email);
 		return ResponseEntity.ok(Response.success());
@@ -64,7 +64,7 @@ public class FanChannelPostController {
 	public ResponseEntity<Response<Post>> updateFanChannelPost(
 		@PathVariable int postId,
 		@RequestPart @Validated UpdatePostRequest request,
-		@RequestPart(value = "images", required = false) MultipartFile image,
+		@RequestPart(value = "image", required = false) MultipartFile image,
 		@AuthenticationPrincipal String email) {
 		fanChannelPostService.updateFanChannelPost(postId, request, image, email);
 		return ResponseEntity.ok(Response.success());

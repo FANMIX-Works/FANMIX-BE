@@ -1,10 +1,9 @@
 package com.fanmix.api.domain.post.dto;
 
-import java.time.LocalDateTime;
-
 import com.fanmix.api.domain.post.entity.Post;
-
 import lombok.Getter;
+
+import java.time.LocalDateTime;
 
 @Getter
 public class PostListResponse {
