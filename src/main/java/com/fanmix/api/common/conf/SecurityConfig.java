@@ -48,9 +48,12 @@ public class SecurityConfig {
 	CustomAccessDeniedHandler customAccessDeniedHandler;
 	@Autowired
 	CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+	@Autowired
+	JwtExpiredEntryPoint jwtExpiredEntryPoint;
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
 		http
 			// CSRF 보호 비활성화 (RESTful API에서는 일반적으로 불필요)
 			.csrf(csrf -> csrf.disable())
@@ -67,6 +70,7 @@ public class SecurityConfig {
 			// hasRole을 쓰면 자동으로 앞에 'ROLE_' 를 붙인다.
 			.authorizeHttpRequests((authz) -> authz
 				.requestMatchers("/", "/login", "/profile", "/oauth2/**", "/auth/redirect", "/error",
+					"api/members/logout",
 					"/api/members/oauth/google", "https://fanmix.vercel.app/auth/redirect", "/api/public/**",
 
 					/* 스웨거 관련 */
@@ -122,7 +126,6 @@ public class SecurityConfig {
 				.clearAuthentication(true))
 			// OAuth2 로그인 설정
 			.oauth2Login(oauth2 -> oauth2
-				.loginPage("/login")    //내가만든 로그인 페이지
 				// .defaultSuccessUrl("/home")  RESTAPI용도의 백엔드여서 제거. 이제 특정 URL로 리다이렉트 하려고 시도안함고 대신 인증 성공시 200 OK 응답
 				.userInfoEndpoint(userInfo -> userInfo
 					.userService(googleLoginService)
@@ -132,7 +135,8 @@ public class SecurityConfig {
 				.authenticationEntryPoint(customAuthenticationEntryPoint)
 			)
 			//스프링시큐리티 필터체인전에 JwtTokenFilter체인 추가.  먼저 JWT토큰을 검사하고 유효하면 인증된 사용자를 스프링시큐리티 컨텍스트 홀더에 저장
-			.addFilterBefore(new JwtTokenFilter(memberService, secretKey), UsernamePasswordAuthenticationFilter.class)
+			.addFilterBefore(new JwtTokenFilter(memberService, secretKey, jwtExpiredEntryPoint),
+				UsernamePasswordAuthenticationFilter.class)
 			.addFilterAfter(new LoggingFilter(), JwtTokenFilter.class);
 		return http.build();
 	}
@@ -166,4 +170,5 @@ public class SecurityConfig {
 		source.registerCorsConfiguration("/**", configuration);
 		return source;
 	}
+
 }
