@@ -62,8 +62,11 @@ public class PostService {
 		Post post = request.toEntity(community, member);
 
 		if(image != null && !image.isEmpty()) {
+			post.deleteImage();
 			String imgUrl = imageService.saveImageAndReturnUrl(image);
 			post.addImage(imgUrl);
+		} else {
+			post.deleteImage();
 		}
 
 		return postRepository.save(post);
@@ -146,8 +149,6 @@ public class PostService {
 			throw new PostException(PostErrorCode.POST_NOT_BELONG_TO_COMMUNITY);
 		}
 
-
-
 		return post;
 	}
 
@@ -166,7 +167,9 @@ public class PostService {
 
 		if(image != null && !image.isEmpty()) {
 			String imgUrl = imageService.saveImageAndReturnUrl(image);
-		 	post.addImage(imgUrl);
+			post.addImage(imgUrl);
+		} else {
+			post.deleteImage();
 		}
 
 		Member member = memberRepository.findByEmail(email)
@@ -176,7 +179,7 @@ public class PostService {
 			throw new CommunityException(CommunityErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
-		post.update(request.getTitle(), request.getContent(), request.getImage());
+		post.update(request.getTitle(), request.getContent());
 		postRepository.save(post);
 		return post;
 	}

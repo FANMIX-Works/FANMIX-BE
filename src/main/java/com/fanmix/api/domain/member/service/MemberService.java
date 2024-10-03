@@ -5,6 +5,7 @@ import static com.fanmix.api.domain.member.exception.MemberErrorCode.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fanmix.api.domain.member.dto.MemberActivityReviewDto;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -28,7 +29,6 @@ import com.fanmix.api.domain.influencer.entity.tag.InfluencerTagMapper;
 import com.fanmix.api.domain.influencer.repository.InfluencerRepository;
 import com.fanmix.api.domain.influencer.repository.cache.InfluencerRatingCacheRepository;
 import com.fanmix.api.domain.influencer.repository.tag.InfluencerTagMapperRepository;
-import com.fanmix.api.domain.member.dto.MemberActivityReviewDto;
 import com.fanmix.api.domain.member.dto.MemberResponseDto;
 import com.fanmix.api.domain.member.dto.MemberSignUpDto;
 import com.fanmix.api.domain.member.entity.Member;

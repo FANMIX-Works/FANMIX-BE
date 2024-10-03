@@ -54,8 +54,7 @@ public class Post extends BaseEntity {
 	private String title;				// 제목
 	private String content;				// 내용
 
-	@ElementCollection					// 첨부 이미지 경로
-	private List<String> imgUrls;
+	private String imgUrl;	// 첨부 파일 이미지 저장 경로
 
 	@Column(name = "delete_yn")			// 삭제 여부(1: 삭제, 0:정상)
 	private boolean isDelete;
@@ -82,10 +81,9 @@ public class Post extends BaseEntity {
 		this.content = content;
 		this.imgUrl = imgUrl;
 	}
-	public void update(String title, String content, String imgUrl) {
+	public void update(String title, String content) {
 		this.title = title;
 		this.content = content;
-		this.imgUrl = imgUrl;
 	}
 
 	public void updateByIsDelete() {
@@ -94,6 +92,10 @@ public class Post extends BaseEntity {
 
 	public void addImage(String imgUrl) {
 		this.imgUrl = imgUrl;
+	}
+
+	public void deleteImage() {
+		this.imgUrl = null;
 	}
 
 	public void addLikeCount(int likeCount) {
@@ -106,5 +108,9 @@ public class Post extends BaseEntity {
 
 	public void updateViewCount() {
 		this.viewCount += 1;
+	}
+
+	public boolean hasImage() {
+		return this.imgUrl != null && !this.imgUrl.isEmpty();
 	}
 }
