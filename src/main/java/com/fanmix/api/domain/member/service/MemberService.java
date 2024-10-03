@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fanmix.api.common.redis.RedisService;
+import com.fanmix.api.domain.comment.entity.Comment;
 import com.fanmix.api.domain.common.Gender;
 import com.fanmix.api.domain.common.UserMode;
 import com.fanmix.api.domain.fan.entity.Fan;
@@ -28,6 +29,7 @@ import com.fanmix.api.domain.influencer.entity.tag.InfluencerTagMapper;
 import com.fanmix.api.domain.influencer.repository.InfluencerRepository;
 import com.fanmix.api.domain.influencer.repository.cache.InfluencerRatingCacheRepository;
 import com.fanmix.api.domain.influencer.repository.tag.InfluencerTagMapperRepository;
+import com.fanmix.api.domain.member.dto.MemberActivityPostDto;
 import com.fanmix.api.domain.member.dto.MemberActivityReviewDto;
 import com.fanmix.api.domain.member.dto.MemberResponseDto;
 import com.fanmix.api.domain.member.dto.MemberSignUpDto;
@@ -35,6 +37,8 @@ import com.fanmix.api.domain.member.entity.Member;
 import com.fanmix.api.domain.member.exception.MemberErrorCode;
 import com.fanmix.api.domain.member.exception.MemberException;
 import com.fanmix.api.domain.member.repository.MemberRepository;
+import com.fanmix.api.domain.post.entity.Post;
+import com.fanmix.api.domain.post.repository.PostRepository;
 import com.fanmix.api.domain.review.entity.Review;
 import com.fanmix.api.domain.review.repository.ReviewCommentRepository;
 import com.fanmix.api.domain.review.repository.ReviewLikeDislikeRepository;
@@ -60,6 +64,7 @@ public class MemberService implements UserDetailsService {
 	private final ReviewCommentRepository reviewCommentRepository;
 	private final FanRepository fanRepository;
 	private final RedisService redisService;
+	private final PostRepository postRepository;
 
 	@Override
 	//오버라이드한 함수라 함수이름을 변경할수 없어서 username이지만 실제로는 이메일로 식별
@@ -255,7 +260,7 @@ public class MemberService implements UserDetailsService {
 	}
 
 	@Transactional
-	public List<MemberActivityReviewDto.Details> getMemberDetailsPosts(Integer MemberId, String email) {
+	public List<MemberActivityPostDto.Details> getMemberDetailsPosts(Integer MemberId, String email) {
 		//멤버 가져오기
 		//로그인이 안되어있으면 null반환. 로그인이 되어있다면
 		final Member member = (email.equals("anonymousUser")) ? null :
@@ -263,40 +268,16 @@ public class MemberService implements UserDetailsService {
 		log.debug("멤버가져오기 완료 : " + member.getId());
 
 		//나의 팬 정보 가져오기
-		final List<Fan> fans = fanRepository.findByMember(member);
-		if (fans.isEmpty()) {
-			throw new MemberException(MemberErrorCode.NO_FAN);
-		}
-		log.debug("팬 가져오기 완료. 내가 팔로운한 인플루언서의 갯수 : " + fans.size());
+		final List<Post> posts = postRepository.findAllByCrMember(member);
 
-		// 인플루언서 가져오기
-		List<Influencer> influencers = new ArrayList<>();
-		List<List<String>> tagLists = new ArrayList<>();
-		List<Review> reviews = new ArrayList<>();
-		List<Boolean> isFollowings = new ArrayList<>();
-
-		for (Fan fan : fans) {
-			Influencer influencer = fan.getInfluencer();
-			if (influencer != null) {
-				influencers.add(influencer);
-
-				List<String> tagList = influencerTagMapperRepository.findByInfluencer(influencer)
-					.stream()
-					.map(InfluencerTagMapper::getInfluencerTag)
-					.map(InfluencerTag::getTagName)
-					.toList();
-				tagLists.add(tagList);
-
-				Review review = reviewRepository.findTopByMemberAndInfluencerAndIsDeletedOrderByCrDateDesc(
-					member, influencer, false).orElse(null);
-				reviews.add(review);
-
-				Boolean isFollowing = fanRepository.existsByInfluencerAndMember(influencer, member);
-				isFollowings.add(isFollowing);
+		for (Post post : posts) {
+			List<Comment> comments = post.getComments();
+			if (comments != null) {
+				log.debug("comments : " + comments);
 			}
 		}
 
-		return MemberActivityReviewDto.Details.of(influencers, tagLists, reviews, isFollowings);
+		return MemberActivityPostDto.Details.of(posts);
 	}
 
 }
