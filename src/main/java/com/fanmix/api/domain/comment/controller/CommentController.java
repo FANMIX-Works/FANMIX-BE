@@ -1,16 +1,5 @@
 package com.fanmix.api.domain.comment.controller;
 
-import java.util.List;
-
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.fanmix.api.common.response.Response;
 import com.fanmix.api.domain.comment.dto.AddCommentLikeDislikeRequest;
 import com.fanmix.api.domain.comment.dto.AddCommentRequest;
@@ -19,15 +8,17 @@ import com.fanmix.api.domain.comment.dto.UpdateCommentRequest;
 import com.fanmix.api.domain.comment.entity.Comment;
 import com.fanmix.api.domain.comment.entity.CommentLikeDislike;
 import com.fanmix.api.domain.comment.service.CommentService;
-import com.fanmix.api.domain.post.service.PostService;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
 public class CommentController {
 	private final CommentService commentService;
-	private final PostService postService;
 
 	// 댓글 추가
 	@PostMapping("/api/communities/posts/{postId}/comments")
@@ -73,7 +64,7 @@ public class CommentController {
 	}
 
 	// 댓글 좋아요, 싫어요 평가
-	@PostMapping("/api/communities/posts/{postId}/comments/{commentId}/lke")
+	@PostMapping("/api/communities/posts/{postId}/comments/{commentId}/like")
 	public ResponseEntity<Response<CommentLikeDislike>> addCommentLikeDislike(
 		@PathVariable int postId,
 		@PathVariable int commentId,
