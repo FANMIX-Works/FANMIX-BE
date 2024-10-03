@@ -8,9 +8,10 @@ import lombok.Getter;
 
 @Getter
 public class PostListResponse {
+	private int communityId;
+	private String communityName;
 	private String nickName;
 	private String memberImageUrl;
-	private String communityName;
 	private String postTitle;
 	private String postContents;
 	private String postImageUrl;
@@ -20,6 +21,7 @@ public class PostListResponse {
 	private LocalDateTime crDate;
 
 	public PostListResponse(Post post) {
+		this.communityId = post.getCommunity().getId();
 		this.nickName = post.getMember().getNickName();
 		this.memberImageUrl = post.getMember().getProfileImgUrl();
 		this.communityName = post.getCommunity().getName();
