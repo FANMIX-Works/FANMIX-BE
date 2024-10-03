@@ -48,7 +48,7 @@ public class PostService {
 
 	// 게시물 추가
 	@Transactional
-	public Post save(AddPostRequest request, List<MultipartFile> images, String email) {
+	public Post save(AddPostRequest request, MultipartFile image, String email) {
 		Community community = communityRepository.findById(request.getCommunityId())
 			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
 
@@ -61,9 +61,9 @@ public class PostService {
 
 		Post post = request.toEntity(community, member);
 
-		if(images != null && !images.isEmpty()) {
-			List<String> imgUrls = imageService.saveImagesAndReturnUrls(images);
-			post.addImages(imgUrls);
+		if(image != null && !image.isEmpty()) {
+			String imgUrl = imageService.saveImageAndReturnUrl(image);
+			post.addImage(imgUrl);
 		}
 
 		return postRepository.save(post);
@@ -79,14 +79,16 @@ public class PostService {
 			Sort.Order.desc("viewCount"),
 			Sort.Order.desc("crDate")
 		);
+		Sort crDateDesc = Sort.by(Sort.Order.desc("crDate"));
+
 		List<Post> postList = switch (sort) {
-			case "LIKE_COUNT" -> postRepository.findAll(likeCountDesc);
-			case "VIEW_COUNT" -> postRepository.findAll(viewCountDesc);
-			default -> postRepository.findAllByOrderByCrDateDesc();
+			case "LIKE_COUNT" -> postRepository.findAllByCommunityIdBetween(1, 12, likeCountDesc);
+			case "VIEW_COUNT" -> postRepository.findAllByCommunityIdBetween(1, 12, viewCountDesc);
+			default -> postRepository.findAllByCommunityIdBetween(1, 12, crDateDesc);
 		};
 
 		return postList
-			.stream()
+			.stream().filter(post -> !post.isDelete())
 			.map(PostListResponse::new)
 			.collect(Collectors.toList());
 	}
@@ -106,13 +108,13 @@ public class PostService {
 		);
 
 		List<Post> postList = switch (sort) {
-			case "LIKE_COUNT" -> postRepository.findAll(likeCountDesc);
-			case "VIEW_COUNT" -> postRepository.findAll(viewCountDesc);
-			default -> postRepository.findAllByOrderByCrDateDesc();
+			case "LIKE_COUNT" -> postRepository.findAllByCommunityId(communityId, likeCountDesc);
+			case "VIEW_COUNT" -> postRepository.findAllByCommunityId(communityId, viewCountDesc);
+			default -> postRepository.findAllByCommunityIdOrderByCrDateDesc(communityId);
 		};
 
 		return postList
-			.stream()
+			.stream().filter(post -> !post.isDelete())
 			.map(PostListResponse::new)
 			.collect(Collectors.toList());
 	}
@@ -144,14 +146,14 @@ public class PostService {
 			throw new PostException(PostErrorCode.POST_NOT_BELONG_TO_COMMUNITY);
 		}
 
-		post.updateViewCount(post.getViewCount());
+
 
 		return post;
 	}
 
 	// 게시물 수정
 	@Transactional
-	public Post update(int communityId, int postId, UpdatePostRequest request, List<MultipartFile> images, String email) {
+	public Post update(int communityId, int postId, UpdatePostRequest request, MultipartFile image, String email) {
 		communityRepository.findById(communityId)
 			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
 
@@ -162,9 +164,9 @@ public class PostService {
 			throw new PostException(PostErrorCode.POST_NOT_BELONG_TO_COMMUNITY);
 		}
 
-		if(images != null && !images.isEmpty()) {
-			List<String> imgUrls = imageService.saveImagesAndReturnUrls(images);
-			post.addImages(imgUrls);
+		if(image != null && !image.isEmpty()) {
+			String imgUrl = imageService.saveImageAndReturnUrl(image);
+		 	post.addImage(imgUrl);
 		}
 
 		Member member = memberRepository.findByEmail(email)
@@ -174,8 +176,8 @@ public class PostService {
 			throw new CommunityException(CommunityErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
-		post.update(request.getTitle(), request.getContent(), request.getImages());
-
+		post.update(request.getTitle(), request.getContent(), request.getImage());
+		postRepository.save(post);
 		return post;
 	}
 
@@ -209,18 +211,7 @@ public class PostService {
 
 		return popularList
 			.stream()
-			.map(post -> {
-				int commentCount = post.getComments().size();
-				int influencerId = post.getCommunity().getInfluencerId();
-
-				return new PopularPostsResponse(
-					post.getCommunity().getId(),
-					influencerId,		// 인플루언서 이름 받기
-					post.getLikeCount(),
-					commentCount,
-					post.getCrDate()
-				);
-			})
+			.map(PopularPostsResponse::new)
 			.collect(Collectors.toList());
 	}
 
@@ -269,19 +260,21 @@ public class PostService {
 		}
 
 		if(oldCookie != null) {
-			if(oldCookie.getValue().contains("[" + postId + "]")) {
-				post.updateViewCount(postId);
+			if(!oldCookie.getValue().contains("[" + postId + "]")) {
+				post.updateViewCount();
 				oldCookie.setValue(oldCookie.getValue() + "[" + postId + "]");
 				oldCookie.setPath("/");
 				oldCookie.setMaxAge(60 * 60 * 24);
 				response.addCookie(oldCookie);
 			}
 		} else {
-			post.updateViewCount(post.getViewCount());
+			post.updateViewCount();
 			Cookie newCookie = new Cookie("viewCount", "[" + postId + "]");
 			newCookie.setPath("/");
 			newCookie.setMaxAge(60 * 60 * 24);
 			response.addCookie(newCookie);
 		}
+
+		postRepository.save(post);
 	}
 }
