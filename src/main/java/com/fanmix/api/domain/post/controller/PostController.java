@@ -24,7 +24,7 @@ public class PostController {
 	@PostMapping("/api/communities/posts")
 	public ResponseEntity<Response<PostResponse>> addPost(
 		@RequestPart @Validated AddPostRequest request,
-		@RequestPart(value = "images", required = false) MultipartFile image,
+		@RequestPart(value = "image", required = false) MultipartFile image,
 		@AuthenticationPrincipal String email) {
 		postService.save(request, image, email);
 		return ResponseEntity.ok(Response.success());
@@ -72,7 +72,7 @@ public class PostController {
 		@PathVariable int communityId,
 		@PathVariable int postId,
 		@RequestPart @Validated UpdatePostRequest request,
-		@RequestPart(value = "images", required = false) MultipartFile image,
+		@RequestPart(value = "image", required = false) MultipartFile image,
 		@AuthenticationPrincipal String email) {
 		postService.update(communityId, postId, request, image, email);
 		return ResponseEntity.ok(Response.success());

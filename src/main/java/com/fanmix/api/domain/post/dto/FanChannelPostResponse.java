@@ -26,7 +26,7 @@ public class FanChannelPostResponse {
 
 	public FanChannelPostResponse(Post post) {
 		this.communityId = post.getCommunity().getId();
-		// this.influencerName = post.getCommunity().getInfluencerId().getName();
+		 this.influencerName = post.getCommunity().getInfluencer().getInfluencerName();
 		this.postId = post.getId();
 		this.crMember = post.getCrMember();
 		this.uMember = post.getUMember();
