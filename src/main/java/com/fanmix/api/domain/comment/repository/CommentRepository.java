@@ -8,4 +8,6 @@ import com.fanmix.api.domain.comment.entity.Comment;
 
 public interface CommentRepository extends JpaRepository<Comment, Integer> {
 	List<Comment> findByPostId(int id);
+
+	List<Comment> findByCrMember(int memberId);
 }

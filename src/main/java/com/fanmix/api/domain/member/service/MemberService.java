@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.fanmix.api.common.redis.RedisService;
 import com.fanmix.api.domain.comment.entity.Comment;
+import com.fanmix.api.domain.comment.repository.CommentRepository;
 import com.fanmix.api.domain.common.Gender;
 import com.fanmix.api.domain.common.UserMode;
 import com.fanmix.api.domain.fan.entity.Fan;
@@ -29,6 +30,7 @@ import com.fanmix.api.domain.influencer.entity.tag.InfluencerTagMapper;
 import com.fanmix.api.domain.influencer.repository.InfluencerRepository;
 import com.fanmix.api.domain.influencer.repository.cache.InfluencerRatingCacheRepository;
 import com.fanmix.api.domain.influencer.repository.tag.InfluencerTagMapperRepository;
+import com.fanmix.api.domain.member.dto.MemberActivityCommentDto;
 import com.fanmix.api.domain.member.dto.MemberActivityPostDto;
 import com.fanmix.api.domain.member.dto.MemberActivityReviewDto;
 import com.fanmix.api.domain.member.dto.MemberResponseDto;
@@ -62,6 +64,7 @@ public class MemberService implements UserDetailsService {
 	private final ReviewRepository reviewRepository;
 	private final ReviewLikeDislikeRepository reviewLikeDislikeRepository;
 	private final ReviewCommentRepository reviewCommentRepository;
+	private final CommentRepository commentRepository;
 	private final FanRepository fanRepository;
 	private final RedisService redisService;
 	private final PostRepository postRepository;
@@ -282,6 +285,21 @@ public class MemberService implements UserDetailsService {
 		}
 
 		return MemberActivityPostDto.Details.of(posts, commentsCount);
+	}
+
+	@Transactional
+	public List<MemberActivityCommentDto.Details> getMemberDetailsComments(Integer MemberId, String email) {
+		//멤버 가져오기
+		//로그인이 안되어있으면 null반환. 로그인이 되어있다면
+		final Member member = (email.equals("anonymousUser")) ? null :
+			memberRepository.findById(MemberId).orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
+		log.debug("멤버가져오기 완료. 멤버id : " + member.getId());
+
+		//나의 댓글 정보 가져오기
+		final List<Comment> comments = commentRepository.findByCrMember(member.getId());
+		log.debug("내가쓴 댓글 가져오기 완료. 댓글 갯수 : " + comments.size());
+
+		return MemberActivityCommentDto.Details.of(comments);
 	}
 
 }

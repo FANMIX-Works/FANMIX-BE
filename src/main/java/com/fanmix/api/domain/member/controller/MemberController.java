@@ -27,6 +27,7 @@ import com.fanmix.api.domain.common.Gender;
 import com.fanmix.api.domain.common.UserMode;
 import com.fanmix.api.domain.influencer.service.InfluencerService;
 import com.fanmix.api.domain.member.dto.AuthResponse;
+import com.fanmix.api.domain.member.dto.MemberActivityCommentDto;
 import com.fanmix.api.domain.member.dto.MemberActivityPostDto;
 import com.fanmix.api.domain.member.dto.MemberActivityReviewDto;
 import com.fanmix.api.domain.member.dto.MemberResponseDto;
@@ -331,6 +332,14 @@ public class MemberController {
 		@PathVariable int memberId,
 		@AuthenticationPrincipal String email) {
 		return ResponseEntity.ok(Response.success(memberService.getMemberDetailsPosts(memberId, email)));
+	}
+
+	//특정유저의 활동내역 (댓글)
+	@GetMapping("/api/public/members/{memberId}/activity/comments")
+	public ResponseEntity<Response<List<MemberActivityCommentDto.Details>>> getMyActivityComments(
+		@PathVariable int memberId,
+		@AuthenticationPrincipal String email) {
+		return ResponseEntity.ok(Response.success(memberService.getMemberDetailsComments(memberId, email)));
 	}
 
 }
