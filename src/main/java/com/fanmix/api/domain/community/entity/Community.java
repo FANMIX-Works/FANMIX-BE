@@ -31,8 +31,8 @@ public class Community extends BaseEntity {
 	@Enumerated(EnumType.STRING)
 	private Role priv = Role.GUEST;				// 권한
 
-	@Column(name = "show_yn", columnDefinition = "boolean default true")
-	private Boolean isShow;			// 노출 여부
+	@Column(name = "show_yn")
+	private Boolean isShow = true;			// 노출 여부
 
 	@OneToMany(mappedBy = "community", cascade = CascadeType.REMOVE)
 	List<Post> postList = new ArrayList<>();	// 게시물
