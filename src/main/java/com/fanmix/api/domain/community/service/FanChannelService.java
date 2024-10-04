@@ -37,17 +37,16 @@ public class FanChannelService {
 	// 팬채널 추가
 	@Transactional
 	public void fanChannelSave(AddFanChannelRequest request, @AuthenticationPrincipal String email) {
+		Influencer influencer = influencerRepository.findById(request.getInfluencerId())
+			.orElseThrow(() -> new InfluencerException(InfluencerErrorCode.INFLUENCER_NOT_FOUND));
+
 		if(request.getInfluencerId() <= 0) {
 			throw new CommunityException(CommunityErrorCode.INVALID_INFLUENCER_ID);
 		}
 
-		if(communityRepository.findByInfluencerId(influencerRepository.findById(request.getInfluencerId()).
-				orElseThrow(() -> new IllegalArgumentException("존재하지 않는 인플루언서"))).isPresent()) {
-			throw new CommunityException(CommunityErrorCode.INFLUENCER_ID_DUPLICATION);
+		if (communityRepository.existsByName(request.getName())) {
+			throw new CommunityException(CommunityErrorCode.NAME_DUPLICATION);
 		}
-
-		Influencer influencer = influencerRepository.findById(request.getInfluencerId())
-			.orElseThrow(() -> new InfluencerException(InfluencerErrorCode.INFLUENCER_NOT_FOUND));
 
 		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
