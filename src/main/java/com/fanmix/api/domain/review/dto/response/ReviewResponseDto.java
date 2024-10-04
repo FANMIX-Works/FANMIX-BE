@@ -124,4 +124,29 @@ public class ReviewResponseDto {
 				comment.getCrDate(), comment.getContent(), isMyComment, false);
 		}
 	}
+
+	public record ForHot5Review(Integer influencerId, String influencerName, String influencerImageUrl,
+								Boolean isAuthenticated,
+								Long reviewId, Integer reviewerId, String reviewerNickName,
+								Double averageRating, Integer contentsRating,
+								Integer communicationRating, Integer trustRating, LocalDateTime reviewDate,
+								String reviewContent, Long reviewLikeCount, Long reviewDislikeCount,
+								Long reviewCommentsCount, Boolean isLiked, Boolean isDisliked) {
+
+		public static ForHot5Review of(Influencer influencer, Member reviewer, Review review,
+			Long reviewLikeCount, Long reviewDislikeCount, Long reviewCommentsCount,
+			Boolean isLiked, Boolean isDisliked) {
+
+			double averageRating =
+				(review.getContentsRating() + review.getCommunicationRating() + review.getTrustRating()) / 3.0;
+
+			return new ForHot5Review(influencer.getId(), influencer.getInfluencerName(),
+				influencer.getInfluencerImageUrl(),
+				influencer.getAuthenticationStatus().equals(AuthenticationStatus.APPROVED),
+				review.getId(), reviewer.getId(), reviewer.getNickName(),
+				averageRating, review.getContentsRating(), review.getCommunicationRating(), review.getTrustRating(),
+				review.getCrDate(), review.getContent(), reviewLikeCount, reviewDislikeCount, reviewCommentsCount,
+				isLiked, isDisliked);
+		}
+	}
 }

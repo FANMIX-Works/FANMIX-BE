@@ -4,10 +4,12 @@ import static com.fanmix.api.domain.influencer.exception.InfluencerErrorCode.*;
 import static com.fanmix.api.domain.review.exception.ReviewErrorCode.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -348,6 +350,47 @@ public class ReviewService {
 				reviewLikeCount, reviewDislikeCount, reviewCommentsCount,
 				isMyReview, isLiked, isDisliked, reviewComments, isMyCommentList);
 		}
+	}
+
+	public List<ReviewResponseDto.ForHot5Review> getHot5Reviews(String email) {
+		List<ReviewResponseDto.ForHot5Review> allReviewsToReturn = new ArrayList<>();
+
+		final Member member = memberRepository.findByEmail(email)
+			.orElse(null);
+
+		LocalDateTime startDate = LocalDateTime.now().minusDays(7).toLocalDate().atStartOfDay();
+		List<Review> allReviews = reviewRepository.findHot5Reviews(startDate, PageRequest.of(0, 5));
+
+		for (Review review : allReviews) {
+			Member reviewer = review.getMember();
+			Influencer influencer = review.getInfluencer();
+
+			Long reviewLikeCount = reviewLikeDislikeRepository.countByReviewAndIsLike(review, true);
+			Long reviewDislikeCount = reviewLikeDislikeRepository.countByReviewAndIsLike(review, false);
+			Long reviewCommentsCount = reviewCommentRepository.countByReviewAndIsDeleted(review, false);
+
+			boolean isLiked = false;
+			boolean isDisliked = false;
+
+			if (member != null) {
+				Optional<ReviewLikeDislike> reviewLikeOrDislike = reviewLikeDislikeRepository.findByMember(member);
+
+				if (reviewLikeOrDislike.isPresent()) {
+					isLiked = reviewLikeOrDislike.get().getIsLike();
+					isDisliked = !isLiked;
+				} else {
+					isLiked = false;
+					isDisliked = false;
+				}
+			}
+
+			allReviewsToReturn.add(
+				ReviewResponseDto.ForHot5Review.of(influencer, reviewer, review, reviewLikeCount, reviewDislikeCount,
+					reviewCommentsCount,
+					isLiked, isDisliked)
+			);
+		}
+		return allReviewsToReturn;
 	}
 }
 

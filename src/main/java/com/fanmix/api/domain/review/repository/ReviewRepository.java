@@ -1,5 +1,6 @@
 package com.fanmix.api.domain.review.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -60,4 +61,13 @@ public interface ReviewRepository extends JpaRepository<Review, Long>, ReviewQue
 		+ "ORDER BY r.u_date desc ",
 		nativeQuery = true)
 	List<Review> findReviewListByMember(@Param("memberId") int memberId);
+
+	@Query("SELECT r FROM Review r LEFT JOIN r.reviewLikeDislikes l "
+		+ "JOIN FETCH r.member "
+		+ "WHERE r.isDeleted = FALSE "
+		+ "AND r.crDate >= :startDate "
+		+ "GROUP BY r "
+		+ "ORDER BY SUM(CASE WHEN l.isLike = TRUE THEN 1 ELSE 0 END) - "
+		+ "SUM(CASE WHEN l.isLike = FALSE THEN 1 ELSE 0 END) DESC")
+	List<Review> findHot5Reviews(LocalDateTime startDate, Pageable pageable);
 }

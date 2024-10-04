@@ -97,4 +97,9 @@ public class ReviewController {
 		@PathVariable Integer influencerId, @PathVariable Long reviewId, @AuthenticationPrincipal String email) {
 		return ResponseEntity.ok(Response.success(reviewService.getReviewComments(influencerId, reviewId, email)));
 	}
+
+	@GetMapping("/influencers/reviews/hot5")
+	public ResponseEntity<Response<List<ReviewResponseDto.ForHot5Review>>> getHot5Reviews(@AuthenticationPrincipal String email) {
+		return ResponseEntity.ok(Response.success(reviewService.getHot5Reviews(email)));
+	}
 }
