@@ -2,6 +2,9 @@ package com.fanmix.api.domain.post.controller;
 
 import java.util.List;
 
+import com.fanmix.api.domain.post.service.PostService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
@@ -31,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class FanChannelPostController {
 	private final FanChannelPostService fanChannelPostService;
+	private final PostService postService;
 
 	// 팬채널 글 추가
 	@PostMapping("/api/fanchannels/posts")
@@ -54,8 +58,11 @@ public class FanChannelPostController {
 	// 팬채널 글 조회
 	@GetMapping("/api/fanchannels/posts/{postId}")
 	public ResponseEntity<Response<PostResponse>> fanChannelPost(
-		@PathVariable int postId,
-		@AuthenticationPrincipal String email) {
+			@PathVariable int postId,
+			@AuthenticationPrincipal String email,
+			HttpServletRequest request,
+			HttpServletResponse response) {
+		postService.updateViewCount(postId, request, response);
 		return ResponseEntity.ok(Response.success(new PostResponse(fanChannelPostService.findFanChannelPost(postId, email))));
 	}
 
