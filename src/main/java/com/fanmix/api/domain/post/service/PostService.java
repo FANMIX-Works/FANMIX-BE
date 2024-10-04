@@ -73,6 +73,7 @@ public class PostService {
 	}
 
 	// 전체 커뮤니티 종합 글 리스트 조회
+	@Transactional(readOnly = true)
 	public List<PostListResponse> findAllCommunityPosts(String sort) {
 		Sort likeCountDesc = Sort.by(
 			Sort.Order.desc("likeCount"),
@@ -97,6 +98,7 @@ public class PostService {
 	}
 
 	// 특정 커뮤니티 글 리스트 조회
+	@Transactional(readOnly = true)
 	public List<PostListResponse> findAllByCommunityId(int communityId, String sort) {
 		communityRepository.findById(communityId)
 			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
@@ -123,6 +125,7 @@ public class PostService {
 	}
 
 	// 게시물 목록 조회
+	@Transactional(readOnly = true)
 	public List<Post> findAll(int communityId, String email) {
 		Community community = communityRepository.findById(communityId)
 			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
@@ -138,6 +141,7 @@ public class PostService {
 	}
 
 	// 게시물 조회
+	@Transactional(readOnly = true)
 	public Post findById(int communityId, int postId) {
 		communityRepository.findById(communityId)
 			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
@@ -149,7 +153,7 @@ public class PostService {
 			throw new PostException(PostErrorCode.POST_NOT_BELONG_TO_COMMUNITY);
 		}
 
-		return post;
+		return postRepository.save(post);
 	}
 
 	// 게시물 수정
@@ -210,7 +214,7 @@ public class PostService {
 	// 인기 게시물 5개 가져오기
 	@Transactional(readOnly = true)
 	public List<PopularPostsResponse> popularPosts() {
-		List<Post> popularList = postRepository.findTop5PopularPosts();
+		List<Post> popularList = postRepository.findTop5ByOrderByViewCountDescCrDateDesc();
 
 		return popularList
 			.stream()

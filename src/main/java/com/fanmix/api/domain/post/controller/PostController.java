@@ -89,7 +89,7 @@ public class PostController {
 	}
 
 	// 인기글 top5 조회
-	@GetMapping("/api/communities/popular")
+	@GetMapping("/api/communities/posts/hot5")
 	public ResponseEntity<Response<List<PopularPostsResponse>>> popularPosts() {
 		return ResponseEntity.ok(Response.success(postService.popularPosts()));
 	}
