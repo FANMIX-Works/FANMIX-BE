@@ -29,7 +29,7 @@ public class ImageService {
 
 	private final List<String> allowExtensionList = Arrays.asList(".jpg", ".jpeg", ".png");
 	private final List<String> allowMediaTypeList = Arrays.asList("image/jpg", MediaType.IMAGE_JPEG_VALUE,
-		MediaType.IMAGE_PNG_VALUE);
+		MediaType.IMAGE_PNG_VALUE, "multipart/form-data");
 
 	private final S3Operations s3Operations;
 	private final String bucketName;
@@ -60,6 +60,12 @@ public class ImageService {
 
 		return cloudfrontUrl + resource.getFilename();
 		// 현재는 db에 저장을 하지 않아 반환하고 return 값을 사용하진 않지만 나중에 로직에서 사용할 수 있음
+	}
+
+	public List<String> saveImagesAndReturnUrls(List<MultipartFile> imageFiles) {
+		return imageFiles.stream()
+			.map(this::saveImageAndReturnUrl)
+			.toList();
 	}
 
 	private boolean isImageFile(MultipartFile imageFile) {

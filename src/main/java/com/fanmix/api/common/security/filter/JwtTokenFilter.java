@@ -5,12 +5,14 @@ import static com.fanmix.api.domain.member.exception.MemberErrorCode.*;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.fanmix.api.common.conf.JwtExpiredEntryPoint;
 import com.fanmix.api.common.security.util.JwtTokenUtil;
 import com.fanmix.api.domain.member.exception.MemberException;
 import com.fanmix.api.domain.member.service.MemberService;
@@ -29,6 +31,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
 	private final MemberService memberService;
 	private final String secretKey;
+	private final JwtExpiredEntryPoint jwtExpiredEntryPoint;
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
@@ -42,8 +45,6 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 			//이걸 호출하면 요청이 다음 필터 또는 리소스로 전달됨. 필터체인 외부로 전달되지않고 스프링프레임워크의 예외처리 매커니즘에 의해 처리됨
 			filterChain.doFilter(request, response);
 			return;
-			//throw new MemberException(BLANK_CODE);
-			//handleException(response, new MemberException(BLANK_CODE));
 		}
 
 		// token분리
@@ -63,7 +64,9 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 		// Token이 만료 되었는지 Check
 		if (JwtTokenUtil.isExpired(JWTtoken, secretKey)) {
 			log.info("토큰  만료됨");
-			filterChain.doFilter(request, response);    //현재코드의 밑부분을 진행하지 않고 다음필터로 넘어간다.
+			jwtExpiredEntryPoint.commence(request, response,
+				new InsufficientAuthenticationException("토큰 만료됨"));
+			return;
 		}
 
 		// token에서 userName 꺼내기
@@ -89,7 +92,6 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 			filterChain.doFilter(request, response);
 		} catch (JwtException e) {
 			filterChain.doFilter(request, response);
-			//handleException(response, e);
 		}
 
 		log.debug("필터 끝가지 옴");

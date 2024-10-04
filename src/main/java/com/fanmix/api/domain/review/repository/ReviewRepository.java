@@ -16,6 +16,10 @@ import com.fanmix.api.domain.review.entity.Review;
 public interface ReviewRepository extends JpaRepository<Review, Long>, ReviewQuerydslRepository {
 	Optional<Review> findFirstByInfluencerAndIsDeletedOrderByCrDateDesc(Influencer influencer, Boolean isDeleted);
 
+	//findTopBy는 전체결과를 가져온다음 필터를 걸고 첫번째 행을 반환
+	Optional<Review> findTopByMemberAndInfluencerAndIsDeletedOrderByCrDateDesc(Member member, Influencer influencer,
+		Boolean isDeleted);
+
 	@Query("SELECT r FROM Review r LEFT JOIN r.reviewLikeDislikes l "
 		+ "JOIN FETCH r.member "
 		+ "WHERE r.influencer = :influencer "
@@ -60,4 +64,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long>, ReviewQue
 		+ "ORDER BY r.u_date desc ",
 		nativeQuery = true)
 	List<Review> findReviewListByMember(@Param("memberId") int memberId);
+
+	List<Review> findByMember(Member member);
 }

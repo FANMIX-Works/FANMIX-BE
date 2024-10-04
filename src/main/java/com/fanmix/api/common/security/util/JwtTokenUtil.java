@@ -13,26 +13,26 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.SignatureException;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class JwtTokenUtil {
 
 	public static boolean isExpired(String token, String secretKey) {
 		try {
-			System.out.println("JwtTokenUtil의 isExpired()함수안. secretKey : " + secretKey);
+			log.debug("JwtTokenUtil의 isExpired()함수안. secretKey : " + secretKey);
 			Jws<Claims> claims = Jwts.parser()
 				.setSigningKey(secretKey.getBytes()) // 일관된 바이트 배열 변환
 				.parseClaimsJws(token);
 			return claims.getBody().getExpiration().before(new Date());
 		} catch (JwtException e) {
-			System.out.println("isExpired함수에서 JwtException 예외발생");
-			e.printStackTrace();
-			return false;
+			log.error("isExpired함수에서 JwtException 예외발생");
+			return true;
 		} catch (SignatureException e) {
-			System.out.println("isExpired함수에서 SignatureException 예외발생. 계산한 시크릿키와 현재 시크릿키가 다름");
-			return false;
+			log.error("isExpired함수에서 SignatureException 예외발생. 계산한 시크릿키와 현재 시크릿키가 다름");
+			return true;
 		} catch (Exception e) {
-			e.printStackTrace();
-			return false;
+			return true;
 		}
 	}
 
