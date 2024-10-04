@@ -332,9 +332,9 @@ public class MemberController {
 
 	@GetMapping("/api/members/influencers/{influencerId}/reviews/latest")
 	@ResponseBody
-	public ResponseEntity<LatestReviewResponseDto> getMyLatestReviewByInfluencer(
+	public ResponseEntity<Response<LatestReviewResponseDto>> getMyLatestReviewByInfluencer(
 		@PathVariable Integer influencerId,
 		@AuthenticationPrincipal String email) {
-		return ResponseEntity.ok(memberService.getMyLatestReviewByInfluencer(influencerId, email));
+		return ResponseEntity.ok(Response.success(memberService.getMyLatestReviewByInfluencer(influencerId, email)));
 	}
 }

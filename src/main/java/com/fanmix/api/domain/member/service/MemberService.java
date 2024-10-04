@@ -199,9 +199,12 @@ public class MemberService implements UserDetailsService {
 			.orElseThrow(() -> new InfluencerException(INFLUENCER_NOT_FOUND));
 
 		final Review latestReview = reviewRepository.findFirstByInfluencerAndMemberAndIsDeletedFalseOrderByCrDateDesc(
-				influencer,
-				member)
+				influencer, member)
 			.orElse(null);
+
+		if (latestReview == null) {
+			return null;
+		}
 
 		boolean isBefore15Days = !latestReview.getCrDate().isBefore(latestReview.getCrDate().minusDays(15));
 
