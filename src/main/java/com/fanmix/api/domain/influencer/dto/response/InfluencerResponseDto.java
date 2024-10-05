@@ -101,4 +101,14 @@ public class InfluencerResponseDto {
 				influencerRatingCache.getTrustRating(), influencerRatingCache.getIsAuthenticated());
 		}
 	}
+
+	public record SearchInMain(Integer influencerId, String influencerName, String influencerImageUrl,
+							   Boolean isAuthenticated) {
+
+		public static SearchInMain of(Influencer influencer) {
+			return new SearchInMain(influencer.getId(), influencer.getInfluencerName(),
+				influencer.getInfluencerImageUrl(),
+				influencer.getAuthenticationStatus().equals(APPROVED));
+		}
+	}
 }

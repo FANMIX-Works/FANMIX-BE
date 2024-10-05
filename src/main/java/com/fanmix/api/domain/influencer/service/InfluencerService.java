@@ -149,4 +149,13 @@ public class InfluencerService {
 			.map(InfluencerResponseDto.Search::of)
 			.collect(Collectors.toList());
 	}
+
+	public List<InfluencerResponseDto.SearchInMain> searchInfluencersInMain(String keyword) {
+		List<Influencer> influencerList = influencerRepository.findByInfluencerNameContainsOrderByInfluencerName(
+			keyword);
+
+		return influencerList.stream()
+			.map(InfluencerResponseDto.SearchInMain::of)
+			.collect(Collectors.toList());
+	}
 }
