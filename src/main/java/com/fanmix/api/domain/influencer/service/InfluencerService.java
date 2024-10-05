@@ -158,4 +158,18 @@ public class InfluencerService {
 			.map(InfluencerResponseDto.SearchInMain::of)
 			.collect(Collectors.toList());
 	}
+
+	public Boolean getFollowStatus(Integer influencerId, String email) {
+		final Influencer influencer = influencerRepository.findById(influencerId)
+			.orElseThrow(() -> new InfluencerException(INFLUENCER_NOT_FOUND));
+
+		final Member member = (email.equals("anonymousUser")) ? null :
+			memberRepository.findByEmail(email).orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
+
+		boolean isFollowing = false;
+		if (member != null) {
+			isFollowing = fanRepository.existsByInfluencerAndMember(influencer, member);
+		}
+		return isFollowing;
+	}
 }

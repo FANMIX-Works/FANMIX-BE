@@ -45,4 +45,10 @@ public class InfluencerController {
 		@RequestParam String keyword) {
 		return ResponseEntity.ok(Response.success(influencerService.searchInfluencersInMain(keyword)));
 	}
+
+	@GetMapping("/{influencerId}/follow-status")
+	public ResponseEntity<Response<Boolean>> getFollowStatus(@PathVariable Integer influencerId,
+		@AuthenticationPrincipal String email) {
+		return ResponseEntity.ok(Response.success(influencerService.getFollowStatus(influencerId, email)));
+	}
 }
