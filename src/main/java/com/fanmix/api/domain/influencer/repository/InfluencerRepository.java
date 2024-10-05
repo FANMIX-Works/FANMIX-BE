@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.fanmix.api.domain.influencer.entity.AuthenticationStatus;
@@ -21,5 +22,7 @@ public interface InfluencerRepository extends JpaRepository<Influencer, Integer>
 
 	Page<Influencer> findByAuthenticationStatusOrderByAuthenticationConfirmDateDesc(AuthenticationStatus status,
 		Pageable pageable);
+
+	Slice<Influencer> findAllByOrderByWeeklyViewCountDesc(Pageable pageable);
 
 }

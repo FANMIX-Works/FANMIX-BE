@@ -56,4 +56,9 @@ public class InfluencerController {
 	public ResponseEntity<Response<List<InfluencerResponseDto.SimpleInfo>>> getRecent10Influencers() {
 		return ResponseEntity.ok(Response.success(influencerService.getRecent10Influencers()));
 	}
+
+	@GetMapping("/hot10")
+	public ResponseEntity<Response<List<InfluencerResponseDto.SimpleInfo>>> getHot10Influencers() {
+		return ResponseEntity.ok(Response.success(influencerService.getHot10Influencers()));
+	}
 }

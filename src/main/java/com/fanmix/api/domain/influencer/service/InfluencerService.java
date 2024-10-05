@@ -183,4 +183,14 @@ public class InfluencerService {
 			.map(InfluencerResponseDto.SimpleInfo::of)
 			.collect(Collectors.toList());
 	}
+
+	public List<InfluencerResponseDto.SimpleInfo> getHot10Influencers() {
+		List<InfluencerResponseDto.SimpleInfo> simpleInfoList = new ArrayList<>();
+		for (int i = 0; i < 10; i++) {
+			redisService.hget(INFLUENCER_HOT10_REDIS_PREFIX, String.valueOf(i), InfluencerResponseDto.SimpleInfo.class)
+				.ifPresent(simpleInfoList::add);
+		}
+
+		return simpleInfoList;
+	}
 }
