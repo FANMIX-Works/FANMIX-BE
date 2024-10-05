@@ -105,8 +105,8 @@ public class Influencer extends BaseEntity {
 	private Integer contentsDynamic;
 
 	public void increaseTotalViewCount() {
-		this.totalViewCount++;
-		this.weeklyViewCount++;
+		this.totalViewCount = this.totalViewCount == null ? 1 : this.totalViewCount + 1;
+		this.weeklyViewCount = this.weeklyViewCount == null ? 1 : this.weeklyViewCount + 1;
 	}
 
 	public void initializeWeeklyViewCount() {
