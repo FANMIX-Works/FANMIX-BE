@@ -1,5 +1,6 @@
 package com.fanmix.api.domain.member.service;
 
+import static com.fanmix.api.domain.influencer.exception.InfluencerErrorCode.*;
 import static com.fanmix.api.domain.member.exception.MemberErrorCode.*;
 
 import java.util.ArrayList;
@@ -27,9 +28,11 @@ import com.fanmix.api.domain.fan.repository.FanRepository;
 import com.fanmix.api.domain.influencer.entity.Influencer;
 import com.fanmix.api.domain.influencer.entity.tag.InfluencerTag;
 import com.fanmix.api.domain.influencer.entity.tag.InfluencerTagMapper;
+import com.fanmix.api.domain.influencer.exception.InfluencerException;
 import com.fanmix.api.domain.influencer.repository.InfluencerRepository;
 import com.fanmix.api.domain.influencer.repository.cache.InfluencerRatingCacheRepository;
 import com.fanmix.api.domain.influencer.repository.tag.InfluencerTagMapperRepository;
+import com.fanmix.api.domain.member.dto.LatestReviewResponseDto;
 import com.fanmix.api.domain.member.dto.MemberActivityCommentDto;
 import com.fanmix.api.domain.member.dto.MemberActivityPostDto;
 import com.fanmix.api.domain.member.dto.MemberActivityReviewDto;
@@ -217,6 +220,25 @@ public class MemberService implements UserDetailsService {
 		}
 	}
 
+	public LatestReviewResponseDto getMyLatestReviewByInfluencer(Integer influencerId, String email) {
+		final Member member = memberRepository.findByEmail(email)
+			.orElse(null);
+		final Influencer influencer = influencerRepository.findById(influencerId)
+			.orElseThrow(() -> new InfluencerException(INFLUENCER_NOT_FOUND));
+
+		final Review latestReview = reviewRepository.findFirstByInfluencerAndMemberAndIsDeletedFalseOrderByCrDateDesc(
+				influencer, member)
+			.orElse(null);
+
+		if (latestReview == null) {
+			return null;
+		}
+
+		boolean isBefore15Days = !latestReview.getCrDate().isBefore(latestReview.getCrDate().minusDays(15));
+
+		return LatestReviewResponseDto.of(latestReview, isBefore15Days);
+	}
+
 	@Transactional
 	public List<MemberActivityReviewDto.Details> getMemberDetailsReview(Integer MemberId, String email) {
 		//멤버 가져오기
@@ -242,7 +264,6 @@ public class MemberService implements UserDetailsService {
 			Influencer influencer = fan.getInfluencer();
 			if (influencer != null) {
 				influencers.add(influencer);
-
 				List<String> tagList = influencerTagMapperRepository.findByInfluencer(influencer)
 					.stream()
 					.map(InfluencerTagMapper::getInfluencerTag)

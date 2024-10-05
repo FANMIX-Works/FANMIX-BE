@@ -11,8 +11,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +22,7 @@ import com.fanmix.api.domain.fan.repository.FanRepository;
 import com.fanmix.api.domain.influencer.dto.enums.SearchType;
 import com.fanmix.api.domain.influencer.dto.enums.Sort;
 import com.fanmix.api.domain.influencer.dto.response.InfluencerResponseDto;
+import com.fanmix.api.domain.influencer.entity.AuthenticationStatus;
 import com.fanmix.api.domain.influencer.entity.Influencer;
 import com.fanmix.api.domain.influencer.entity.InfluencerRatingCache;
 import com.fanmix.api.domain.influencer.entity.tag.InfluencerTag;
@@ -84,7 +85,7 @@ public class InfluencerService {
 			isFollowing = fanRepository.existsByInfluencerAndMember(influencer, member);
 		}
 
-		final Page<Review> bestReviewList = reviewRepository.findBestReviewByInfluencer(influencer,
+		final Slice<Review> bestReviewList = reviewRepository.findBestReviewByInfluencer(influencer,
 			PageRequest.of(0, 1));
 		final Review bestReview = bestReviewList.isEmpty() ? null : bestReviewList.getContent().get(0);
 
@@ -148,5 +149,49 @@ public class InfluencerService {
 			.stream()
 			.map(InfluencerResponseDto.Search::of)
 			.collect(Collectors.toList());
+	}
+
+	public List<InfluencerResponseDto.SimpleInfo> searchInfluencersInMain(String keyword) {
+		List<Influencer> influencerList = influencerRepository.findByInfluencerNameContainsOrderByInfluencerName(
+			keyword);
+
+		return influencerList.stream()
+			.map(InfluencerResponseDto.SimpleInfo::of)
+			.collect(Collectors.toList());
+	}
+
+	public Boolean getFollowStatus(Integer influencerId, String email) {
+		final Influencer influencer = influencerRepository.findById(influencerId)
+			.orElseThrow(() -> new InfluencerException(INFLUENCER_NOT_FOUND));
+
+		final Member member = (email.equals("anonymousUser")) ? null :
+			memberRepository.findByEmail(email).orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
+
+		boolean isFollowing = false;
+		if (member != null) {
+			isFollowing = fanRepository.existsByInfluencerAndMember(influencer, member);
+		}
+		return isFollowing;
+	}
+
+	public List<InfluencerResponseDto.SimpleInfo> getRecent10Influencers() {
+		List<Influencer> influencerList = influencerRepository.findByAuthenticationStatusOrderByAuthenticationConfirmDateDesc(
+				AuthenticationStatus.APPROVED, PageRequest.of(0, 10))
+			.getContent();
+
+		return influencerList
+			.stream()
+			.map(InfluencerResponseDto.SimpleInfo::of)
+			.collect(Collectors.toList());
+	}
+
+	public List<InfluencerResponseDto.SimpleInfo> getHot10Influencers() {
+		List<InfluencerResponseDto.SimpleInfo> simpleInfoList = new ArrayList<>();
+		for (int i = 0; i < 10; i++) {
+			redisService.hget(INFLUENCER_HOT10_REDIS_PREFIX, String.valueOf(i), InfluencerResponseDto.SimpleInfo.class)
+				.ifPresent(simpleInfoList::add);
+		}
+
+		return simpleInfoList;
 	}
 }

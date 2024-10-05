@@ -7,6 +7,7 @@ import static com.fanmix.api.domain.review.entity.QReviewLikeDislike.*;
 
 import java.util.List;
 
+import com.fanmix.api.domain.influencer.entity.Influencer;
 import com.fanmix.api.domain.review.dto.enums.Sort;
 import com.fanmix.api.domain.review.entity.Review;
 import com.querydsl.core.types.OrderSpecifier;
@@ -20,13 +21,22 @@ public class ReviewQuerydslRepositoryImpl implements ReviewQuerydslRepository {
 	private final JPAQueryFactory queryFactory;
 
 	@Override
-	public List<Review> findAllReviewsOrderBySort(
-		com.fanmix.api.domain.review.dto.enums.Sort sort) {
+	public List<Review> findAllReviewsOrderBySort(Sort sort) {
 		return queryFactory.selectFrom(review)
 			.leftJoin(review.reviewLikeDislikes, reviewLikeDislike)
 			.join(review.influencer, influencer).fetchJoin()
 			.join(review.member, member).fetchJoin()
 			.where(review.isDeleted.eq(false))
+			.orderBy(sort(sort))
+			.fetch();
+	}
+
+	@Override
+	public List<Review> findAllReviewsByInfluencerOrderBySort(Influencer influencer, Sort sort) {
+		return queryFactory.selectFrom(review)
+			.leftJoin(review.reviewLikeDislikes, reviewLikeDislike)
+			.join(review.member, member).fetchJoin()
+			.where(review.isDeleted.eq(false), review.influencer.eq(influencer))
 			.orderBy(sort(sort))
 			.fetch();
 	}
