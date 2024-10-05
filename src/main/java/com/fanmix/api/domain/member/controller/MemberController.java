@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,18 +26,20 @@ import com.fanmix.api.common.response.Response;
 import com.fanmix.api.common.security.util.JwtTokenUtil;
 import com.fanmix.api.domain.common.Gender;
 import com.fanmix.api.domain.common.UserMode;
+import com.fanmix.api.domain.influencer.dto.response.InfluencerResponseDto;
 import com.fanmix.api.domain.influencer.service.InfluencerService;
 import com.fanmix.api.domain.member.dto.AuthResponse;
+import com.fanmix.api.domain.member.dto.LatestReviewResponseDto;
 import com.fanmix.api.domain.member.dto.MemberActivityCommentDto;
 import com.fanmix.api.domain.member.dto.MemberActivityPostDto;
 import com.fanmix.api.domain.member.dto.MemberActivityReviewDto;
-import com.fanmix.api.domain.member.dto.LatestReviewResponseDto;
 import com.fanmix.api.domain.member.dto.MemberResponseDto;
+import com.fanmix.api.domain.member.dto.MyFollowResponseDto;
 import com.fanmix.api.domain.member.entity.Member;
+import com.fanmix.api.domain.member.enums.FollowSort;
 import com.fanmix.api.domain.member.exception.MemberException;
 import com.fanmix.api.domain.member.service.GoogleLoginService;
 import com.fanmix.api.domain.member.service.MemberService;
-import com.fanmix.api.domain.review.entity.Review;
 import com.fanmix.api.domain.review.service.ReviewService;
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -266,27 +269,6 @@ public class MemberController {
 		return ResponseEntity.ok(Response.success(member));
 	}
 
-	// 내 활동이력 조회(내 한줄리뷰)
-	@GetMapping("/api/members/activity/reviews")
-	@ResponseBody
-	public void getMyActivityReview() {
-		return;
-	}
-
-	// 내 활동이력 조회(내 글)
-	@GetMapping("/api/members/activity/posts")
-	@ResponseBody
-	public void getMyActivityPosts() {
-		return;
-	}
-
-	// 내 활동이력 조회(내 댓글)
-	@GetMapping("/api/members/activity/comments")
-	@ResponseBody
-	public void getMyActivityComments() {
-		return;
-	}
-
 	//로그아웃
 	@PostMapping("/api/members/logout")
 	public ResponseEntity<Response<Boolean>> logout(HttpServletRequest request, HttpServletResponse response) {
@@ -354,4 +336,38 @@ public class MemberController {
 		@AuthenticationPrincipal String email) {
 		return ResponseEntity.ok(Response.success(memberService.getMyLatestReviewByInfluencer(influencerId, email)));
 	}
+
+	//내가 팔로우하고 있는 인플루언서 목록
+	@GetMapping("/api/public/members/followers")
+	@ResponseBody
+	public ResponseEntity<Response<List<MyFollowResponseDto.Details>>> getMyFollowers(
+		@RequestParam FollowSort sort,
+		@AuthenticationPrincipal String email) {
+		return ResponseEntity.ok(Response.success(memberService.getMyFollowers(email, sort)));
+	}
+
+	// 원픽 인플루언서 지정/해제
+	@PatchMapping("/api/members/onepick")
+	@ResponseBody
+	public ResponseEntity<Response<String>> updateMyOnepick(@RequestBody Map<String, String> body) {
+		Integer influencerId = Integer.parseInt(body.get("influencerId"));
+		Boolean onePick = Boolean.parseBoolean(body.get("onePick"));
+		log.debug("influencerId : " + influencerId);
+		log.debug("onePick : " + onePick);
+		if (influencerId == null || onePick == null) {
+			throw new MemberException(NO_REQUEST_DATA_EXIST);
+		}
+		Member member = memberService.getMyInfo();
+		String result = memberService.updateOnePick(member.getId(), influencerId, onePick);
+		return ResponseEntity.ok(Response.success(result));
+	}
+
+	//내가 팔로우하고 있는 인플루언서 목록
+	@GetMapping("/api/public/members/{memberId}/onepick")
+	@ResponseBody
+	public ResponseEntity<Response<InfluencerResponseDto.Details>> getMyFollowers(
+		@PathVariable int memberId, @AuthenticationPrincipal String email) {
+		return ResponseEntity.ok(Response.success(memberService.getMyOnepickInfluencer(memberId, email)));
+	}
+
 }
