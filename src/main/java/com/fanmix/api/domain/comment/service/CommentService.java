@@ -45,7 +45,7 @@ public class CommentService {
 			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_EXIST));
 
 		Member member = memberRepository.findByEmail(email)
-			.orElseThrow(() -> new MemberException(MemberErrorCode.FAIL_GET_OAUTHINFO));
+			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
 		if(!member.getRole().equals(Role.MEMBER)) {
 			throw new CommentException(CommentErrorCode.NOT_EXISTS_AUTHORIZATION);
@@ -54,10 +54,18 @@ public class CommentService {
 		Comment parentComment = null;
 		if(request.getParentId() != 0) {
 			parentComment = commentRepository.findById(request.getParentId())
-				.orElseThrow(() -> new CommentException(CommentErrorCode.PARENT_ID_NOT_EXIST));
-		}
+					.orElseThrow(() -> new CommentException(CommentErrorCode.PARENT_ID_NOT_EXIST));
 
-		return commentRepository.save(request.toEntity(post, parentComment));
+			Comment childComment = new Comment(post, parentComment, request.getContents());
+			childComment.addLevel();
+
+			return commentRepository.save(childComment);
+		} else {
+			Comment childComment = request.toEntity(post, null);
+			childComment.addLevel();
+
+			return commentRepository.save(childComment);
+		}
 	}
 
 	// 전체 댓글 목록
