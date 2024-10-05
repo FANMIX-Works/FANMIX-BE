@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.fanmix.api.domain.influencer.entity.AuthenticationStatus;
@@ -17,6 +19,7 @@ public interface InfluencerRepository extends JpaRepository<Influencer, Integer>
 
 	List<Influencer> findByInfluencerNameContainsOrderByInfluencerName(String influencerName);
 
-	List<Influencer> findByAuthenticationStatusOrderByAuthenticationConfirmDateDesc(AuthenticationStatus status);
+	Page<Influencer> findByAuthenticationStatusOrderByAuthenticationConfirmDateDesc(AuthenticationStatus status,
+		Pageable pageable);
 
 }

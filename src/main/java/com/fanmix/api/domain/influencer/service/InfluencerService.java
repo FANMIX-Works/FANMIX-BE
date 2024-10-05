@@ -175,10 +175,11 @@ public class InfluencerService {
 	}
 
 	public List<InfluencerResponseDto.SimpleInfo> getRecent10Influencers() {
-		List<Influencer> influencerList = influencerRepository.findByAuthenticationStatusOrderByAuthenticationConfirmDateDesc(
-			AuthenticationStatus.APPROVED);
+		Page<Influencer> influencerList = influencerRepository.findByAuthenticationStatusOrderByAuthenticationConfirmDateDesc(
+			AuthenticationStatus.APPROVED, PageRequest.of(0, 10));
 
-		return influencerList.stream()
+		return influencerList
+			.getContent().stream()
 			.map(InfluencerResponseDto.SimpleInfo::of)
 			.collect(Collectors.toList());
 	}
