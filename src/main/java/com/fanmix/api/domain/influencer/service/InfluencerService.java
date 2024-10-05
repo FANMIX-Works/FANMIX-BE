@@ -11,8 +11,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -85,7 +85,7 @@ public class InfluencerService {
 			isFollowing = fanRepository.existsByInfluencerAndMember(influencer, member);
 		}
 
-		final Page<Review> bestReviewList = reviewRepository.findBestReviewByInfluencer(influencer,
+		final Slice<Review> bestReviewList = reviewRepository.findBestReviewByInfluencer(influencer,
 			PageRequest.of(0, 1));
 		final Review bestReview = bestReviewList.isEmpty() ? null : bestReviewList.getContent().get(0);
 
@@ -175,11 +175,12 @@ public class InfluencerService {
 	}
 
 	public List<InfluencerResponseDto.SimpleInfo> getRecent10Influencers() {
-		Page<Influencer> influencerList = influencerRepository.findByAuthenticationStatusOrderByAuthenticationConfirmDateDesc(
-			AuthenticationStatus.APPROVED, PageRequest.of(0, 10));
+		List<Influencer> influencerList = influencerRepository.findByAuthenticationStatusOrderByAuthenticationConfirmDateDesc(
+				AuthenticationStatus.APPROVED, PageRequest.of(0, 10))
+			.getContent();
 
 		return influencerList
-			.getContent().stream()
+			.stream()
 			.map(InfluencerResponseDto.SimpleInfo::of)
 			.collect(Collectors.toList());
 	}

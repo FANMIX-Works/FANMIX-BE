@@ -4,8 +4,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -28,7 +28,7 @@ public interface ReviewRepository extends JpaRepository<Review, Long>, ReviewQue
 		+ "GROUP BY r "
 		+ "ORDER BY SUM(CASE WHEN l.isLike = TRUE THEN 1 ELSE 0 END) - "
 		+ "SUM(CASE WHEN l.isLike = FALSE THEN 1 ELSE 0 END) DESC")
-	Page<Review> findBestReviewByInfluencer(Influencer influencer, Pageable pageable);
+	Slice<Review> findBestReviewByInfluencer(Influencer influencer, Pageable pageable);
 
 	@Query(value = "SELECT COALESCE(AVG(r.contents_rating), 0), "
 		+ "COALESCE(AVG(r.communication_rating), 0), "
