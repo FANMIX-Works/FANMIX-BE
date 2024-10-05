@@ -80,6 +80,8 @@ public class SecurityConfig {
 				.requestMatchers("/api/admin/**")
 				.hasAnyAuthority("ADMIN")
 				/* 멤버 */
+				.requestMatchers(HttpMethod.GET, "/api/members/influencers/{influencerId}/reviews/latest")
+				.permitAll()
 				.requestMatchers("/api/members/**")
 				.hasAnyAuthority("MEMBER", "ADMIN")
 

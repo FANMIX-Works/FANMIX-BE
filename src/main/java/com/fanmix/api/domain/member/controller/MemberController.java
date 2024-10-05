@@ -30,11 +30,13 @@ import com.fanmix.api.domain.member.dto.AuthResponse;
 import com.fanmix.api.domain.member.dto.MemberActivityCommentDto;
 import com.fanmix.api.domain.member.dto.MemberActivityPostDto;
 import com.fanmix.api.domain.member.dto.MemberActivityReviewDto;
+import com.fanmix.api.domain.member.dto.LatestReviewResponseDto;
 import com.fanmix.api.domain.member.dto.MemberResponseDto;
 import com.fanmix.api.domain.member.entity.Member;
 import com.fanmix.api.domain.member.exception.MemberException;
 import com.fanmix.api.domain.member.service.GoogleLoginService;
 import com.fanmix.api.domain.member.service.MemberService;
+import com.fanmix.api.domain.review.entity.Review;
 import com.fanmix.api.domain.review.service.ReviewService;
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -320,6 +322,7 @@ public class MemberController {
 
 	//특정유저의 활동내역 (한줄리뷰)
 	@GetMapping("/api/public/members/{memberId}/activity/reviews")
+	@ResponseBody
 	public ResponseEntity<Response<List<MemberActivityReviewDto.Details>>> getMyActivityReview(
 		@PathVariable int memberId,
 		@AuthenticationPrincipal String email) {
@@ -328,6 +331,7 @@ public class MemberController {
 
 	//특정유저의 활동내역 (글)
 	@GetMapping("/api/public/members/{memberId}/activity/posts")
+	@ResponseBody
 	public ResponseEntity<Response<List<MemberActivityPostDto.Details>>> getMyActivityPosts(
 		@PathVariable int memberId,
 		@AuthenticationPrincipal String email) {
@@ -336,10 +340,18 @@ public class MemberController {
 
 	//특정유저의 활동내역 (댓글)
 	@GetMapping("/api/public/members/{memberId}/activity/comments")
+	@ResponseBody
 	public ResponseEntity<Response<List<MemberActivityCommentDto.Details>>> getMyActivityComments(
 		@PathVariable int memberId,
 		@AuthenticationPrincipal String email) {
 		return ResponseEntity.ok(Response.success(memberService.getMemberDetailsComments(memberId, email)));
 	}
 
+	@GetMapping("/api/members/influencers/{influencerId}/reviews/latest")
+	@ResponseBody
+	public ResponseEntity<Response<LatestReviewResponseDto>> getMyLatestReviewByInfluencer(
+		@PathVariable Integer influencerId,
+		@AuthenticationPrincipal String email) {
+		return ResponseEntity.ok(Response.success(memberService.getMyLatestReviewByInfluencer(influencerId, email)));
+	}
 }
