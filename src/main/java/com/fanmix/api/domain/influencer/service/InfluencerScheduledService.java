@@ -7,10 +7,14 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fanmix.api.common.redis.RedisService;
+import com.fanmix.api.common.redis.constants.InfluencerRedisConstants;
+import com.fanmix.api.domain.influencer.dto.response.InfluencerResponseDto;
 import com.fanmix.api.domain.influencer.entity.Influencer;
 import com.fanmix.api.domain.influencer.entity.InfluencerRatingCache;
 import com.fanmix.api.domain.influencer.entity.tag.InfluencerTag;
@@ -45,6 +49,7 @@ public class InfluencerScheduledService {
 	private final InfluencerRatingCacheRepository influencerRatingCacheRepository;
 	private final ReviewRepository reviewRepository;
 	private final InfluencerTagMapperRepository influencerTagMapperRepository;
+	private final RedisService redisService;
 
 	@Transactional
 	@Scheduled(cron = "0 0 * * * *")
@@ -107,5 +112,21 @@ public class InfluencerScheduledService {
 		return new InfluencerCacheDataRecord(influencer.getInfluencerImageUrl(), influencer.getInfluencerName(),
 			isAuthenticated, tags, latestReviewDate, averageRating,
 			contentsRating, communicationRating, trustRating, influencer.getTotalViewCount());
+	}
+
+	@Scheduled(cron = "0 59 23 * * SAT")
+	@Transactional
+	public void updateWeeklyHot10Influencer() {
+		List<Influencer> influencerList = influencerRepository.findAllByOrderByWeeklyViewCountDesc(
+			PageRequest.of(0, 10)).getContent();
+
+		for (int i = 0; i < 10; i++) {
+			redisService.hset(InfluencerRedisConstants.INFLUENCER_HOT10_REDIS_PREFIX, String.valueOf(i),
+				InfluencerResponseDto.SimpleInfo.of(influencerList.get(i)));
+		}
+
+		List<Influencer> all = influencerRepository.findAll();
+
+		all.forEach(Influencer::initializeWeeklyViewCount);
 	}
 }
