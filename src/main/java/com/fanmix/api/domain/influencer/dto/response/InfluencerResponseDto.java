@@ -102,11 +102,11 @@ public class InfluencerResponseDto {
 		}
 	}
 
-	public record SearchInMain(Integer influencerId, String influencerName, String influencerImageUrl,
-							   Boolean isAuthenticated) {
+	public record SimpleInfo(Integer influencerId, String influencerName, String influencerImageUrl,
+							 Boolean isAuthenticated) {
 
-		public static SearchInMain of(Influencer influencer) {
-			return new SearchInMain(influencer.getId(), influencer.getInfluencerName(),
+		public static SimpleInfo of(Influencer influencer) {
+			return new SimpleInfo(influencer.getId(), influencer.getInfluencerName(),
 				influencer.getInfluencerImageUrl(),
 				influencer.getAuthenticationStatus().equals(APPROVED));
 		}

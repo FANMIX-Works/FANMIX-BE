@@ -41,7 +41,7 @@ public class InfluencerController {
 	}
 
 	@GetMapping("/main-search")
-	public ResponseEntity<Response<List<InfluencerResponseDto.SearchInMain>>> searchInfluencersInMain(
+	public ResponseEntity<Response<List<InfluencerResponseDto.SimpleInfo>>> searchInfluencersInMain(
 		@RequestParam String keyword) {
 		return ResponseEntity.ok(Response.success(influencerService.searchInfluencersInMain(keyword)));
 	}
@@ -50,5 +50,10 @@ public class InfluencerController {
 	public ResponseEntity<Response<Boolean>> getFollowStatus(@PathVariable Integer influencerId,
 		@AuthenticationPrincipal String email) {
 		return ResponseEntity.ok(Response.success(influencerService.getFollowStatus(influencerId, email)));
+	}
+
+	@GetMapping("/recent10")
+	public ResponseEntity<Response<List<InfluencerResponseDto.SimpleInfo>>> getRecent10Influencers() {
+		return ResponseEntity.ok(Response.success(influencerService.getRecent10Influencers()));
 	}
 }

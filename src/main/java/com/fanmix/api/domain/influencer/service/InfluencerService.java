@@ -22,6 +22,7 @@ import com.fanmix.api.domain.fan.repository.FanRepository;
 import com.fanmix.api.domain.influencer.dto.enums.SearchType;
 import com.fanmix.api.domain.influencer.dto.enums.Sort;
 import com.fanmix.api.domain.influencer.dto.response.InfluencerResponseDto;
+import com.fanmix.api.domain.influencer.entity.AuthenticationStatus;
 import com.fanmix.api.domain.influencer.entity.Influencer;
 import com.fanmix.api.domain.influencer.entity.InfluencerRatingCache;
 import com.fanmix.api.domain.influencer.entity.tag.InfluencerTag;
@@ -150,12 +151,12 @@ public class InfluencerService {
 			.collect(Collectors.toList());
 	}
 
-	public List<InfluencerResponseDto.SearchInMain> searchInfluencersInMain(String keyword) {
+	public List<InfluencerResponseDto.SimpleInfo> searchInfluencersInMain(String keyword) {
 		List<Influencer> influencerList = influencerRepository.findByInfluencerNameContainsOrderByInfluencerName(
 			keyword);
 
 		return influencerList.stream()
-			.map(InfluencerResponseDto.SearchInMain::of)
+			.map(InfluencerResponseDto.SimpleInfo::of)
 			.collect(Collectors.toList());
 	}
 
@@ -171,5 +172,14 @@ public class InfluencerService {
 			isFollowing = fanRepository.existsByInfluencerAndMember(influencer, member);
 		}
 		return isFollowing;
+	}
+
+	public List<InfluencerResponseDto.SimpleInfo> getRecent10Influencers() {
+		List<Influencer> influencerList = influencerRepository.findByAuthenticationStatusOrderByAuthenticationConfirmDateDesc(
+			AuthenticationStatus.APPROVED);
+
+		return influencerList.stream()
+			.map(InfluencerResponseDto.SimpleInfo::of)
+			.collect(Collectors.toList());
 	}
 }
