@@ -129,6 +129,12 @@ public class CommunityService {
 			communityFollow.changeFollowStatus();
 
 			communityFollowRepository.save(communityFollow);
+		} else {
+			CommunityFollow communityFollow = communityFollowRepository.findByCommunityAndMember(community, member)
+					.orElseThrow(() -> new CommunityException(CommunityErrorCode.NOT_EXISTS_COMMUNITY_FOLLOWER));
+
+			communityFollow.changeFollowStatus();
+			communityFollowRepository.save(communityFollow);
 		}
 	}
 }
