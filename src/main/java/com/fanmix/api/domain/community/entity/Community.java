@@ -37,6 +37,9 @@ public class Community extends BaseEntity {
 	@OneToMany(mappedBy = "community", cascade = CascadeType.REMOVE)
 	List<Post> postList = new ArrayList<>();	// 게시물
 
+	@OneToMany(mappedBy = "community", cascade = CascadeType.REMOVE)
+	private List<CommunityFollow> followList = new ArrayList<>();
+
 	@Builder
 	public Community(Influencer influencer, String name) {
 		this.influencer = influencer;

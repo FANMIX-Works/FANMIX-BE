@@ -2,6 +2,8 @@ package com.fanmix.api.domain.community.service;
 
 import java.util.List;
 
+import com.fanmix.api.domain.community.entity.CommunityFollow;
+import com.fanmix.api.domain.community.repository.CommunityFollowRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 public class CommunityService {
 	private final CommunityRepository communityRepository;
 	private final MemberRepository memberRepository;
+	private final CommunityFollowRepository communityFollowRepository;
 
 	// 커뮤니티 추가
 	@Transactional
@@ -110,5 +113,22 @@ public class CommunityService {
 	// 커뮤니티명 중복체크
 	public boolean existsByName(AddCommunityRequest request) {
 		return communityRepository.existsByName(request.getName());
+	}
+
+	// 커뮤니티 팔로우
+	@Transactional
+	public void followCommunity(int communityId, String email) {
+		Community community = communityRepository.findById(communityId)
+				.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
+
+		Member member = memberRepository.findByEmail(email)
+				.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
+
+		if(!communityFollowRepository.existsByCommunityAndMember(community, member)) {
+			CommunityFollow communityFollow = new CommunityFollow(community, member);
+			communityFollow.changeFollowStatus();
+
+			communityFollowRepository.save(communityFollow);
+		}
 	}
 }

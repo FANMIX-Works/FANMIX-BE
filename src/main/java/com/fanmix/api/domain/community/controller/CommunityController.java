@@ -48,8 +48,8 @@ public class CommunityController {
 
 	// 커뮤니티 정보 조회
 	@GetMapping("/api/communities/{communityId}/info")
-	public ResponseEntity<Response<Community>> findCommunity(@PathVariable int communityId) {
-		return ResponseEntity.ok(Response.success(communityService.findById(communityId)));
+	public ResponseEntity<Response<CommunityResponse>> findCommunity(@PathVariable int communityId) {
+		return ResponseEntity.ok(Response.success(new CommunityResponse(communityService.findById(communityId))));
 	}
 
 	// 커뮤니티 수정
@@ -66,6 +66,13 @@ public class CommunityController {
 	@PatchMapping("/api/communities/{communityId}")
 	public ResponseEntity<Response<Void>> deleteCommunity(@PathVariable int communityId, @AuthenticationPrincipal String email) {
 		communityService.delete(communityId, email);
+		return ResponseEntity.ok(Response.success());
+	}
+
+	// 커뮤니티 팔로우
+	@PostMapping("/api/communities/{communityId}/follow")
+	public ResponseEntity<Response<Void>> followCommunity(@PathVariable int communityId, @AuthenticationPrincipal String email) {
+		communityService.followCommunity(communityId, email);
 		return ResponseEntity.ok(Response.success());
 	}
 }
