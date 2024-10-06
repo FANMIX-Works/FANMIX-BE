@@ -23,4 +23,6 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
 	List<Post> findAllByMemberId(Integer memberId);
 
 	List<Post> findTop5ByOrderByViewCountDescCrDateDesc();
+
+	List<Post> findTop5ByOrderById(Sort sort);
 }

@@ -1,26 +1,30 @@
 package com.fanmix.api.domain.community.service;
 
-import java.util.List;
-
-import com.fanmix.api.domain.community.entity.CommunityFollow;
-import com.fanmix.api.domain.community.repository.CommunityFollowRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.fanmix.api.domain.common.Role;
 import com.fanmix.api.domain.community.dto.AddCommunityRequest;
 import com.fanmix.api.domain.community.dto.CommunityResponse;
+import com.fanmix.api.domain.community.dto.FollowCommunityResponse;
 import com.fanmix.api.domain.community.dto.UpdateCommunityRequest;
 import com.fanmix.api.domain.community.entity.Community;
+import com.fanmix.api.domain.community.entity.CommunityFollow;
 import com.fanmix.api.domain.community.exception.CommunityErrorCode;
 import com.fanmix.api.domain.community.exception.CommunityException;
+import com.fanmix.api.domain.community.repository.CommunityFollowRepository;
 import com.fanmix.api.domain.community.repository.CommunityRepository;
 import com.fanmix.api.domain.member.entity.Member;
 import com.fanmix.api.domain.member.exception.MemberErrorCode;
 import com.fanmix.api.domain.member.exception.MemberException;
 import com.fanmix.api.domain.member.repository.MemberRepository;
-
+import com.fanmix.api.domain.post.dto.Top5PostResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -71,6 +75,9 @@ public class CommunityService {
 				.map(CommunityResponse::new)
 				.toList();
 	}
+
+	// 팔로우 중인 커뮤니티, 팬채널
+
 
 	// 커뮤니티 수정
 	@Transactional
@@ -136,5 +143,48 @@ public class CommunityService {
 			communityFollow.changeFollowStatus();
 			communityFollowRepository.save(communityFollow);
 		}
+	}
+
+	// 팔로우 중인 커뮤니티 리스트 정렬
+	public List<FollowCommunityResponse> followCommunityList(String email, String sort) {
+
+		Member member = memberRepository.findByEmail(email)
+				.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
+
+		List<FollowCommunityResponse> response = new ArrayList<>();
+		Pageable topFive = PageRequest.of(0, 5);
+		List<Community> communityFollowList;
+		if(sort.equals("FOLLOW_DATE")){ // 팔로우순 정렬
+			communityFollowList = communityFollowRepository.findAllOrderByRecentFollow(member.getId());
+			for (Community c : communityFollowList){
+				List<Top5PostResponse> posts = communityRepository.findTop5ByCommunityId(c.getId(), topFive)
+						.stream()
+						.map(Top5PostResponse::new)
+						.collect(Collectors.toList());
+				response.add(new FollowCommunityResponse(c, posts));
+			}
+		}
+		if (sort.equals("POST_DATE")) { // 최신 글 순
+			communityFollowList = communityRepository.findAllOrderByLatestPost(member.getId());
+			for (Community c : communityFollowList){
+				List<Top5PostResponse> posts = communityRepository.findTop5ByCommunityId(c.getId(), topFive)
+						.stream()
+						.map(Top5PostResponse::new)
+						.collect(Collectors.toList());
+				response.add(new FollowCommunityResponse(c, posts));
+			}
+		}
+		if (sort.equals("NAME")){ // 이름 순
+			communityFollowList = communityRepository.findAllByOrderByNameAsc(member.getId());
+			for (Community c : communityFollowList){
+				List<Top5PostResponse> posts = communityRepository.findTop5ByCommunityId(c.getId(), topFive)
+						.stream()
+						.map(Top5PostResponse::new)
+						.collect(Collectors.toList());
+				response.add(new FollowCommunityResponse(c, posts));
+			}
+		}
+
+		return response;
 	}
 }

@@ -42,7 +42,7 @@ public class FanChannelCommentService {
 		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if(member.getRole().equals(Role.COMMUNITY)) {
+		if(!member.getRole().equals(Role.COMMUNITY)) {
 			throw new CommentException(CommentErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
@@ -71,7 +71,7 @@ public class FanChannelCommentService {
 		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if(member.getRole().equals(Role.COMMUNITY)) {
+		if(!member.getRole().equals(Role.COMMUNITY)) {
 			throw new CommentException(CommentErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 		return post.getComments();
@@ -89,7 +89,7 @@ public class FanChannelCommentService {
 		Member member = memberRepository.findByEmail(email)
 				.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if(member.getRole().equals(Role.COMMUNITY)) {
+		if(!member.getRole().equals(Role.COMMUNITY)) {
 			throw new CommentException(CommentErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
@@ -110,7 +110,7 @@ public class FanChannelCommentService {
 		Member member = memberRepository.findByEmail(email)
 				.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if(member.getRole().equals(Role.COMMUNITY)) {
+		if(!member.getRole().equals(Role.COMMUNITY)) {
 			throw new CommentException(CommentErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
@@ -128,7 +128,7 @@ public class FanChannelCommentService {
 		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if(member.getRole().equals(Role.COMMUNITY)) {
+		if(!member.getRole().equals(Role.COMMUNITY)) {
 			throw new CommentException(CommentErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
