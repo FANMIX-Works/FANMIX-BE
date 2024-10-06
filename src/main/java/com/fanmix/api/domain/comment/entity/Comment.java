@@ -3,6 +3,7 @@ package com.fanmix.api.domain.comment.entity;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fanmix.api.domain.member.entity.Member;
 import org.hibernate.annotations.Formula;
 
 import com.fanmix.api.domain.common.entity.BaseEntity;
@@ -37,6 +38,11 @@ public class Comment extends BaseEntity {
 	@ManyToOne
 	@JoinColumn(name = "post_id", nullable = false)
 	private Post post;						// 게시글 id
+
+	@ManyToOne
+	@JoinColumn(name = "member_id")
+	private Member member;					// 멤버 id
+
 	private String contents;				// 내용
 
 	private int level = 1;						// 댓글 레벨(부모, 자식)
@@ -48,7 +54,7 @@ public class Comment extends BaseEntity {
 	private int orderNum;					// 댓글 순서
 
 	@Column(name = "delete_yn")
-	private Boolean isDelete;				// 삭제 여부
+	private Boolean isDelete = false;				// 삭제 여부
 
 	@OneToMany(mappedBy = "parentComment", orphanRemoval = true)
 	private List<Comment> comments = new ArrayList<>();		// 자식 댓글
@@ -73,7 +79,7 @@ public class Comment extends BaseEntity {
 		this.contents = contents;
 	}
 
-	public void delete(Boolean isDelete, String contents) {
+	public void delete() {
 		this.isDelete = true;
 		this.contents = null;
 	}

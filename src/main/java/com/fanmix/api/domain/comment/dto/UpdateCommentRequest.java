@@ -8,6 +8,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Getter
 public class UpdateCommentRequest {
-	private Boolean isDelete;
 	private String contents;
 }

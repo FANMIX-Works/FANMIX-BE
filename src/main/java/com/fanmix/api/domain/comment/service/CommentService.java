@@ -61,10 +61,9 @@ public class CommentService {
 
 			return commentRepository.save(childComment);
 		} else {
-			Comment childComment = request.toEntity(post, null);
-			childComment.addLevel();
+			parentComment = request.toEntity(post, null);
 
-			return commentRepository.save(childComment);
+			return commentRepository.save(parentComment);
 		}
 	}
 
@@ -100,7 +99,7 @@ public class CommentService {
 
 	// 댓글 수정
 	@Transactional
-	public Comment update(int postId, int id, UpdateCommentRequest request) {
+	public Comment update(int postId, int id, UpdateCommentRequest request, String email) {
 		Post post = postRepository.findById(postId)
 			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_EXIST));
 
@@ -111,9 +110,34 @@ public class CommentService {
 			throw new CommentException(CommentErrorCode.COMMENT_NOT_EXIST);
 		}
 
-		comment.update(request.getContents());
+		Member member = memberRepository.findByEmail(email)
+						.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
+		if(!member.getRole().equals(Role.MEMBER)) {
+			throw new CommentException(CommentErrorCode.NOT_EXISTS_AUTHORIZATION);
+		}
+
+		comment.update(request.getContents());
 		return comment;
+	}
+
+	// 댓글 삭제
+	@Transactional
+	public void delete(int postId, int id, String email) {
+		postRepository.findById(postId)
+				.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_EXIST));
+
+		Comment comment = commentRepository.findById(id)
+				.orElseThrow(() -> new CommentException(CommentErrorCode.COMMENT_NOT_EXIST));
+
+		Member member = memberRepository.findByEmail(email)
+				.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
+
+		if(!member.getRole().equals(Role.MEMBER)) {
+			throw new CommentException(CommentErrorCode.NOT_EXISTS_AUTHORIZATION);
+		}
+
+		comment.delete();
 	}
 
 	// 댓글 좋아요, 싫어요 평가

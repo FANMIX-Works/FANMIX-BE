@@ -48,9 +48,7 @@ public class CommentController {
 		@PathVariable int communityId,
 		@PathVariable int postId,
 		@PathVariable int id) {
-
 		Comment comments = commentService.findComments(communityId, postId, id);
-
 		return ResponseEntity.ok(Response.success(new CommentResponse(comments)));
 	}
 
@@ -59,9 +57,20 @@ public class CommentController {
 	public ResponseEntity<Response<CommentResponse>> updateComment(
 		@PathVariable int postId,
 		@PathVariable int id,
-		@RequestBody UpdateCommentRequest request) {
+		@RequestBody UpdateCommentRequest request,
+		@AuthenticationPrincipal String email) {
+		commentService.update(postId, id, request, email);
+		return ResponseEntity.ok(Response.success());
+	}
 
-		return ResponseEntity.ok(Response.success(new CommentResponse(commentService.update(postId, id, request))));
+	// 댓글 삭제
+	@PatchMapping("/api/communities/posts/{postId}/comments/{id}")
+	public ResponseEntity<Response<Void>> deleteComment(
+		@PathVariable int postId,
+		@PathVariable int id,
+		@AuthenticationPrincipal String email) {
+		commentService.delete(postId, id, email);
+		return ResponseEntity.ok(Response.success());
 	}
 
 	// 댓글 좋아요, 싫어요 평가

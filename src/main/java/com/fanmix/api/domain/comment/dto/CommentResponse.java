@@ -10,6 +10,7 @@ public class CommentResponse {
 	private int parentId;
 	private int commentId;
 	private int level;
+	private int memberId;
 	private String contents;
 	private int likeCount;
 	private int dislikeCount;
@@ -21,6 +22,7 @@ public class CommentResponse {
 		this.parentId = (comment.getParentComment() != null ? comment.getParentComment().getId() : 0);
 		this.commentId = comment.getId();
 		this.level = comment.getLevel();
+		this.memberId = comment.getCrMember();
 		this.contents = comment.getContents();
 		this.likeCount = comment.getLikeCount();
 		this.dislikeCount = comment.getDislikeCount();

@@ -40,12 +40,11 @@ public class FanChannelCommentController {
 	}
 
 	// 팬채널 댓글 조회
-	@GetMapping("/api/fanchannels/posts/{postId}/comments/{commentId}")
+	@GetMapping("/api/fanchannels/posts/{postId}/comments")
 	public ResponseEntity<Response<List<CommentResponse>>> findFanChannelComments(
 		@PathVariable int postId,
-		@PathVariable int commentId,
 		@AuthenticationPrincipal String email) {
-		List<CommentResponse> comments = fanChannelCommentService.findFanChannelComments(postId, commentId, email)
+		List<CommentResponse> comments = fanChannelCommentService.findFanChannelComments(postId, email)
 			.stream()
 			.map(CommentResponse::new)
 			.toList();
@@ -68,10 +67,9 @@ public class FanChannelCommentController {
 	public ResponseEntity<Response<DeleteCommentResponse>> deleteFanChannelComment(
 		@PathVariable int postId,
 		@PathVariable int commentId,
-		@RequestBody UpdateCommentRequest request,
 		@AuthenticationPrincipal String email) {
-		Comment comment = fanChannelCommentService.deleteFanChannelComment(postId, commentId, request, email);
-		return ResponseEntity.ok(Response.success(new DeleteCommentResponse(comment, email)));
+		fanChannelCommentService.deleteFanChannelComment(postId, commentId, email);
+		return ResponseEntity.ok(Response.success());
 	}
 
 	// 팬채널 댓글 좋아요, 싫어요 평가
