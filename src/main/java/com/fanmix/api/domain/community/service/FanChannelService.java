@@ -55,7 +55,8 @@ public class FanChannelService {
 			throw new CommunityException(CommunityErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
-		communityRepository.save(request.FanChannelToEntity(influencer));
+		Community community = request.FanChannelToEntity(influencer);
+		communityRepository.save(community);
 	}
 
 	// 팬채널 리스트 정렬
@@ -80,7 +81,7 @@ public class FanChannelService {
 
 	// 팬채널 정보 조회
 	@Transactional(readOnly = true)
-	public Community fanChannel(int communityId, String email) {
+	public FanChannelResponse fanChannel(int communityId, String email) {
 		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 

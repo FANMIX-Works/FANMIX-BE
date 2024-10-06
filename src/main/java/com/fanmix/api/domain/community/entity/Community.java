@@ -46,6 +46,13 @@ public class Community extends BaseEntity {
 		this.name = name;
 	}
 
+	@Builder
+	public Community(Influencer influencer, String name, Role priv) {
+		this.influencer = influencer;
+		this.name = name;
+        this.priv = priv;
+	}
+
 	// 커뮤니티 수정
 	public void update(String name, Boolean isShow, Role priv) {
 		this.name = name;

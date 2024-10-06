@@ -76,9 +76,6 @@ public class CommunityService {
 				.toList();
 	}
 
-	// 팔로우 중인 커뮤니티, 팬채널
-
-
 	// 커뮤니티 수정
 	@Transactional
 	public Community update(int communityId, UpdateCommunityRequest request, String email) {

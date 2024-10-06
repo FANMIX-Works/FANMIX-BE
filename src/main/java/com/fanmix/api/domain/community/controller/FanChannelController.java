@@ -28,14 +28,14 @@ public class FanChannelController {
 	// 팬채널 리스트 정렬
 	@GetMapping("/api/fanchannels")
 	public ResponseEntity<Response<List<FanChannelResponse>>> fanChannelList(
-		@RequestParam(value = "sort", defaultValue = "LATEST_CHANNEL") String sort) {
-		return ResponseEntity.ok(Response.success(fanChannelService.fanChannelList(sort)));
+		@RequestParam(value = "sort", defaultValue = "LATEST_CHANNEL") String sort, @AuthenticationPrincipal String email) {
+		return ResponseEntity.ok(Response.success(fanChannelService.fanChannelList(sort, email)));
 	}
 
 	// 팬채널 정보 조회
 	@GetMapping("/api/fanchannels/{communityId}/info")
 	public ResponseEntity<Response<FanChannelResponse>> fanChannel(@PathVariable int communityId, @AuthenticationPrincipal String email) {
-		return ResponseEntity.ok(Response.success(new FanChannelResponse(fanChannelService.fanChannel(communityId, email))));
+		return ResponseEntity.ok(Response.success(fanChannelService.fanChannel(communityId, email)));
 	}
 
 	// 팬채널 수정
