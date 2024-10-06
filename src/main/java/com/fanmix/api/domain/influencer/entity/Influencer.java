@@ -8,6 +8,7 @@ import com.fanmix.api.domain.common.Gender;
 import com.fanmix.api.domain.common.entity.BaseEntity;
 import com.fanmix.api.domain.fan.entity.Fan;
 import com.fanmix.api.domain.review.entity.Review;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -104,7 +105,12 @@ public class Influencer extends BaseEntity {
 	private Integer contentsDynamic;
 
 	public void increaseTotalViewCount() {
-		this.totalViewCount++;
+		this.totalViewCount = this.totalViewCount == null ? 1 : this.totalViewCount + 1;
+		this.weeklyViewCount = this.weeklyViewCount == null ? 1 : this.weeklyViewCount + 1;
+	}
+
+	public void initializeWeeklyViewCount() {
+		this.weeklyViewCount = 0;
 	}
 
 	@OneToMany(mappedBy = "influencer", cascade = CascadeType.ALL, orphanRemoval = true)

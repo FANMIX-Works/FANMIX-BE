@@ -26,7 +26,7 @@ public enum MemberErrorCode implements ErrorCode {
 	NO_REQUEST_DATA_EXIST(HttpStatus.BAD_REQUEST, "2-014", "바꿀 값이 올바르지 않습니다."),
 	NO_INTEGER_TYPE(HttpStatus.BAD_REQUEST, "2-015", "바꿀 값이 숫자형 데이터타입이 아닙니다."),
 	NO_PRIVILAGE(HttpStatus.BAD_REQUEST, "2-016", "해당 API를 호출할 권한이 없습니다."),
-	NO_CONTEXT(HttpStatus.INTERNAL_SERVER_ERROR, "2-017", "현재 컨텍스트에는 로그인된 유저가 없습니다."),
+	NO_CONTEXT(HttpStatus.INTERNAL_SERVER_ERROR, "2-017", "로그인이 필요한 API입니다. 현재 컨텍스트에는 로그인된 유저가 없습니다."),
 	INVALID_GRANT(HttpStatus.BAD_REQUEST, "2-018",
 		"invalid_grant 오류: 동일한 권한 부여 코드를 사용하여 두 개 이상의 개발자 토큰을 얻으려고 했습니다. 권한 부여 코드는 한 번만 사용할 수 있습니다."),
 	EMPTY_REDIRECTURI(HttpStatus.BAD_REQUEST, "2-019",

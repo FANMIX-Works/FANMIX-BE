@@ -39,4 +39,26 @@ public class InfluencerController {
 		@RequestParam SearchType searchType, @RequestParam String keyword, @RequestParam Sort sort) {
 		return ResponseEntity.ok(Response.success(influencerService.searchInfluencers(searchType, keyword, sort)));
 	}
+
+	@GetMapping("/main-search")
+	public ResponseEntity<Response<List<InfluencerResponseDto.SimpleInfo>>> searchInfluencersInMain(
+		@RequestParam String keyword) {
+		return ResponseEntity.ok(Response.success(influencerService.searchInfluencersInMain(keyword)));
+	}
+
+	@GetMapping("/{influencerId}/follow-status")
+	public ResponseEntity<Response<Boolean>> getFollowStatus(@PathVariable Integer influencerId,
+		@AuthenticationPrincipal String email) {
+		return ResponseEntity.ok(Response.success(influencerService.getFollowStatus(influencerId, email)));
+	}
+
+	@GetMapping("/recent10")
+	public ResponseEntity<Response<List<InfluencerResponseDto.SimpleInfo>>> getRecent10Influencers() {
+		return ResponseEntity.ok(Response.success(influencerService.getRecent10Influencers()));
+	}
+
+	@GetMapping("/hot10")
+	public ResponseEntity<Response<List<InfluencerResponseDto.SimpleInfo>>> getHot10Influencers() {
+		return ResponseEntity.ok(Response.success(influencerService.getHot10Influencers()));
+	}
 }

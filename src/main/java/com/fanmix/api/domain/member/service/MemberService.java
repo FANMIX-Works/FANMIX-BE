@@ -3,9 +3,12 @@ package com.fanmix.api.domain.member.service;
 import static com.fanmix.api.domain.influencer.exception.InfluencerErrorCode.*;
 import static com.fanmix.api.domain.member.exception.MemberErrorCode.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -25,6 +28,7 @@ import com.fanmix.api.domain.common.Gender;
 import com.fanmix.api.domain.common.UserMode;
 import com.fanmix.api.domain.fan.entity.Fan;
 import com.fanmix.api.domain.fan.repository.FanRepository;
+import com.fanmix.api.domain.influencer.dto.response.InfluencerResponseDto;
 import com.fanmix.api.domain.influencer.entity.Influencer;
 import com.fanmix.api.domain.influencer.entity.tag.InfluencerTag;
 import com.fanmix.api.domain.influencer.entity.tag.InfluencerTagMapper;
@@ -32,13 +36,16 @@ import com.fanmix.api.domain.influencer.exception.InfluencerException;
 import com.fanmix.api.domain.influencer.repository.InfluencerRepository;
 import com.fanmix.api.domain.influencer.repository.cache.InfluencerRatingCacheRepository;
 import com.fanmix.api.domain.influencer.repository.tag.InfluencerTagMapperRepository;
+import com.fanmix.api.domain.influencer.service.InfluencerService;
 import com.fanmix.api.domain.member.dto.LatestReviewResponseDto;
 import com.fanmix.api.domain.member.dto.MemberActivityCommentDto;
 import com.fanmix.api.domain.member.dto.MemberActivityPostDto;
 import com.fanmix.api.domain.member.dto.MemberActivityReviewDto;
 import com.fanmix.api.domain.member.dto.MemberResponseDto;
 import com.fanmix.api.domain.member.dto.MemberSignUpDto;
+import com.fanmix.api.domain.member.dto.MyFollowResponseDto;
 import com.fanmix.api.domain.member.entity.Member;
+import com.fanmix.api.domain.member.enums.FollowSort;
 import com.fanmix.api.domain.member.exception.MemberErrorCode;
 import com.fanmix.api.domain.member.exception.MemberException;
 import com.fanmix.api.domain.member.repository.MemberRepository;
@@ -71,6 +78,8 @@ public class MemberService implements UserDetailsService {
 	private final FanRepository fanRepository;
 	private final RedisService redisService;
 	private final PostRepository postRepository;
+	@Autowired
+	InfluencerService influencerService;
 
 	@Override
 	//오버라이드한 함수라 함수이름을 변경할수 없어서 username이지만 실제로는 이메일로 식별
@@ -192,6 +201,22 @@ public class MemberService implements UserDetailsService {
 		return memberRepository.save(member);
 	}
 
+	public String updateOnePick(int memberId, int influencerId, Boolean onePick) {
+		try {
+			Member member = memberRepository.findById(memberId).orElseThrow(() -> new MemberException(NO_USER_EXIST));
+			Influencer influencer = influencerRepository.findById(influencerId)
+				.orElseThrow(() -> new InfluencerException(INFLUENCER_NOT_FOUND));
+			Fan fan = fanRepository.findByInfluencerAndMember(influencer, member)
+				.orElseThrow(() -> new InfluencerException(INFLUENCER_NOT_FOUND));
+
+			fanRepository.updateOnePick(influencer, member, onePick, LocalDateTime.now());
+			return "성공적으로 변환 되었습니다.";
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new MemberException(FAIL_UPDATE_MEMBERINFO);
+		}
+	}
+
 	public Member createMember(Member member) {
 		return memberRepository.save(member);
 	}
@@ -214,6 +239,7 @@ public class MemberService implements UserDetailsService {
 		}
 		try {
 			//탈퇴처리 코드
+			member.setDeleteYn(false);
 			return true;
 		} catch (Exception e) {
 			throw new MemberException(NO_CONTEXT);
@@ -242,10 +268,13 @@ public class MemberService implements UserDetailsService {
 	@Transactional
 	public List<MemberActivityReviewDto.Details> getMemberDetailsReview(Integer MemberId, String email) {
 		//멤버 가져오기
-		//로그인이 안되어있으면 null반환. 로그인이 되어있다면
-		final Member member = (email.equals("anonymousUser")) ? null :
-			memberRepository.findById(MemberId).orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
+		final Member member = memberRepository.findById(MemberId)
+			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 		log.debug("멤버가져오기 완료 : " + member.getId());
+
+		//로그인 멤버 확인
+		final Member loginMember = memberRepository.findByEmail(email)
+			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_CONTEXT));
 
 		//나의 팬 정보 가져오기
 		final List<Fan> fans = fanRepository.findByMember(member);
@@ -286,10 +315,9 @@ public class MemberService implements UserDetailsService {
 	@Transactional
 	public List<MemberActivityPostDto.Details> getMemberDetailsPosts(Integer MemberId, String email) {
 		//멤버 가져오기
-		//로그인이 안되어있으면 null반환. 로그인이 되어있다면
-		final Member member = (email.equals("anonymousUser")) ? null :
-			memberRepository.findById(MemberId).orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
-		log.debug("멤버가져오기 완료. 멤버id : " + member.getId());
+		final Member member = memberRepository.findById(MemberId)
+			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
+		log.debug("멤버가져오기 완료 : " + member.getId());
 
 		//나의 글 정보 가져오기
 		//final List<Post> posts = postRepository.findAllByCrMember(member.getId());
@@ -311,10 +339,9 @@ public class MemberService implements UserDetailsService {
 	@Transactional
 	public List<MemberActivityCommentDto.Details> getMemberDetailsComments(Integer MemberId, String email) {
 		//멤버 가져오기
-		//로그인이 안되어있으면 null반환. 로그인이 되어있다면
-		final Member member = (email.equals("anonymousUser")) ? null :
-			memberRepository.findById(MemberId).orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
-		log.debug("멤버가져오기 완료. 멤버id : " + member.getId());
+		final Member member = memberRepository.findById(MemberId)
+			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
+		log.debug("멤버가져오기 완료 : " + member.getId());
 
 		//나의 댓글 정보 가져오기
 		final List<Comment> comments = commentRepository.findByCrMember(member.getId());
@@ -323,4 +350,71 @@ public class MemberService implements UserDetailsService {
 		return MemberActivityCommentDto.Details.of(comments);
 	}
 
+	@Transactional
+	public List<MyFollowResponseDto.Details> getMyFollowers(String email, FollowSort sort) {
+		//멤버 가져오기
+		final Member member = memberRepository.findByEmail(email)
+			.orElseThrow(() -> new MemberException(NO_CONTEXT));
+		log.debug("멤버가져오기 완료 : " + member.getId());
+
+		// 나의 팬정보(팔로우 하고있는 인플루언서) 가져오기
+		final List<Fan> fans = fanRepository.findByMember(member);
+		log.debug("내가 팔로우하고있는 인플루언서 갯수 : " + fans.size());
+
+		//나의 팬정보(팔로우 하고있는 인플루언서) 가져오기
+		List<MyFollowResponseDto.Details> influencerDetails = new ArrayList<>();
+		for (Fan fan : fans) {
+			Influencer influencer = fan.getInfluencer();
+
+			//해당 인플루언서의 최신 리뷰
+			final Optional<Review> latestReview = reviewRepository.findFirstByInfluencerAndIsDeletedOrderByCrDateDesc(
+				influencer, false);
+
+			// 나의 리뷰 관련 정보
+			double averageRating = 0.0;
+			LocalDateTime latestReviewDate = null;
+			List<Review> reviews = reviewRepository.findByInfluencerAndMember(influencer, member);
+			log.debug("리뷰갯수 : " + reviews.size());
+			for (Review review : reviews) {
+				log.debug("나의 해당 인플루언서에 대한 리뷰 : " + review);
+				averageRating =
+					(review.getContentsRating() + review.getCommunicationRating() + review.getTrustRating()) / 3.0;
+				latestReviewDate = review.getCrDate();
+			}
+
+			// 반환할 객체 생성
+			MyFollowResponseDto.Details details = new MyFollowResponseDto.Details(
+				influencer.getId(),
+				influencer.getInfluencerName(),
+				influencer.getInfluencerImageUrl(),
+				influencer.getAuthenticationStatus(),
+
+				fan.getIsOnepick(),
+				fan.getOnepickEnrolltime(),
+				fan.getUDate(),
+
+				latestReviewDate,
+				averageRating,
+				null
+			);
+			influencerDetails.add(details);
+		}
+
+		return influencerDetails;
+	}
+
+	public InfluencerResponseDto.Details getMyOnepickInfluencer(int memberId, String email) {
+		Member member = memberRepository.findByEmail(email)
+			.orElseThrow(() -> new MemberException(NO_CONTEXT));
+		InfluencerResponseDto.Details myOnepick = null;
+		List<Fan> fans = fanRepository.findByMember(member);
+		for (Fan fan : fans) {
+			if (fan.getIsOnepick() != null && fan.getIsOnepick() == true) {
+				log.debug("원픽이 있음");
+				myOnepick = influencerService.getInfluencerDetails(fan.getInfluencer().getId(), email);
+				log.debug("myOnepick : " + myOnepick);
+			}
+		}
+		return myOnepick;
+	}
 }
