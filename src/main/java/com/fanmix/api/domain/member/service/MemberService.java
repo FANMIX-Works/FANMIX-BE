@@ -5,6 +5,7 @@ import static com.fanmix.api.domain.member.exception.MemberErrorCode.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -369,17 +370,16 @@ public class MemberService implements UserDetailsService {
 			//해당 인플루언서의 최신 리뷰
 			final Optional<Review> latestReview = reviewRepository.findFirstByInfluencerAndIsDeletedOrderByCrDateDesc(
 				influencer, false);
+			LocalDateTime latestReviewDate = latestReview.map(Review::getCrDate).orElse(null);
 
 			// 나의 리뷰 관련 정보
 			double averageRating = 0.0;
-			LocalDateTime latestReviewDate = null;
 			List<Review> reviews = reviewRepository.findByInfluencerAndMember(influencer, member);
 			log.debug("리뷰갯수 : " + reviews.size());
 			for (Review review : reviews) {
 				log.debug("나의 해당 인플루언서에 대한 리뷰 : " + review);
 				averageRating =
 					(review.getContentsRating() + review.getCommunicationRating() + review.getTrustRating()) / 3.0;
-				latestReviewDate = review.getCrDate();
 			}
 
 			// 반환할 객체 생성
@@ -391,6 +391,7 @@ public class MemberService implements UserDetailsService {
 
 				fan.getIsOnepick(),
 				fan.getOnepickEnrolltime(),
+				fan.getCrDate(),
 				fan.getUDate(),
 
 				latestReviewDate,
@@ -398,6 +399,33 @@ public class MemberService implements UserDetailsService {
 				null
 			);
 			influencerDetails.add(details);
+		}
+		// 요청 파라미터로 정렬
+		switch (sort) {
+			case CRDATE:
+				influencerDetails.sort(Comparator.comparing(MyFollowResponseDto.Details::crDate).reversed());
+				break;
+			case LATEST_REVIEW:
+				influencerDetails.sort(
+					Comparator.nullsLast(
+						Comparator.comparing(
+							MyFollowResponseDto.Details::latestReviewDate,
+							(o1, o2) -> {
+								if (o1 == null) {
+									return 1;
+								} else if (o2 == null) {
+									return -1;
+								} else {
+									return o2.compareTo(o1);
+								}
+							}
+						)
+					)
+				);
+				break;
+			case NAME:
+				influencerDetails.sort(Comparator.comparing(MyFollowResponseDto.Details::influencerName));
+				break;
 		}
 
 		return influencerDetails;

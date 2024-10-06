@@ -20,6 +20,7 @@ public class MyFollowResponseDto {
 
 		, Boolean isOnePick
 		, LocalDateTime onepickEnrolltime
+		, LocalDateTime crDate
 		, LocalDateTime uDate
 
 		, LocalDateTime latestReviewDate
