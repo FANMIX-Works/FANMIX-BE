@@ -1,7 +1,6 @@
 package com.fanmix.api.domain.community.dto;
 
 import com.fanmix.api.domain.community.entity.Community;
-
 import com.fanmix.api.domain.influencer.entity.Influencer;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -3,6 +3,7 @@ package com.fanmix.api.domain.comment.entity;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fanmix.api.domain.member.entity.Member;
 import org.hibernate.annotations.Formula;
 
 import com.fanmix.api.domain.common.entity.BaseEntity;
@@ -37,21 +38,25 @@ public class Comment extends BaseEntity {
 	@ManyToOne
 	@JoinColumn(name = "post_id", nullable = false)
 	private Post post;						// 게시글 id
+
+	@ManyToOne
+	@JoinColumn(name = "member_id")
+	private Member member;					// 멤버 id
+
 	private String contents;				// 내용
 
-	@Column(columnDefinition = "int default 1")
-	private int level;						// 댓글 레벨(부모, 자식)
+	private int level = 1;						// 댓글 레벨(부모, 자식)
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	private Comment parentId;				// 부모 댓글
+	private Comment parentComment;				// 부모 댓글
 
 	@Column(updatable = false)
 	private int orderNum;					// 댓글 순서
 
 	@Column(name = "delete_yn")
-	private Boolean isDelete;				// 삭제 여부
+	private Boolean isDelete = false;				// 삭제 여부
 
-	@OneToMany(mappedBy = "parentId", orphanRemoval = true)
+	@OneToMany(mappedBy = "parentComment", orphanRemoval = true)
 	private List<Comment> comments = new ArrayList<>();		// 자식 댓글
 
 	@OneToMany(mappedBy = "comment", cascade = CascadeType.REMOVE, orphanRemoval = true)
@@ -64,9 +69,9 @@ public class Comment extends BaseEntity {
 	private int dislikeCount;
 
 	@Builder
-	public Comment(Post post, Comment parentId, String contents) {
+	public Comment(Post post, Comment parentComment, String contents) {
 		this.post = post;
-		this.parentId = parentId;
+		this.parentComment = parentComment;
 		this.contents = contents;
 	}
 
@@ -74,7 +79,7 @@ public class Comment extends BaseEntity {
 		this.contents = contents;
 	}
 
-	public void delete(Boolean isDelete, String contents) {
+	public void delete() {
 		this.isDelete = true;
 		this.contents = null;
 	}
@@ -85,5 +90,11 @@ public class Comment extends BaseEntity {
 
 	public void addDislikeCount(int dislikeCount) {
 		this.dislikeCount = dislikeCount;
+	}
+
+	public void addLevel() {
+		if(parentComment != null) {
+			this.level =  parentComment.getLevel() + 1;
+		}
 	}
 }

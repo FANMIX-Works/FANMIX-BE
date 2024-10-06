@@ -9,6 +9,7 @@ import lombok.Getter;
 
 @Getter
 public class PostResponse {
+	private int communityId;
 	private String communityName;
 	private int postId;
 	private LocalDateTime crDate;
@@ -24,6 +25,7 @@ public class PostResponse {
 	private boolean isDeleted;
 
 	public PostResponse(Post post) {
+		this.communityId = post.getCommunity().getId();
 		this.communityName = post.getCommunity().getName();
 		this.postId = post.getId();
 		this.crDate = post.getCrDate();

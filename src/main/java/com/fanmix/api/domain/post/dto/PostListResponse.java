@@ -9,26 +9,32 @@ import java.time.LocalDateTime;
 public class PostListResponse {
 	private int communityId;
 	private String communityName;
+	private int influencerId;
 	private String nickName;
 	private String memberImageUrl;
+	private int postId;
 	private String postTitle;
-	private String postContents;
+	private String postContent;
 	private String postImageUrl;
 	private int viewCount;
 	private int likeCount;
+	private int dislikeCount;
 	private int commentCount;
 	private LocalDateTime crDate;
 
 	public PostListResponse(Post post) {
 		this.communityId = post.getCommunity().getId();
+		this.communityName = post.getCommunity().getName();
+		this.influencerId = post.getCommunity().getInfluencer() == null ? 0 : post.getCommunity().getInfluencer().getId();
 		this.nickName = post.getMember().getNickName();
 		this.memberImageUrl = post.getMember().getProfileImgUrl();
-		this.communityName = post.getCommunity().getName();
+		this.postId = post.getId();
 		this.postTitle = post.getTitle();
-		this.postContents = post.getContent();
+		this.postContent = post.getContent();
 		this.postImageUrl = post.getImgUrl();
 		this.viewCount = post.getViewCount();
-		this.likeCount = post.getLikes() != null ? post.getLikes().size() : 0;
+		this.likeCount = post.getLikeCount();
+		this.dislikeCount = post.getDislikeCount();
 		this.commentCount = post.getComments().size();
 		this.crDate = post.getCrDate();
 	}
