@@ -1,39 +1,36 @@
 package com.fanmix.api.domain.post.service;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
-
 import com.fanmix.api.common.image.service.ImageService;
 import com.fanmix.api.domain.common.Role;
 import com.fanmix.api.domain.community.entity.Community;
 import com.fanmix.api.domain.community.exception.CommunityErrorCode;
 import com.fanmix.api.domain.community.exception.CommunityException;
+import com.fanmix.api.domain.community.repository.CommunityFollowRepository;
 import com.fanmix.api.domain.community.repository.CommunityRepository;
+import com.fanmix.api.domain.fan.entity.Fan;
+import com.fanmix.api.domain.fan.repository.FanRepository;
 import com.fanmix.api.domain.member.entity.Member;
 import com.fanmix.api.domain.member.exception.MemberErrorCode;
 import com.fanmix.api.domain.member.exception.MemberException;
 import com.fanmix.api.domain.member.repository.MemberRepository;
-import com.fanmix.api.domain.post.dto.AddPostLikeDislikeRequest;
-import com.fanmix.api.domain.post.dto.AddPostRequest;
-import com.fanmix.api.domain.post.dto.PopularPostsResponse;
-import com.fanmix.api.domain.post.dto.PostListResponse;
-import com.fanmix.api.domain.post.dto.UpdatePostRequest;
+import com.fanmix.api.domain.post.dto.*;
 import com.fanmix.api.domain.post.entity.Post;
 import com.fanmix.api.domain.post.exception.PostErrorCode;
 import com.fanmix.api.domain.post.exception.PostException;
 import com.fanmix.api.domain.post.repository.PostLikeDisLikeRepository;
 import com.fanmix.api.domain.post.repository.PostRepository;
-
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -44,7 +41,9 @@ public class PostService {
 	private final PostRepository postRepository;
 	private final MemberRepository memberRepository;
 	private final PostLikeDisLikeRepository postLikeDisLikeRepository;
+	private final FanRepository fanRepository;
 	private final ImageService imageService;
+	private final CommunityFollowRepository communityFollowRepository;
 
 	// 게시물 추가
 	@Transactional
@@ -73,6 +72,7 @@ public class PostService {
 	}
 
 	// 전체 커뮤니티 종합 글 리스트 조회
+	@Transactional(readOnly = true)
 	public List<PostListResponse> findAllCommunityPosts(String sort) {
 		Sort likeCountDesc = Sort.by(
 			Sort.Order.desc("likeCount"),
@@ -97,6 +97,7 @@ public class PostService {
 	}
 
 	// 특정 커뮤니티 글 리스트 조회
+	@Transactional(readOnly = true)
 	public List<PostListResponse> findAllByCommunityId(int communityId, String sort) {
 		communityRepository.findById(communityId)
 			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
@@ -123,6 +124,7 @@ public class PostService {
 	}
 
 	// 게시물 목록 조회
+	@Transactional(readOnly = true)
 	public List<Post> findAll(int communityId, String email) {
 		Community community = communityRepository.findById(communityId)
 			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
@@ -138,6 +140,7 @@ public class PostService {
 	}
 
 	// 게시물 조회
+	@Transactional(readOnly = true)
 	public Post findById(int communityId, int postId) {
 		communityRepository.findById(communityId)
 			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
@@ -149,7 +152,7 @@ public class PostService {
 			throw new PostException(PostErrorCode.POST_NOT_BELONG_TO_COMMUNITY);
 		}
 
-		return post;
+		return postRepository.save(post);
 	}
 
 	// 게시물 수정
@@ -210,12 +213,43 @@ public class PostService {
 	// 인기 게시물 5개 가져오기
 	@Transactional(readOnly = true)
 	public List<PopularPostsResponse> popularPosts() {
-		List<Post> popularList = postRepository.findTop5PopularPosts();
+		List<Post> popularList = postRepository.findTop5ByOrderByViewCountDescCrDateDesc();
 
 		return popularList
 			.stream()
 			.map(PopularPostsResponse::new)
 			.collect(Collectors.toList());
+	}
+
+	// 팔로우 중인 커뮤니티, 팬채널 글 5개씩 조회
+	public List<PostListResponse> followCommunityPosts(int communityId, String email, String sort) {
+		Community community = communityRepository.findById(communityId)
+				.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
+
+		Member member = memberRepository.findByEmail(email)
+				.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
+
+		Fan fan = fanRepository.findByInfluencerAndMember(community.getInfluencer(), member)
+				.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
+
+		Sort followDateDesc = Sort.by(
+				Sort.Order.desc("followDate"),
+				Sort.Order.asc("name")
+		);
+		Sort lastPostDateDesc = Sort.by(
+				Sort.Order.desc("crDate"),
+				Sort.Order.asc("name")
+		);
+
+		List<Post> postList = switch (sort) {
+			case "FOLLOW_DATE" -> postRepository.findTop5ByOrderById(followDateDesc);
+			case "POST_DATE" -> postRepository.findTop5ByOrderById(lastPostDateDesc);
+            default -> postRepository.findAll();
+        };
+		return postList
+				.stream()
+				.map(PostListResponse::new)
+				.collect(Collectors.toList());
 	}
 
 	// 게시물 좋아요, 싫어요

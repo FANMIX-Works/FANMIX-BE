@@ -1,7 +1,6 @@
 package com.fanmix.api.domain.community.dto;
 
 import com.fanmix.api.domain.community.entity.Community;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

@@ -89,9 +89,18 @@ public class PostController {
 	}
 
 	// 인기글 top5 조회
-	@GetMapping("/api/communities/popular")
+	@GetMapping("/api/communities/posts/hot5")
 	public ResponseEntity<Response<List<PopularPostsResponse>>> popularPosts() {
 		return ResponseEntity.ok(Response.success(postService.popularPosts()));
+	}
+
+	// 팔로우 중인 커뮤니티, 팬채널 게시글 5개씩 조회
+	@GetMapping("/api/communities/{communityId}/posts/follow")
+	public ResponseEntity<Response<List<PostListResponse>>> followCommunityPosts(
+			@PathVariable int communityId,
+			@AuthenticationPrincipal String email,
+			@RequestParam(value = "sort", defaultValue = "LATEST_CHANNEL") String sort) {
+		return ResponseEntity.ok(Response.success(postService.followCommunityPosts(communityId, email, sort)));
 	}
 
 	// 게시물 좋아요, 싫어요

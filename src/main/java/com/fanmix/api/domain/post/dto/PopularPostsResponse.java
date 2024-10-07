@@ -8,16 +8,24 @@ import lombok.Getter;
 @Getter
 public class PopularPostsResponse {
 	private int communityId;
+	private String communityName;
 	private String influencerName;
+	private int postId;
+	private String content;
+	private int viewCount;
 	private int likeCount;
 	private int commentCount;
 	private LocalDateTime crDate;
 
 	public PopularPostsResponse(Post post) {
-		this.communityId = post.getCommunity().getId();	// 커뮤니티 id
-		this.influencerName = post.getCommunity().getInfluencer().getInfluencerName();	// 인플루언서 이름 가져와야함
-		this.likeCount = post.getLikeCount();	// 좋아요 개수
-		this.commentCount = post.getComments().size();	// 댓글 개수
-		this.crDate = post.getCrDate();	// 날짜
+		this.communityId = post.getCommunity().getId();
+		this.communityName = post.getCommunity().getName();
+		this.influencerName = post.getCommunity().getInfluencer() != null ? post.getCommunity().getInfluencer().getInfluencerName() : null;
+		this.postId = post.getId();
+		this.content = post.getContent();
+		this.viewCount = post.getViewCount();
+		this.likeCount = post.getLikeCount();
+		this.commentCount = post.getComments().size();
+		this.crDate = post.getCrDate();
 	}
 }
