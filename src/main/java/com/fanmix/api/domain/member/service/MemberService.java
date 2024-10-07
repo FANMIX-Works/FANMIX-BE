@@ -27,6 +27,7 @@ import com.fanmix.api.domain.comment.entity.Comment;
 import com.fanmix.api.domain.comment.repository.CommentRepository;
 import com.fanmix.api.domain.common.Gender;
 import com.fanmix.api.domain.common.UserMode;
+import com.fanmix.api.domain.community.exception.CommunityException;
 import com.fanmix.api.domain.fan.entity.Fan;
 import com.fanmix.api.domain.fan.repository.FanRepository;
 import com.fanmix.api.domain.influencer.dto.response.InfluencerResponseDto;
@@ -362,45 +363,60 @@ public class MemberService implements UserDetailsService {
 		final List<Fan> fans = fanRepository.findByMember(member);
 		log.debug("내가 팔로우하고있는 인플루언서 갯수 : " + fans.size());
 
-		//나의 팬정보(팔로우 하고있는 인플루언서) 가져오기
+		//나의 팬정보에서 팔로우 하고있는 인플루언서 정보들 가져오기
 		List<MyFollowResponseDto.Details> influencerDetails = new ArrayList<>();
 		for (Fan fan : fans) {
-			Influencer influencer = fan.getInfluencer();
+			try {
+				Influencer influencer = fan.getInfluencer();
+				InfluencerResponseDto.Details influencerResponseDtoDetails = influencerService.getInfluencerDetails(
+					influencer.getId(), email);
+				log.debug("influencerResponseDtoDetails : " + influencerResponseDtoDetails);
+				Integer fanChannelId = Optional.ofNullable(influencerResponseDtoDetails.fanChannelId()).orElse(null);
+				log.debug("인플루언서의 팬채널id : " + fanChannelId);
 
-			//해당 인플루언서의 최신 리뷰
-			final Optional<Review> latestReview = reviewRepository.findFirstByInfluencerAndIsDeletedOrderByCrDateDesc(
-				influencer, false);
-			LocalDateTime latestReviewDate = latestReview.map(Review::getCrDate).orElse(null);
+				//해당 인플루언서의 최신 리뷰
+				final Optional<Review> latestReview = reviewRepository.findFirstByInfluencerAndIsDeletedOrderByCrDateDesc(
+					influencer, false);
+				LocalDateTime latestReviewDate = latestReview.map(Review::getCrDate).orElse(null);
+				log.debug("인플루언서에 딸린 최신 리뷰 : " + latestReviewDate);
 
-			// 나의 리뷰 관련 정보
-			double averageRating = 0.0;
-			List<Review> reviews = reviewRepository.findByInfluencerAndMember(influencer, member);
-			log.debug("리뷰갯수 : " + reviews.size());
-			for (Review review : reviews) {
-				log.debug("나의 해당 인플루언서에 대한 리뷰 : " + review);
-				averageRating =
-					(review.getContentsRating() + review.getCommunicationRating() + review.getTrustRating()) / 3.0;
+				// 나의 리뷰 관련 정보
+				double averageRating = 0.0;
+				List<Review> reviews = reviewRepository.findByInfluencerAndMember(influencer, member);
+				log.debug("리뷰갯수 : " + reviews.size());
+				for (Review review : reviews) {
+					log.debug("나의 해당 인플루언서에 대한 리뷰 : " + review);
+					averageRating =
+						(review.getContentsRating() + review.getCommunicationRating() + review.getTrustRating()) / 3.0;
+				}
+
+				// 반환할 객체 생성
+				log.debug("반환할 객체 생성");
+				MyFollowResponseDto.Details details = new MyFollowResponseDto.Details(
+					influencer.getId(),
+					influencer.getInfluencerName(),
+					influencer.getInfluencerImageUrl(),
+					influencer.getAuthenticationStatus(),
+
+					fan.getIsOnepick(),
+					fan.getOnepickEnrolltime(),
+					fan.getCrDate(),
+					fan.getUDate(),
+
+					latestReviewDate,
+					averageRating,
+					fanChannelId
+				);
+				influencerDetails.add(details);
+			} catch (CommunityException e) {
+				log.debug("인플루언서의 커뮤니티가 존재하지 않습니다.");
+				Integer fanChannelId = null;
+				log.debug("인플루언서의 팬채널id : " + fanChannelId);
 			}
 
-			// 반환할 객체 생성
-			MyFollowResponseDto.Details details = new MyFollowResponseDto.Details(
-				influencer.getId(),
-				influencer.getInfluencerName(),
-				influencer.getInfluencerImageUrl(),
-				influencer.getAuthenticationStatus(),
-
-				fan.getIsOnepick(),
-				fan.getOnepickEnrolltime(),
-				fan.getCrDate(),
-				fan.getUDate(),
-
-				latestReviewDate,
-				averageRating,
-				null
-			);
-			influencerDetails.add(details);
 		}
 		// 요청 파라미터로 정렬
+		log.debug("요청 파라미터로 정렬");
 		switch (sort) {
 			case CRDATE:
 				influencerDetails.sort(Comparator.comparing(MyFollowResponseDto.Details::crDate).reversed());

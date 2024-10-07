@@ -1,8 +1,6 @@
 package com.fanmix.api.domain.influencer.service;
 
 import static com.fanmix.api.common.redis.constants.InfluencerRedisConstants.*;
-import static com.fanmix.api.domain.community.exception.CommunityErrorCode.*;
-import static com.fanmix.api.domain.influencer.exception.InfluencerErrorCode.INFLUENCER_NOT_FOUND;
 import static com.fanmix.api.domain.influencer.exception.InfluencerErrorCode.*;
 
 import java.math.BigDecimal;
@@ -21,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.fanmix.api.common.aspect.ClientIpAspect;
 import com.fanmix.api.common.redis.RedisService;
 import com.fanmix.api.domain.community.entity.Community;
-import com.fanmix.api.domain.community.exception.CommunityException;
 import com.fanmix.api.domain.community.repository.CommunityRepository;
 import com.fanmix.api.domain.fan.repository.FanRepository;
 import com.fanmix.api.domain.influencer.dto.enums.SearchType;
@@ -92,7 +89,7 @@ public class InfluencerService {
 		}
 
 		final Community community = communityRepository.findByInfluencer(influencer)
-			.orElseThrow(() -> new CommunityException(COMMUNITY_NOT_EXIST));
+			.orElse(null);
 
 		final Slice<Review> bestReviewList = reviewRepository.findBestReviewByInfluencer(influencer,
 			PageRequest.of(0, 1));
@@ -111,7 +108,9 @@ public class InfluencerService {
 		return InfluencerResponseDto.Details.of(influencer, tagList, latestReviewDate,
 			((BigDecimal)averageRatings[0]).doubleValue(),
 			((BigDecimal)averageRatings[1]).doubleValue(), ((BigDecimal)averageRatings[2]).doubleValue(),
-			totalReviewCount, isFollowing, community.getId(), bestReview,
+			// ((Double)averageRatings[0]),
+			// ((Double)averageRatings[1]), ((Double)averageRatings[2]),
+			totalReviewCount, isFollowing, community != null ? community.getId() : null, bestReview,
 			bestReviewLikeCount, bestReviewDislikeCount, bestReviewCommentsCount);
 	}
 
