@@ -25,7 +25,8 @@ public class InfluencerResponseDto {
 						  List<PlatformLink> snsList, List<PlatformLink> mediaList, List<PlatformLink> plusList,
 						  List<Integer> contentsOrientationList, List<String> tagList, LocalDateTime latestReviewDate,
 						  Double averageRating, Double contentsRating, Double communicationRating, Double trustRating,
-						  Long totalReviewCount, Boolean isAuthenticated, Boolean isFollowing, BestReview bestReview) {
+						  Long totalReviewCount, Boolean isAuthenticated, Boolean isFollowing, Integer fanChannelId,
+						  BestReview bestReview) {
 
 		public static Details of(Influencer influencer, List<String> tagList, LocalDateTime latestReviewDate,
 			Double contentsRating, Double communicationRating, Double trustRating, Long totalReviewCount,
@@ -59,7 +60,7 @@ public class InfluencerResponseDto {
 				influencer.getSelfIntroduction(), influencer.getGender(), influencer.getNationality(),
 				snsList, mediaList, plusList, contentsOrientationList, tagList, latestReviewDate,
 				(contentsRating + communicationRating + trustRating) / 3.0, contentsRating, communicationRating,
-				trustRating, totalReviewCount, isAuthenticated, isFollowing,
+				trustRating, totalReviewCount, isAuthenticated, isFollowing, fanChannelId,
 				BestReview.of(bestReview, bestReviewLikeCount, bestReviewDislikeCount, bestReviewCommentsCount)
 			);
 		}
