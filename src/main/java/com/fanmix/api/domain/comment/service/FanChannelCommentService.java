@@ -50,19 +50,23 @@ public class FanChannelCommentService {
 		if(request.getParentId() != 0) {
 			parentComment = commentRepository.findById(request.getParentId())
 				.orElseThrow(() -> new CommentException(CommentErrorCode.PARENT_ID_NOT_EXIST));
-		}
 
-		return commentRepository.save(request.toEntity(post, parentComment));
+			Comment childComment = new Comment(post, parentComment, request.getContents());
+			childComment.addLevel();
+
+			return commentRepository.save(childComment);
+		} else {
+			parentComment = request.toEntity(post, null);
+
+			return commentRepository.save(parentComment);
+		}
 	}
 
 	// 팬채널 댓글 조회
 	@Transactional(readOnly = true)
-	public List<Comment> findFanChannelComments(int postId, int commentId, String email) {
+	public List<Comment> findFanChannelComments(int postId, String email) {
 		Post post = postRepository.findById(postId)
 			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_EXIST));
-
-		commentRepository.findById(commentId)
-			.orElseThrow(() -> new CommentException(CommentErrorCode.COMMENT_NOT_EXIST));
 
 		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
@@ -96,7 +100,7 @@ public class FanChannelCommentService {
 
 	// 팬채널 댓글 삭제
 	@Transactional
-	public Comment deleteFanChannelComment(int postId, int commentId, UpdateCommentRequest request, String email) {
+	public void deleteFanChannelComment(int postId, int commentId, String email) {
 		Post post = postRepository.findById(postId)
 			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_EXIST));
 
@@ -110,9 +114,7 @@ public class FanChannelCommentService {
 			throw new CommentException(CommentErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
-		comment.delete(request.getIsDelete(), request.getContents());
-
-		return comment;
+		comment.delete();
 	}
 
 	// 팬채널 댓글 좋아요, 싫어요 평가

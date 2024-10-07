@@ -6,6 +6,10 @@ import com.fanmix.api.domain.community.entity.Community;
 import com.fanmix.api.domain.community.exception.CommunityErrorCode;
 import com.fanmix.api.domain.community.exception.CommunityException;
 import com.fanmix.api.domain.community.repository.CommunityRepository;
+import com.fanmix.api.domain.influencer.entity.Influencer;
+import com.fanmix.api.domain.influencer.exception.InfluencerErrorCode;
+import com.fanmix.api.domain.influencer.exception.InfluencerException;
+import com.fanmix.api.domain.influencer.repository.InfluencerRepository;
 import com.fanmix.api.domain.member.entity.Member;
 import com.fanmix.api.domain.member.exception.MemberErrorCode;
 import com.fanmix.api.domain.member.exception.MemberException;
@@ -39,6 +43,7 @@ public class FanChannelPostService {
 	private final MemberRepository memberRepository;
 	private final PostLikeDisLikeRepository postLikeDisLikeRepository;
 	private final ImageService imageService;
+	private final InfluencerRepository influencerRepository;
 
 	// 팬채널 글 추가
 	@Transactional
@@ -46,10 +51,14 @@ public class FanChannelPostService {
 		Community community = communityRepository.findById(request.getCommunityId())
 			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
 
+		if(request.getCommunityId() < 13 && community.getInfluencer().getId() == null) {
+			throw new CommunityException(CommunityErrorCode.NOT_A_FANCHANNEL);
+		}
+
 		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if (!member.getRole().equals(Role.COMMUNITY)) {
+		if (member.getRole().equals(Role.COMMUNITY)) {
 			throw new PostException(PostErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
@@ -67,12 +76,14 @@ public class FanChannelPostService {
 
 	// 팬채널 글 목록
 	@Transactional(readOnly = true)
-	public List<PostListResponse> findAllFanChannelPosts(int communityId, String sort, String email) {
+	public List<PostListResponse> findAllFanChannelPosts(int communityId, String email, String sort) {
 		Community community = communityRepository.findById(communityId)
 			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
 
-		int influencerId = community.getInfluencer().getId();
-		if(influencerId <= 0) {
+		Influencer influencer = influencerRepository.findById(community.getInfluencer().getId())
+				.orElseThrow(() -> new InfluencerException(InfluencerErrorCode.INFLUENCER_NOT_FOUND));
+
+		if(influencer.getId() <= 0) {
 			throw new CommunityException(CommunityErrorCode.NOT_A_FANCHANNEL);
 		}
 
@@ -117,14 +128,12 @@ public class FanChannelPostService {
 			throw new PostException(PostErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
-		post.updateViewCount();
-
-		return post;
+		return postRepository.save(post);
 	}
 
 	// 팬채널 글 수정
 	@Transactional
-	public Post updateFanChannelPost(int postId, UpdatePostRequest request, MultipartFile image, String email) {
+	public void updateFanChannelPost(int postId, UpdatePostRequest request, MultipartFile image, String email) {
 		Post post = postRepository.findById(postId)
 			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_EXIST));
 
@@ -143,7 +152,6 @@ public class FanChannelPostService {
 		}
 
 		post.update(request.getTitle(), request.getContent());
-		return post;
 	}
 
 	// 팬채널 글 삭제
