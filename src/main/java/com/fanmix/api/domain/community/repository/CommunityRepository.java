@@ -2,14 +2,17 @@ package com.fanmix.api.domain.community.repository;
 
 import java.util.Optional;
 
-import com.fanmix.api.domain.influencer.entity.Influencer;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.fanmix.api.domain.community.entity.Community;
+import com.fanmix.api.domain.influencer.entity.Influencer;
 
 public interface CommunityRepository extends JpaRepository<Community, Integer> {
 	boolean existsByName(String name);
+
 	Optional<Community> findByInfluencerId(Influencer influencerId);
+
+	Optional<Community> findByInfluencer(Influencer influencer);
 
 	// @Query("SELECT c FROM Community c " +
 	// 	"JOIN c.influencer i " +
