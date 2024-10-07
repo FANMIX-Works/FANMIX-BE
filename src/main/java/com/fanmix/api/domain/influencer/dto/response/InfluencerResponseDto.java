@@ -29,8 +29,8 @@ public class InfluencerResponseDto {
 
 		public static Details of(Influencer influencer, List<String> tagList, LocalDateTime latestReviewDate,
 			Double contentsRating, Double communicationRating, Double trustRating, Long totalReviewCount,
-			Boolean isFollowing, Review bestReview, Long bestReviewLikeCount, Long bestReviewDislikeCount,
-			Long bestReviewCommentsCount) {
+			Boolean isFollowing, Integer fanChannelId, Review bestReview, Long bestReviewLikeCount,
+			Long bestReviewDislikeCount, Long bestReviewCommentsCount) {
 
 			List<SocialMedia> socialMediaList = influencer.getSocialMediaAddresses();
 
@@ -65,10 +65,10 @@ public class InfluencerResponseDto {
 		}
 	}
 
-	private record BestReview(Integer reviewerId, String reviewerNickName, Double averageRating, Integer contentsRating,
-							  Integer communicationRating, Integer trustRating, LocalDateTime reviewDate,
-							  String reviewContent, Long reviewLikeCount, Long reviewDislikeCount,
-							  Long reviewCommentsCount) {
+	private record BestReview(Long reviewId, Integer reviewerId, String reviewerNickName, Double averageRating,
+							  Integer contentsRating, Integer communicationRating, Integer trustRating,
+							  LocalDateTime reviewDate, String reviewContent,
+							  Long reviewLikeCount, Long reviewDislikeCount, Long reviewCommentsCount) {
 		public static BestReview of(Review review, Long reviewLikeCount, Long reviewDislikeCount,
 			Long reviewCommentsCount) {
 			if (review == null) {
@@ -77,7 +77,8 @@ public class InfluencerResponseDto {
 			Member reviewer = review.getMember();
 			double averageRating =
 				(review.getContentsRating() + review.getCommunicationRating() + review.getTrustRating()) / 3.0;
-			return new BestReview(reviewer.getId(), reviewer.getNickName(), averageRating, review.getContentsRating(),
+			return new BestReview(review.getId(), reviewer.getId(), reviewer.getNickName(), averageRating,
+				review.getContentsRating(),
 				review.getCommunicationRating(), review.getTrustRating(), review.getCrDate(), review.getContent(),
 				reviewLikeCount, reviewDislikeCount, reviewCommentsCount);
 		}
