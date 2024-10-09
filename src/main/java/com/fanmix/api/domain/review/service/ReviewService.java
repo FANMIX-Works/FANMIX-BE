@@ -13,11 +13,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fanmix.api.domain.fan.repository.FanRepository;
 import com.fanmix.api.domain.influencer.entity.Influencer;
 import com.fanmix.api.domain.influencer.exception.InfluencerException;
 import com.fanmix.api.domain.influencer.repository.InfluencerRepository;
-import com.fanmix.api.domain.influencer.repository.tag.InfluencerTagMapperRepository;
 import com.fanmix.api.domain.member.entity.Member;
 import com.fanmix.api.domain.member.exception.MemberErrorCode;
 import com.fanmix.api.domain.member.exception.MemberException;
@@ -45,12 +43,10 @@ import lombok.extern.slf4j.Slf4j;
 public class ReviewService {
 
 	private final InfluencerRepository influencerRepository;
-	private final InfluencerTagMapperRepository influencerTagMapperRepository;
 	private final ReviewRepository reviewRepository;
 	private final ReviewLikeDislikeRepository reviewLikeDislikeRepository;
 	private final ReviewCommentRepository reviewCommentRepository;
 	private final MemberRepository memberRepository;
-	private final FanRepository fanRepository;
 
 	@Transactional
 	public ReviewResponseDto.ReviewEntityResponseDto postReview(Integer influencerId, String email,
@@ -72,7 +68,7 @@ public class ReviewService {
 		final Review newReview = reviewRequestDto.toEntity(influencer, member);
 		reviewRepository.save(newReview);
 
-		return ReviewResponseDto.ReviewEntityResponseDto.of(newReview, false);
+		return ReviewResponseDto.ReviewEntityResponseDto.of(newReview);
 	}
 
 	private boolean canReview(Review review) {
@@ -101,7 +97,7 @@ public class ReviewService {
 		review.modifyReview(reviewRequestDto.content(), reviewRequestDto.contentsRating(),
 			reviewRequestDto.communicationRating(), reviewRequestDto.trustRating());
 
-		return ReviewResponseDto.ReviewEntityResponseDto.of(review, false);
+		return ReviewResponseDto.ReviewEntityResponseDto.of(review);
 	}
 
 	@Transactional
@@ -176,7 +172,7 @@ public class ReviewService {
 
 		ReviewComment reviewComment = reviewCommentRepository.save(commentRequestDto.toEntity(member, review));
 
-		return ReviewResponseDto.ReviewCommentEntityResponseDto.of(reviewComment, true);
+		return ReviewResponseDto.ReviewCommentEntityResponseDto.of(reviewComment);
 	}
 
 	@Transactional

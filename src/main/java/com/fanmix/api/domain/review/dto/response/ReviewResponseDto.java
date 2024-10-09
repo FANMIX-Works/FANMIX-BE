@@ -154,8 +154,8 @@ public class ReviewResponseDto {
 										  Integer contentsRating, Integer communicationRating, Integer trustRating,
 										  LocalDateTime reviewDate, String reviewContent) {
 
-		public static ReviewEntityResponseDto of(Review review, Boolean isBefore15Days) {
-			return new ReviewEntityResponseDto(review.getId(), isBefore15Days,
+		public static ReviewEntityResponseDto of(Review review) {
+			return new ReviewEntityResponseDto(review.getId(), true,
 				review.getContentsRating(), review.getCommunicationRating(), review.getTrustRating(),
 				review.getCrDate(), review.getContent());
 		}
@@ -165,10 +165,10 @@ public class ReviewResponseDto {
 												 LocalDateTime commentDate, String commentContent, Boolean isMyComment,
 												 Boolean isDeleted) {
 
-		public static ReviewCommentEntityResponseDto of(ReviewComment comment, Boolean isMyComment) {
+		public static ReviewCommentEntityResponseDto of(ReviewComment comment) {
 
 			return new ReviewCommentEntityResponseDto(comment.getId(), comment.getMember().getId(),
-				comment.getMember().getNickName(), comment.getCrDate(), comment.getContent(), isMyComment, false);
+				comment.getMember().getNickName(), comment.getCrDate(), comment.getContent(), true, false);
 		}
 	}
 }
