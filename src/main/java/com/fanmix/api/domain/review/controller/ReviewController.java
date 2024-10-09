@@ -41,11 +41,11 @@ public class ReviewController {
 	}
 
 	@PutMapping("/influencers/{influencerId}/reviews/{reviewId}")
-	public ResponseEntity<Response<Void>> modifyReview(
+	public ResponseEntity<Response<ReviewResponseDto.ReviewEntityResponseDto>> modifyReview(
 		@PathVariable Integer influencerId, @PathVariable Long reviewId, @AuthenticationPrincipal String email,
 		@RequestBody @Valid ReviewRequestDto.ModifyReview reviewRequestDto) {
-		reviewService.modifyReview(influencerId, reviewId, email, reviewRequestDto);
-		return ResponseEntity.ok(Response.success());
+		return ResponseEntity.ok(
+			Response.success(reviewService.modifyReview(influencerId, reviewId, email, reviewRequestDto)));
 	}
 
 	@DeleteMapping("/influencers/{influencerId}/reviews/{reviewId}")
@@ -98,7 +98,8 @@ public class ReviewController {
 	}
 
 	@GetMapping("/influencers/reviews/hot5")
-	public ResponseEntity<Response<List<ReviewResponseDto.ForHot5Review>>> getHot5Reviews(@AuthenticationPrincipal String email) {
+	public ResponseEntity<Response<List<ReviewResponseDto.ForHot5Review>>> getHot5Reviews(
+		@AuthenticationPrincipal String email) {
 		return ResponseEntity.ok(Response.success(reviewService.getHot5Reviews(email)));
 	}
 }

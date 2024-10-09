@@ -84,7 +84,7 @@ public class ReviewService {
 	}
 
 	@Transactional
-	public void modifyReview(Integer influencerId, Long reviewId, String email,
+	public ReviewResponseDto.ReviewEntityResponseDto modifyReview(Integer influencerId, Long reviewId, String email,
 		ReviewRequestDto.ModifyReview reviewRequestDto) {
 
 		final Influencer influencer = influencerRepository.findById(influencerId)
@@ -100,6 +100,8 @@ public class ReviewService {
 
 		review.modifyReview(reviewRequestDto.content(), reviewRequestDto.contentsRating(),
 			reviewRequestDto.communicationRating(), reviewRequestDto.trustRating());
+
+		return ReviewResponseDto.ReviewEntityResponseDto.of(review, false);
 	}
 
 	@Transactional
