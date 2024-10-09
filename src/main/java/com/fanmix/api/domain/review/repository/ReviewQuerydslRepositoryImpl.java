@@ -27,6 +27,7 @@ public class ReviewQuerydslRepositoryImpl implements ReviewQuerydslRepository {
 			.join(review.influencer, influencer).fetchJoin()
 			.join(review.member, member).fetchJoin()
 			.where(review.isDeleted.eq(false))
+			.groupBy(review.id)
 			.orderBy(sort(sort))
 			.fetch();
 	}
@@ -37,6 +38,7 @@ public class ReviewQuerydslRepositoryImpl implements ReviewQuerydslRepository {
 			.leftJoin(review.reviewLikeDislikes, reviewLikeDislike)
 			.join(review.member, member).fetchJoin()
 			.where(review.isDeleted.eq(false), review.influencer.eq(influencer))
+			.groupBy(review.id)
 			.orderBy(sort(sort))
 			.fetch();
 	}
