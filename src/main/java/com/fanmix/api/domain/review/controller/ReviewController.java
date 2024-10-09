@@ -34,19 +34,18 @@ public class ReviewController {
 	private final ReviewService reviewService;
 
 	@PostMapping("/influencers/{influencerId}/reviews")
-	public ResponseEntity<Response<Void>> postReview(
+	public ResponseEntity<Response<ReviewResponseDto.ReviewEntityResponseDto>> postReview(
 		@PathVariable Integer influencerId, @AuthenticationPrincipal String email,
 		@RequestBody @Valid ReviewRequestDto.PostReview reviewRequestDto) {
-		reviewService.postReview(influencerId, email, reviewRequestDto);
-		return ResponseEntity.ok(Response.success());
+		return ResponseEntity.ok(Response.success(reviewService.postReview(influencerId, email, reviewRequestDto)));
 	}
 
 	@PutMapping("/influencers/{influencerId}/reviews/{reviewId}")
-	public ResponseEntity<Response<Void>> modifyReview(
+	public ResponseEntity<Response<ReviewResponseDto.ReviewEntityResponseDto>> modifyReview(
 		@PathVariable Integer influencerId, @PathVariable Long reviewId, @AuthenticationPrincipal String email,
 		@RequestBody @Valid ReviewRequestDto.ModifyReview reviewRequestDto) {
-		reviewService.modifyReview(influencerId, reviewId, email, reviewRequestDto);
-		return ResponseEntity.ok(Response.success());
+		return ResponseEntity.ok(
+			Response.success(reviewService.modifyReview(influencerId, reviewId, email, reviewRequestDto)));
 	}
 
 	@DeleteMapping("/influencers/{influencerId}/reviews/{reviewId}")
@@ -65,11 +64,11 @@ public class ReviewController {
 	}
 
 	@PostMapping("/influencers/{influencerId}/reviews/{reviewId}/comments")
-	public ResponseEntity<Response<Void>> postReviewComment(
+	public ResponseEntity<Response<ReviewResponseDto.ReviewCommentEntityResponseDto>> postReviewComment(
 		@PathVariable Integer influencerId, @PathVariable Long reviewId, @AuthenticationPrincipal String email,
 		@RequestBody @Valid ReviewCommentRequestDto commentRequestDto) {
-		reviewService.postReviewComment(influencerId, reviewId, email, commentRequestDto);
-		return ResponseEntity.ok(Response.success());
+		return ResponseEntity.ok(
+			Response.success(reviewService.postReviewComment(influencerId, reviewId, email, commentRequestDto)));
 	}
 
 	@DeleteMapping("/influencers/{influencerId}/reviews/{reviewId}/comments/{commentId}")
@@ -99,7 +98,8 @@ public class ReviewController {
 	}
 
 	@GetMapping("/influencers/reviews/hot5")
-	public ResponseEntity<Response<List<ReviewResponseDto.ForHot5Review>>> getHot5Reviews(@AuthenticationPrincipal String email) {
+	public ResponseEntity<Response<List<ReviewResponseDto.ForHot5Review>>> getHot5Reviews(
+		@AuthenticationPrincipal String email) {
 		return ResponseEntity.ok(Response.success(reviewService.getHot5Reviews(email)));
 	}
 }
