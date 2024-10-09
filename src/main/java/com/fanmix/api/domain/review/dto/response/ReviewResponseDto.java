@@ -149,4 +149,26 @@ public class ReviewResponseDto {
 				isLiked, isDisliked);
 		}
 	}
+
+	public record ReviewEntityResponseDto(Long reviewId, Boolean isBefore15Days,
+										  Integer contentsRating, Integer communicationRating, Integer trustRating,
+										  LocalDateTime reviewDate, String reviewContent) {
+
+		public static ReviewEntityResponseDto of(Review review, Boolean isBefore15Days) {
+			return new ReviewEntityResponseDto(review.getId(), isBefore15Days,
+				review.getContentsRating(), review.getCommunicationRating(), review.getTrustRating(),
+				review.getCrDate(), review.getContent());
+		}
+	}
+
+	public record ReviewCommentEntityResponseDto(Long commentId, Integer commenterId, String commenterNickName,
+												 LocalDateTime commentDate, String commentContent, Boolean isMyComment,
+												 Boolean isDeleted) {
+
+		public static ReviewCommentEntityResponseDto of(ReviewComment comment, Boolean isMyComment) {
+
+			return new ReviewCommentEntityResponseDto(comment.getId(), comment.getMember().getId(),
+				comment.getMember().getNickName(), comment.getCrDate(), comment.getContent(), isMyComment, false);
+		}
+	}
 }

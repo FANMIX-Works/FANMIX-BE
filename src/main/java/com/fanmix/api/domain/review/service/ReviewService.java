@@ -53,7 +53,8 @@ public class ReviewService {
 	private final FanRepository fanRepository;
 
 	@Transactional
-	public void postReview(Integer influencerId, String email, ReviewRequestDto.PostReview reviewRequestDto) {
+	public ReviewResponseDto.ReviewEntityResponseDto postReview(Integer influencerId, String email,
+		ReviewRequestDto.PostReview reviewRequestDto) {
 		final Influencer influencer = influencerRepository.findById(influencerId)
 			.orElseThrow(() -> new InfluencerException(INFLUENCER_NOT_FOUND));
 
@@ -70,6 +71,8 @@ public class ReviewService {
 
 		final Review newReview = reviewRequestDto.toEntity(influencer, member);
 		reviewRepository.save(newReview);
+
+		return ReviewResponseDto.ReviewEntityResponseDto.of(newReview, false);
 	}
 
 	private boolean canReview(Review review) {
@@ -81,7 +84,7 @@ public class ReviewService {
 	}
 
 	@Transactional
-	public void modifyReview(Integer influencerId, Long reviewId, String email,
+	public ReviewResponseDto.ReviewEntityResponseDto modifyReview(Integer influencerId, Long reviewId, String email,
 		ReviewRequestDto.ModifyReview reviewRequestDto) {
 
 		final Influencer influencer = influencerRepository.findById(influencerId)
@@ -97,6 +100,8 @@ public class ReviewService {
 
 		review.modifyReview(reviewRequestDto.content(), reviewRequestDto.contentsRating(),
 			reviewRequestDto.communicationRating(), reviewRequestDto.trustRating());
+
+		return ReviewResponseDto.ReviewEntityResponseDto.of(review, false);
 	}
 
 	@Transactional
@@ -153,8 +158,8 @@ public class ReviewService {
 	}
 
 	@Transactional
-	public void postReviewComment(Integer influencerId, Long reviewId, String email,
-		ReviewCommentRequestDto commentRequestDto) {
+	public ReviewResponseDto.ReviewCommentEntityResponseDto postReviewComment(Integer influencerId, Long reviewId,
+		String email, ReviewCommentRequestDto commentRequestDto) {
 
 		final Influencer influencer = influencerRepository.findById(influencerId)
 			.orElseThrow(() -> new InfluencerException(INFLUENCER_NOT_FOUND));
@@ -169,7 +174,9 @@ public class ReviewService {
 			throw new ReviewException(REVIEW_ALREADY_DELETED);
 		}
 
-		reviewCommentRepository.save(commentRequestDto.toEntity(member, review));
+		ReviewComment reviewComment = reviewCommentRepository.save(commentRequestDto.toEntity(member, review));
+
+		return ReviewResponseDto.ReviewCommentEntityResponseDto.of(reviewComment, true);
 	}
 
 	@Transactional
