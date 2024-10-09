@@ -34,11 +34,10 @@ public class ReviewController {
 	private final ReviewService reviewService;
 
 	@PostMapping("/influencers/{influencerId}/reviews")
-	public ResponseEntity<Response<Void>> postReview(
+	public ResponseEntity<Response<ReviewResponseDto.ReviewEntityResponseDto>> postReview(
 		@PathVariable Integer influencerId, @AuthenticationPrincipal String email,
 		@RequestBody @Valid ReviewRequestDto.PostReview reviewRequestDto) {
-		reviewService.postReview(influencerId, email, reviewRequestDto);
-		return ResponseEntity.ok(Response.success());
+		return ResponseEntity.ok(Response.success(reviewService.postReview(influencerId, email, reviewRequestDto)));
 	}
 
 	@PutMapping("/influencers/{influencerId}/reviews/{reviewId}")

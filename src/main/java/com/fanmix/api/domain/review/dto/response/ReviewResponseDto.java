@@ -149,4 +149,15 @@ public class ReviewResponseDto {
 				isLiked, isDisliked);
 		}
 	}
+
+	public record ReviewEntityResponseDto(Long reviewId, Boolean isBefore15Days,
+										  Integer contentsRating, Integer communicationRating, Integer trustRating,
+										  LocalDateTime reviewDate, String reviewContent) {
+
+		public static ReviewEntityResponseDto of(Review review, Boolean isBefore15Days) {
+			return new ReviewEntityResponseDto(review.getId(), isBefore15Days,
+				review.getContentsRating(), review.getCommunicationRating(), review.getTrustRating(),
+				review.getCrDate(), review.getContent());
+		}
+	}
 }

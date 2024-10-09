@@ -53,7 +53,8 @@ public class ReviewService {
 	private final FanRepository fanRepository;
 
 	@Transactional
-	public void postReview(Integer influencerId, String email, ReviewRequestDto.PostReview reviewRequestDto) {
+	public ReviewResponseDto.ReviewEntityResponseDto postReview(Integer influencerId, String email,
+		ReviewRequestDto.PostReview reviewRequestDto) {
 		final Influencer influencer = influencerRepository.findById(influencerId)
 			.orElseThrow(() -> new InfluencerException(INFLUENCER_NOT_FOUND));
 
@@ -70,6 +71,8 @@ public class ReviewService {
 
 		final Review newReview = reviewRequestDto.toEntity(influencer, member);
 		reviewRepository.save(newReview);
+
+		return ReviewResponseDto.ReviewEntityResponseDto.of(newReview, false);
 	}
 
 	private boolean canReview(Review review) {
