@@ -160,4 +160,15 @@ public class ReviewResponseDto {
 				review.getCrDate(), review.getContent());
 		}
 	}
+
+	public record ReviewCommentEntityResponseDto(Long commentId, Integer commenterId, String commenterNickName,
+												 LocalDateTime commentDate, String commentContent, Boolean isMyComment,
+												 Boolean isDeleted) {
+
+		public static ReviewCommentEntityResponseDto of(ReviewComment comment, Boolean isMyComment) {
+
+			return new ReviewCommentEntityResponseDto(comment.getId(), comment.getMember().getId(),
+				comment.getMember().getNickName(), comment.getCrDate(), comment.getContent(), isMyComment, false);
+		}
+	}
 }

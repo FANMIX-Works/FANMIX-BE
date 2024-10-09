@@ -158,8 +158,8 @@ public class ReviewService {
 	}
 
 	@Transactional
-	public void postReviewComment(Integer influencerId, Long reviewId, String email,
-		ReviewCommentRequestDto commentRequestDto) {
+	public ReviewResponseDto.ReviewCommentEntityResponseDto postReviewComment(Integer influencerId, Long reviewId,
+		String email, ReviewCommentRequestDto commentRequestDto) {
 
 		final Influencer influencer = influencerRepository.findById(influencerId)
 			.orElseThrow(() -> new InfluencerException(INFLUENCER_NOT_FOUND));
@@ -174,7 +174,9 @@ public class ReviewService {
 			throw new ReviewException(REVIEW_ALREADY_DELETED);
 		}
 
-		reviewCommentRepository.save(commentRequestDto.toEntity(member, review));
+		ReviewComment reviewComment = reviewCommentRepository.save(commentRequestDto.toEntity(member, review));
+
+		return ReviewResponseDto.ReviewCommentEntityResponseDto.of(reviewComment, true);
 	}
 
 	@Transactional

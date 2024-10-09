@@ -64,11 +64,11 @@ public class ReviewController {
 	}
 
 	@PostMapping("/influencers/{influencerId}/reviews/{reviewId}/comments")
-	public ResponseEntity<Response<Void>> postReviewComment(
+	public ResponseEntity<Response<ReviewResponseDto.ReviewCommentEntityResponseDto>> postReviewComment(
 		@PathVariable Integer influencerId, @PathVariable Long reviewId, @AuthenticationPrincipal String email,
 		@RequestBody @Valid ReviewCommentRequestDto commentRequestDto) {
-		reviewService.postReviewComment(influencerId, reviewId, email, commentRequestDto);
-		return ResponseEntity.ok(Response.success());
+		return ResponseEntity.ok(
+			Response.success(reviewService.postReviewComment(influencerId, reviewId, email, commentRequestDto)));
 	}
 
 	@DeleteMapping("/influencers/{influencerId}/reviews/{reviewId}/comments/{commentId}")
