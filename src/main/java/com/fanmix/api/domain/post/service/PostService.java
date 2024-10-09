@@ -68,7 +68,11 @@ public class PostService {
 			post.deleteImage();
 		}
 
-		return postRepository.save(post);
+		if(community.getInfluencer() == null) {
+			return postRepository.save(post);
+		} else {
+			throw new CommunityException(CommunityErrorCode.NOT_EXISTS_AUTHORIZATION);
+		}
 	}
 
 	// 전체 커뮤니티 종합 글 리스트 조회
