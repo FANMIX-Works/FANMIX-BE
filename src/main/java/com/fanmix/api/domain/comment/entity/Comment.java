@@ -69,8 +69,9 @@ public class Comment extends BaseEntity {
 	private int dislikeCount;
 
 	@Builder
-	public Comment(Post post, Comment parentComment, String contents) {
+	public Comment(Post post, Member member, Comment parentComment, String contents) {
 		this.post = post;
+		this.member = member;
 		this.parentComment = parentComment;
 		this.contents = contents;
 	}

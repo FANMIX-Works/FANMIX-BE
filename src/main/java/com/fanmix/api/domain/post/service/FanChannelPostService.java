@@ -58,7 +58,7 @@ public class FanChannelPostService {
 		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if (member.getRole().equals(Role.COMMUNITY)) {
+		if (!member.getRole().equals(Role.COMMUNITY)) {
 			throw new PostException(PostErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
@@ -133,7 +133,7 @@ public class FanChannelPostService {
 
 	// 팬채널 글 수정
 	@Transactional
-	public void updateFanChannelPost(int postId, UpdatePostRequest request, MultipartFile image, String email) {
+	public Post updateFanChannelPost(int postId, UpdatePostRequest request, MultipartFile image, String email) {
 		Post post = postRepository.findById(postId)
 			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_EXIST));
 
@@ -152,6 +152,8 @@ public class FanChannelPostService {
 		}
 
 		post.update(request.getTitle(), request.getContent());
+
+		return post;
 	}
 
 	// 팬채널 글 삭제

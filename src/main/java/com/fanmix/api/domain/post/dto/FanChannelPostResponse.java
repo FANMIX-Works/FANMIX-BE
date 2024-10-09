@@ -10,10 +10,12 @@ import lombok.Getter;
 @Getter
 public class FanChannelPostResponse {
 	private int communityId;
+	private String communityName;
 	private String influencerName;
 	private int postId;
-	private int crMember;
-	private int uMember;
+	private int memberId;
+	private String memberName;
+	private String memberImageUrl;
 	private String title;
 	private String contents;
 	private String imgUrl;
@@ -26,18 +28,20 @@ public class FanChannelPostResponse {
 
 	public FanChannelPostResponse(Post post) {
 		this.communityId = post.getCommunity().getId();
-		 this.influencerName = post.getCommunity().getInfluencer().getInfluencerName();
+		this.communityName = post.getCommunity().getName();
+		this.influencerName = post.getCommunity().getInfluencer().getInfluencerName();
 		this.postId = post.getId();
-		this.crMember = post.getCrMember();
-		this.uMember = post.getUMember();
+		this.memberId = post.getMember().getId();
+		this.memberName = post.getMember().getName();
+		this.memberImageUrl = post.getMember().getProfileImgUrl();
 		this.title = post.getTitle();
 		this.contents = post.getContent();
 		this.imgUrl = post.getImgUrl();
 		this.viewCount = post.getViewCount();
-		this.likeCount = post.getLikes().size();
-		this.commentCount = post.getComments().size();
+		this.likeCount = post.getLikes() != null ? post.getLikes().size() : 0;
+		this.commentCount = post.getComments() != null ? post.getComments().size() : 0;
+		this.isDelete = post.isDelete();
 		this.crDate = post.getCrDate();
 		this.uDate = post.getUDate();
-		this.isDelete = post.isDelete();
 	}
 }

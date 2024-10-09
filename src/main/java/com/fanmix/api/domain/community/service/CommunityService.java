@@ -71,9 +71,9 @@ public class CommunityService {
 	public List<CommunityResponse> findAllCategories() {
 		return communityRepository.findAll()
 				.stream()
-				.filter(community -> community.getInfluencer().getId() == null)
+				.filter(community -> community.getInfluencer() == null)
 				.map(CommunityResponse::new)
-				.toList();
+				.collect(Collectors.toList());
 	}
 
 	// 커뮤니티 수정

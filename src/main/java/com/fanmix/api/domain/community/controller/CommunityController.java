@@ -5,7 +5,6 @@ import com.fanmix.api.domain.community.dto.AddCommunityRequest;
 import com.fanmix.api.domain.community.dto.CommunityResponse;
 import com.fanmix.api.domain.community.dto.FollowCommunityResponse;
 import com.fanmix.api.domain.community.dto.UpdateCommunityRequest;
-import com.fanmix.api.domain.community.entity.Community;
 import com.fanmix.api.domain.community.service.CommunityService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,10 +20,9 @@ public class CommunityController {
 
 	// 커뮤니티 추가
 	@PostMapping("/api/communities")
-	public ResponseEntity<Response<Community>> addCommunity(
+	public ResponseEntity<Response<CommunityResponse>> addCommunity(
 		@RequestBody AddCommunityRequest request, @AuthenticationPrincipal String email) {
-		communityService.save(request, email);
-		return ResponseEntity.ok(Response.success());
+		return ResponseEntity.ok(Response.success(new CommunityResponse(communityService.save(request, email))));
 	}
 
 	// 전체 커뮤니티 리스트 조회(커뮤니티, 팬채널)
@@ -47,12 +45,12 @@ public class CommunityController {
 
 	// 커뮤니티 수정
 	@PutMapping("/api/communities/{communityId}")
-	public ResponseEntity<Response<Community>> updateCommunity(
+	public ResponseEntity<Response<CommunityResponse>> updateCommunity(
 		@PathVariable int communityId,
 		@RequestBody UpdateCommunityRequest request,
 		@AuthenticationPrincipal String email) {
-		communityService.update(communityId, request, email);
-		return ResponseEntity.ok(Response.success());
+
+		return ResponseEntity.ok(Response.success(new CommunityResponse(communityService.update(communityId, request, email))));
 	}
 
 	// 커뮤니티 삭제

@@ -2,6 +2,7 @@ package com.fanmix.api.domain.community.controller;
 
 import com.fanmix.api.common.response.Response;
 import com.fanmix.api.domain.community.dto.AddFanChannelRequest;
+import com.fanmix.api.domain.community.dto.CommunityResponse;
 import com.fanmix.api.domain.community.dto.FanChannelResponse;
 import com.fanmix.api.domain.community.dto.UpdateFanChannelRequest;
 import com.fanmix.api.domain.community.entity.Community;
@@ -20,9 +21,8 @@ public class FanChannelController {
 
 	// 팬채널 추가
 	@PostMapping("/api/fanchannels")
-	public ResponseEntity<Response<Community>> saveFanChannel(@RequestBody AddFanChannelRequest request, @AuthenticationPrincipal String email) {
-		fanChannelService.fanChannelSave(request, email);
-		return ResponseEntity.ok(Response.success());
+	public ResponseEntity<Response<CommunityResponse>> saveFanChannel(@RequestBody AddFanChannelRequest request, @AuthenticationPrincipal String email) {
+		return ResponseEntity.ok(Response.success(new CommunityResponse(fanChannelService.fanChannelSave(request, email))));
 	}
 
 	// 팬채널 리스트 정렬
@@ -44,8 +44,7 @@ public class FanChannelController {
 		@PathVariable int communityId,
 		@RequestBody UpdateFanChannelRequest request,
 		@AuthenticationPrincipal String email) {
-		fanChannelService.fanChannelUpdate(communityId, request, email);
-		return ResponseEntity.ok(Response.success());
+		return ResponseEntity.ok(Response.success(fanChannelService.fanChannelUpdate(communityId, request, email)));
 	}
 
 	// 팬채널 삭제
