@@ -26,8 +26,7 @@ public class CommentController {
 		@PathVariable int postId,
 		@RequestBody AddCommentRequest request,
 		@AuthenticationPrincipal String email) {
-		commentService.save(postId, request, email);
-		return ResponseEntity.ok(Response.success());
+		return ResponseEntity.ok(Response.success(new CommentResponse(commentService.save(postId, request, email))));
 	}
 
 	// 댓글 목록 조회
@@ -59,8 +58,7 @@ public class CommentController {
 		@PathVariable int id,
 		@RequestBody UpdateCommentRequest request,
 		@AuthenticationPrincipal String email) {
-		commentService.update(postId, id, request, email);
-		return ResponseEntity.ok(Response.success());
+		return ResponseEntity.ok(Response.success(new CommentResponse(commentService.update(postId, id, request, email))));
 	}
 
 	// 댓글 삭제

@@ -26,8 +26,7 @@ public class PostController {
 		@RequestPart @Validated AddPostRequest request,
 		@RequestPart(value = "image", required = false) MultipartFile image,
 		@AuthenticationPrincipal String email) {
-		postService.save(request, image, email);
-		return ResponseEntity.ok(Response.success());
+		return ResponseEntity.ok(Response.success(new PostResponse(postService.save(request, image, email))));
 	}
 
 	// 전체 커뮤니티 종합 글 리스트 조회
@@ -74,8 +73,7 @@ public class PostController {
 		@RequestPart @Validated UpdatePostRequest request,
 		@RequestPart(value = "image", required = false) MultipartFile image,
 		@AuthenticationPrincipal String email) {
-		postService.update(communityId, postId, request, image, email);
-		return ResponseEntity.ok(Response.success());
+		return ResponseEntity.ok(Response.success(new PostResponse(postService.update(communityId, postId, request, image, email))));
 	}
 
 	// 게시물 삭제

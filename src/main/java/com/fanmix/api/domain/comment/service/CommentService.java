@@ -56,12 +56,12 @@ public class CommentService {
 			parentComment = commentRepository.findById(request.getParentId())
 					.orElseThrow(() -> new CommentException(CommentErrorCode.PARENT_ID_NOT_EXIST));
 
-			Comment childComment = new Comment(post, parentComment, request.getContents());
+			Comment childComment = new Comment(post, member, parentComment, request.getContents());
 			childComment.addLevel();
 
 			return commentRepository.save(childComment);
 		} else {
-			parentComment = request.toEntity(post, null);
+			parentComment = request.toEntity(post, member, null);
 
 			return commentRepository.save(parentComment);
 		}

@@ -21,6 +21,7 @@ public class PostListResponse {
 	private int dislikeCount;
 	private int commentCount;
 	private LocalDateTime crDate;
+	private LocalDateTime uDate;
 
 	public PostListResponse(Post post) {
 		this.communityId = post.getCommunity().getId();
@@ -37,5 +38,6 @@ public class PostListResponse {
 		this.dislikeCount = post.getDislikeCount();
 		this.commentCount = post.getComments().size();
 		this.crDate = post.getCrDate();
+		this.uDate = post.getUDate();
 	}
 }
