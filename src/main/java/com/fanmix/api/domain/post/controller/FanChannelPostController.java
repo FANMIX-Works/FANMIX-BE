@@ -2,6 +2,7 @@ package com.fanmix.api.domain.post.controller;
 
 import java.util.List;
 
+import com.fanmix.api.domain.post.dto.*;
 import com.fanmix.api.domain.post.service.PostService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -20,11 +21,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fanmix.api.common.response.Response;
-import com.fanmix.api.domain.post.dto.AddPostLikeDislikeRequest;
-import com.fanmix.api.domain.post.dto.AddPostRequest;
-import com.fanmix.api.domain.post.dto.PostListResponse;
-import com.fanmix.api.domain.post.dto.PostResponse;
-import com.fanmix.api.domain.post.dto.UpdatePostRequest;
 import com.fanmix.api.domain.post.entity.Post;
 import com.fanmix.api.domain.post.service.FanChannelPostService;
 
@@ -38,12 +34,11 @@ public class FanChannelPostController {
 
 	// 팬채널 글 추가
 	@PostMapping("/api/fanchannels/posts")
-	public ResponseEntity<Response<Post>> addPost(
+	public ResponseEntity<Response<FanChannelPostResponse>> addPost(
 		@RequestPart @Validated AddPostRequest request,
 		@RequestPart(value = "image", required = false) MultipartFile image,
 		@AuthenticationPrincipal String email) {
-		fanChannelPostService.save(request, image, email);
-		return ResponseEntity.ok(Response.success());
+		return ResponseEntity.ok(Response.success(new FanChannelPostResponse(fanChannelPostService.save(request, image, email))));
 	}
 
 	// 팬채널 글 목록 조회
@@ -68,13 +63,12 @@ public class FanChannelPostController {
 
 	// 팬채널 글 수정
 	@PutMapping("/api/fanchannels/posts/{postId}")
-	public ResponseEntity<Response<Post>> updateFanChannelPost(
+	public ResponseEntity<Response<FanChannelPostResponse>> updateFanChannelPost(
 		@PathVariable int postId,
 		@RequestPart @Validated UpdatePostRequest request,
 		@RequestPart(value = "image", required = false) MultipartFile image,
 		@AuthenticationPrincipal String email) {
-		fanChannelPostService.updateFanChannelPost(postId, request, image, email);
-		return ResponseEntity.ok(Response.success());
+		return ResponseEntity.ok(Response.success(new FanChannelPostResponse(fanChannelPostService.updateFanChannelPost(postId, request, image, email))));
 	}
 
 	// 팬채널 글 삭제
