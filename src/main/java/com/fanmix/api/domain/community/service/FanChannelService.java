@@ -36,7 +36,7 @@ public class FanChannelService {
 
 	// 팬채널 추가
 	@Transactional
-	public void fanChannelSave(AddFanChannelRequest request, @AuthenticationPrincipal String email) {
+	public Community fanChannelSave(AddFanChannelRequest request, @AuthenticationPrincipal String email) {
 		Influencer influencer = influencerRepository.findById(request.getInfluencerId())
 			.orElseThrow(() -> new InfluencerException(InfluencerErrorCode.INFLUENCER_NOT_FOUND));
 
@@ -56,7 +56,7 @@ public class FanChannelService {
 		}
 
 		Community community = request.FanChannelToEntity(influencer);
-		communityRepository.save(community);
+		return communityRepository.save(community);
 	}
 
 	// 팬채널 리스트 정렬
@@ -97,7 +97,7 @@ public class FanChannelService {
 
 	// 팬채널 수정
 	@Transactional
-	public Community fanChannelUpdate(int communityId, UpdateFanChannelRequest request, String email) {
+	public FanChannelResponse fanChannelUpdate(int communityId, UpdateFanChannelRequest request, String email) {
 		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
@@ -108,9 +108,14 @@ public class FanChannelService {
 		Community community = communityRepository.findById(communityId)
 			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
 
+		if(communityRepository.existsByName(request.getName())) {
+			throw new CommunityException(CommunityErrorCode.NAME_DUPLICATION);
+		}
+
 		community.fanChannelUpdate(request.getName(), request.getIsShow(), request.getPriv());
 
-		return community;
+		Boolean isFan = fanRepository.existsByInfluencerAndMember(community.getInfluencer(), member);
+		return new FanChannelResponse(community, isFan);
 	}
 
 	// 팬채널 삭제
