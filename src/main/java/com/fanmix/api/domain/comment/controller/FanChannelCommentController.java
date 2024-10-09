@@ -35,8 +35,7 @@ public class FanChannelCommentController {
 		@PathVariable int postId,
 		@RequestBody AddCommentRequest request,
 		@AuthenticationPrincipal String email) {
-		fanChannelCommentService.addFanChannelComment(postId, request, email);
-		return ResponseEntity.ok(Response.success());
+		return ResponseEntity.ok(Response.success(new CommentResponse(fanChannelCommentService.addFanChannelComment(postId, request, email))));
 	}
 
 	// 팬채널 댓글 조회
@@ -58,8 +57,7 @@ public class FanChannelCommentController {
 		@PathVariable int commentId,
 		@RequestBody UpdateCommentRequest request,
 		@AuthenticationPrincipal String email) {
-		fanChannelCommentService.updateFanChannelComment(postId, commentId, request, email);
-		return ResponseEntity.ok(Response.success());
+		return ResponseEntity.ok(Response.success(new CommentResponse(fanChannelCommentService.updateFanChannelComment(postId, commentId, request, email))));
 	}
 
 	// 팬채널 댓글 삭제
