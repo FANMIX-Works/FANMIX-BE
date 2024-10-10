@@ -227,7 +227,8 @@ public class ReviewService {
 
 			if (member != null) {
 				isMyReview = member.getId() == reviewer.getId();
-				Optional<ReviewLikeDislike> reviewLikeOrDislike = reviewLikeDislikeRepository.findByMember(member);
+				Optional<ReviewLikeDislike> reviewLikeOrDislike =
+					reviewLikeDislikeRepository.findByMemberAndReview(member, review);
 
 				if (reviewLikeOrDislike.isPresent()) {
 					isLiked = reviewLikeOrDislike.get().getIsLike();
@@ -294,7 +295,8 @@ public class ReviewService {
 
 			if (member != null) {
 				isMyReview = member.getId() == reviewer.getId();
-				Optional<ReviewLikeDislike> reviewLikeOrDislike = reviewLikeDislikeRepository.findByMember(member);
+				Optional<ReviewLikeDislike> reviewLikeOrDislike =
+					reviewLikeDislikeRepository.findByMemberAndReview(member, review);
 
 				if (reviewLikeOrDislike.isPresent()) {
 					isLiked = reviewLikeOrDislike.get().getIsLike();
@@ -344,7 +346,8 @@ public class ReviewService {
 			boolean isLiked = false;
 			boolean isDisliked = false;
 
-			Optional<ReviewLikeDislike> reviewLikeOrDislike = reviewLikeDislikeRepository.findByMember(member);
+			Optional<ReviewLikeDislike> reviewLikeOrDislike =
+				reviewLikeDislikeRepository.findByMemberAndReview(member, review);
 			if (reviewLikeOrDislike.isPresent()) {
 				isLiked = reviewLikeOrDislike.get().getIsLike();
 				isDisliked = !isLiked;
@@ -376,7 +379,8 @@ public class ReviewService {
 			boolean isDisliked = false;
 
 			if (member != null) {
-				Optional<ReviewLikeDislike> reviewLikeOrDislike = reviewLikeDislikeRepository.findByMember(member);
+				Optional<ReviewLikeDislike> reviewLikeOrDislike =
+					reviewLikeDislikeRepository.findByMemberAndReview(member, review);
 
 				if (reviewLikeOrDislike.isPresent()) {
 					isLiked = reviewLikeOrDislike.get().getIsLike();
