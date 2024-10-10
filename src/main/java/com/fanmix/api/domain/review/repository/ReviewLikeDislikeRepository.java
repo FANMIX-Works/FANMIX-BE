@@ -16,5 +16,5 @@ public interface ReviewLikeDislikeRepository extends JpaRepository<ReviewLikeDis
 
 	Boolean existsByReviewAndMember(Review review, Member member);
 
-	Optional<ReviewLikeDislike> findByMember(Member member);
+	Optional<ReviewLikeDislike> findByMemberAndReview(Member member, Review review);
 }
