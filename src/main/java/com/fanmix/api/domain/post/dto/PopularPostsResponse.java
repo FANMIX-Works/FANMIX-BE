@@ -9,6 +9,7 @@ import lombok.Getter;
 public class PopularPostsResponse {
 	private int communityId;
 	private String communityName;
+	private Integer influencerId;
 	private String influencerName;
 	private int postId;
 	private String content;
@@ -20,6 +21,7 @@ public class PopularPostsResponse {
 	public PopularPostsResponse(Post post) {
 		this.communityId = post.getCommunity().getId();
 		this.communityName = post.getCommunity().getName();
+		this.influencerId = post.getCommunity().getInfluencer() != null ? post.getCommunity().getInfluencer().getId() : null;
 		this.influencerName = post.getCommunity().getInfluencer() != null ? post.getCommunity().getInfluencer().getInfluencerName() : null;
 		this.postId = post.getId();
 		this.content = post.getContent();
