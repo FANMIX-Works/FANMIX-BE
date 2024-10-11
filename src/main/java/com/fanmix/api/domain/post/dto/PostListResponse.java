@@ -10,7 +10,8 @@ public class PostListResponse {
 	private int communityId;
 	private String communityName;
 	private int influencerId;
-	private String nickName;
+	private String influencerName;
+	private String memberNickName;
 	private String memberImageUrl;
 	private int postId;
 	private String postTitle;
@@ -27,7 +28,8 @@ public class PostListResponse {
 		this.communityId = post.getCommunity().getId();
 		this.communityName = post.getCommunity().getName();
 		this.influencerId = post.getCommunity().getInfluencer() == null ? 0 : post.getCommunity().getInfluencer().getId();
-		this.nickName = post.getMember().getNickName();
+		this.influencerName = post.getCommunity().getInfluencer() == null ? null : post.getCommunity().getInfluencer().getInfluencerName();
+		this.memberNickName = post.getMember().getNickName();
 		this.memberImageUrl = post.getMember().getProfileImgUrl();
 		this.postId = post.getId();
 		this.postTitle = post.getTitle();
