@@ -211,6 +211,10 @@ public class MemberService implements UserDetailsService {
 			Fan fan = fanRepository.findByInfluencerAndMember(influencer, member)
 				.orElseThrow(() -> new InfluencerException(INFLUENCER_NOT_FOUND));
 
+			// 기존 원픽 설정 해제
+			fanRepository.updateOnePickToFalse(member);
+
+			// 새로운 원픽 설정
 			fanRepository.updateOnePick(influencer, member, onePick, LocalDateTime.now());
 			return "성공적으로 변환 되었습니다.";
 		} catch (Exception e) {
