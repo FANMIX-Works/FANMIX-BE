@@ -382,7 +382,7 @@ public class MemberService implements UserDetailsService {
 
 				// 나의 리뷰 관련 정보
 				double averageRating = 0.0;
-				List<Review> reviews = reviewRepository.findByInfluencerAndMember(influencer, member);
+				List<Review> reviews = reviewRepository.findByInfluencerAndMemberAndIsDeletedFalse(influencer, member);
 				log.debug("리뷰갯수 : " + reviews.size());
 				for (Review review : reviews) {
 					log.debug("나의 해당 인플루언서에 대한 리뷰 : " + review);

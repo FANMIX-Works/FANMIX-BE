@@ -77,5 +77,5 @@ public interface ReviewRepository extends JpaRepository<Review, Long>, ReviewQue
 		+ "SUM(CASE WHEN l.isLike = FALSE THEN 1 ELSE 0 END) DESC")
 	List<Review> findHot5Reviews(LocalDateTime startDate, Pageable pageable);
 
-	List<Review> findByInfluencerAndMember(Influencer influencer, Member member);
+	List<Review> findByInfluencerAndMemberAndIsDeletedFalse(Influencer influencer, Member member);
 }
