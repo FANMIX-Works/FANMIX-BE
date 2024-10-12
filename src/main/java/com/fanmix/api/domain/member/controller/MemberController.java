@@ -351,7 +351,7 @@ public class MemberController {
 	@ResponseBody
 	public ResponseEntity<Response<String>> updateMyOnepick(@RequestBody Map<String, String> body) {
 		Integer influencerId = Integer.parseInt(body.get("influencerId"));
-		Boolean onePick = Boolean.parseBoolean(body.get("onePick"));
+		Boolean onePick = convertToBoolean(body.get("onePick"));
 		log.debug("influencerId : " + influencerId);
 		log.debug("onePick : " + onePick);
 		if (influencerId == null || onePick == null) {
@@ -368,6 +368,10 @@ public class MemberController {
 	public ResponseEntity<Response<InfluencerResponseDto.Details>> getMyFollowers(
 		@PathVariable int memberId, @AuthenticationPrincipal String email) {
 		return ResponseEntity.ok(Response.success(memberService.getMyOnepickInfluencer(memberId, email)));
+	}
+
+	private Boolean convertToBoolean(String value) {
+		return "1".equals(value) || "true".equalsIgnoreCase(value);
 	}
 
 }
