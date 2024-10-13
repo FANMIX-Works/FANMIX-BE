@@ -452,14 +452,15 @@ public class MemberService implements UserDetailsService {
 	}
 
 	public InfluencerResponseDto.Details getMyOnepickInfluencer(int memberId, String email) {
-		Member member = memberRepository.findByEmail(email)
+		Member member = memberRepository.findById(memberId)
 			.orElseThrow(() -> new MemberException(NO_CONTEXT));
 		InfluencerResponseDto.Details myOnepick = null;
 		List<Fan> fans = fanRepository.findByMember(member);
 		for (Fan fan : fans) {
 			if (fan.getIsOnepick() != null && fan.getIsOnepick() == true) {
 				log.debug("원픽이 있음");
-				myOnepick = influencerService.getInfluencerDetails(fan.getInfluencer().getId(), email);
+				myOnepick = influencerService.getInfluencerDetailsWithNoLogin(fan.getInfluencer().getId(),
+					member.getEmail());
 				log.debug("myOnepick : " + myOnepick);
 			}
 		}

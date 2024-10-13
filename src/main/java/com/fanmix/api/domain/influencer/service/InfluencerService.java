@@ -114,6 +114,60 @@ public class InfluencerService {
 			bestReviewLikeCount, bestReviewDislikeCount, bestReviewCommentsCount);
 	}
 
+	@Transactional
+	public InfluencerResponseDto.Details getInfluencerDetailsWithNoLogin(Integer influencerId, String email) {
+		final Influencer influencer = influencerRepository.findById(influencerId)
+			.orElseThrow(() -> new InfluencerException(INFLUENCER_NOT_FOUND));
+
+		final Member member = (email.equals("anonymousUser")) ? null :
+			memberRepository.findByEmail(email).orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
+
+		updateInfluencerViewCount(influencer, member);
+
+		final List<String> tagList = influencerTagMapperRepository.findByInfluencer(influencer)
+			.stream()
+			.map(InfluencerTagMapper::getInfluencerTag)
+			.map(InfluencerTag::getTagName)
+			.toList();
+
+		final Optional<Review> latestReview = reviewRepository.findFirstByInfluencerAndIsDeletedOrderByCrDateDesc(
+			influencer, false);
+		LocalDateTime latestReviewDate = latestReview.map(Review::getCrDate).orElse(null);
+
+		Object[] averageRatings = reviewRepository.findAverageRatingsByInfluencer(influencer.getId()).get(0);
+		Long totalReviewCount = reviewRepository.countByInfluencerAndIsDeleted(influencer, false);
+
+		boolean isFollowing = false;
+		if (member != null) {
+			isFollowing = fanRepository.existsByInfluencerAndMember(influencer, member);
+		}
+
+		final Community community = communityRepository.findByInfluencer(influencer)
+			.orElse(null);
+
+		final Slice<Review> bestReviewList = reviewRepository.findBestReviewByInfluencer(influencer,
+			PageRequest.of(0, 1));
+		final Review bestReview = bestReviewList.isEmpty() ? null : bestReviewList.getContent().get(0);
+
+		Long bestReviewLikeCount = 0L;
+		Long bestReviewDislikeCount = 0L;
+		Long bestReviewCommentsCount = 0L;
+
+		if (bestReview != null) {
+			bestReviewLikeCount = reviewLikeDislikeRepository.countByReviewAndIsLike(bestReview, true);
+			bestReviewDislikeCount = reviewLikeDislikeRepository.countByReviewAndIsLike(bestReview, false);
+			bestReviewCommentsCount = reviewCommentRepository.countByReviewAndIsDeleted(bestReview, false);
+		}
+
+		return InfluencerResponseDto.Details.of(influencer, tagList, latestReviewDate,
+			((BigDecimal)averageRatings[0]).doubleValue(),
+			((BigDecimal)averageRatings[1]).doubleValue(), ((BigDecimal)averageRatings[2]).doubleValue(),
+			// ((Double)averageRatings[0]),
+			// ((Double)averageRatings[1]), ((Double)averageRatings[2]),
+			totalReviewCount, isFollowing, community != null ? community.getId() : null, bestReview,
+			bestReviewLikeCount, bestReviewDislikeCount, bestReviewCommentsCount);
+	}
+
 	private void updateInfluencerViewCount(Influencer influencer, Member member) {
 
 		String clientIp = ClientIpAspect.getClientIp();
