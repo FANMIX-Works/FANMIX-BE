@@ -272,6 +272,7 @@ public class MemberService implements UserDetailsService {
 	}
 
 	@Transactional
+	//특정유저의 활동내역 - 리뷰
 	public List<MemberActivityReviewDto.Details> getMemberDetailsReview(Integer MemberId, String email) {
 		//멤버 가져오기
 		final Member member = memberRepository.findById(MemberId)
@@ -294,7 +295,12 @@ public class MemberService implements UserDetailsService {
 		List<List<String>> tagLists = new ArrayList<>();
 		List<Review> reviews = new ArrayList<>();
 		List<Boolean> isFollowings = new ArrayList<>();
+		//리뷰의 좋아요, 싫어요, 댓글수 저장할 리스트
+		List<Integer> reviewLikeCounts = new ArrayList<>();
+		List<Integer> reviewDislikeCounts = new ArrayList<>();
+		List<Integer> reviewCommentsCounts = new ArrayList<>();
 
+		//나의 팬정보에서 팔로우한 인플루언서들에 대해 반복
 		for (Fan fan : fans) {
 			Influencer influencer = fan.getInfluencer();
 			if (influencer != null) {
@@ -308,6 +314,16 @@ public class MemberService implements UserDetailsService {
 
 				Review review = reviewRepository.findTopByMemberAndInfluencerAndIsDeletedOrderByCrDateDesc(
 					member, influencer, false).orElse(null);
+
+				//리뷰의 좋아요, 싫어요, 댓글수
+				Long reviewLikeCount = reviewLikeDislikeRepository.countByReviewAndIsLike(review, true);
+				Long reviewDislikeCount = reviewLikeDislikeRepository.countByReviewAndIsLike(review, false);
+				Long reviewCommentsCount = reviewCommentRepository.countByReviewAndIsDeleted(review, false);
+
+				reviewLikeCounts.add(reviewLikeCount.intValue());
+				reviewDislikeCounts.add(reviewDislikeCount.intValue());
+				reviewCommentsCounts.add(reviewCommentsCount.intValue());
+
 				reviews.add(review);
 
 				Boolean isFollowing = fanRepository.existsByInfluencerAndMember(influencer, member);
@@ -315,7 +331,8 @@ public class MemberService implements UserDetailsService {
 			}
 		}
 
-		return MemberActivityReviewDto.Details.of(influencers, tagLists, reviews, isFollowings);
+		return MemberActivityReviewDto.Details.of(influencers, tagLists, reviews, isFollowings,
+			reviewLikeCounts, reviewDislikeCounts, reviewCommentsCounts);
 	}
 
 	@Transactional

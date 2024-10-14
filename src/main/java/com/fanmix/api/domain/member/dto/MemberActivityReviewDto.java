@@ -30,14 +30,18 @@ public class MemberActivityReviewDto {
 
 		Long reviewId,                //리뷰아이디
 		String reviewContent,            //리뷰내용
-		Integer contentRating,          //콘텐츠
+		Integer contentsRating,          //콘텐츠
 		Integer communicationRating,    //소통
 		Integer trustRating,            //신뢰
 
 		LocalDateTime latestReviewDate,
 
 		Boolean isAuthenticated,   // 인플루언서 본인 인증 여부
-		Boolean isFollowing // 팔로우 여부
+		Boolean isFollowing, // 팔로우 여부
+
+		Integer reviewLikeCount,           //좋아요수
+		Integer reviewDislikeCount,        //싫어요수
+		Integer reviewCommentsCount        //댓글수
 	) {
 
 		/**
@@ -49,7 +53,12 @@ public class MemberActivityReviewDto {
 			List<Influencer> influencers, // 인플루언서 엔티티
 			List<List<String>> tagLists, // 태그 목록
 			List<Review> reviews,
-			List<Boolean> isFollowings // 팔로우 여부
+			List<Boolean> isFollowings, // 팔로우 여부
+
+			List<Integer> reviewLikeCounts, // 좋아요수
+			List<Integer> reviewDislikeCounts, // 싫어요수
+			List<Integer> reviewCommentsCounts // 댓글수
+
 		) {
 
 			List<Details> detailsList = new ArrayList<>();
@@ -59,6 +68,10 @@ public class MemberActivityReviewDto {
 				List<String> tagList = tagLists.get(i);
 				Review review = reviews.get(i);
 				Boolean isFollowing = isFollowings.get(i);
+				//리뷰의 좋아요, 싫어요, 댓글수
+				Integer reviewLikeCount = reviewLikeCounts.get(i);
+				Integer reviewDislikeCount = reviewDislikeCounts.get(i);
+				Integer reviewCommentsCount = reviewCommentsCounts.get(i);
 
 				// 인증 여부 확인
 				boolean isAuthenticated = influencer.getAuthenticationStatus().equals(APPROVED);
@@ -81,7 +94,11 @@ public class MemberActivityReviewDto {
 					review != null ? review.getCrDate() : null,
 
 					isAuthenticated,
-					isFollowing
+					isFollowing,
+
+					reviewLikeCount,
+					reviewDislikeCount,
+					reviewCommentsCount
 				));
 			}
 
