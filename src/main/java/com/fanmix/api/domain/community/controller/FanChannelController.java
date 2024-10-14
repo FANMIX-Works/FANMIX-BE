@@ -28,7 +28,7 @@ public class FanChannelController {
 	// 팬채널 리스트 정렬
 	@GetMapping("/api/fanchannels")
 	public ResponseEntity<Response<List<FanChannelResponse>>> fanChannelList(
-		@RequestParam(value = "sort", defaultValue = "LATEST_CHANNEL") String sort, @AuthenticationPrincipal String email) {
+		@RequestParam(value = "sort", defaultValue = "NAME") String sort, @AuthenticationPrincipal String email) {
 		return ResponseEntity.ok(Response.success(fanChannelService.fanChannelList(sort, email)));
 	}
 
