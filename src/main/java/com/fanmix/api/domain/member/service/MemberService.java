@@ -279,16 +279,8 @@ public class MemberService implements UserDetailsService {
 			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 		log.debug("멤버가져오기 완료 : " + member.getId());
 
-		//로그인 멤버 확인
-		final Member loginMember = memberRepository.findByEmail(email)
-			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_CONTEXT));
-
 		//나의 팬 정보 가져오기
 		final List<Fan> fans = fanRepository.findByMember(member);
-		if (fans.isEmpty()) {
-			throw new MemberException(MemberErrorCode.NO_FAN);
-		}
-		log.debug("팬 가져오기 완료. 내가 팔로운한 인플루언서의 갯수 : " + fans.size());
 
 		// 인플루언서 가져오기
 		List<Influencer> influencers = new ArrayList<>();
@@ -336,6 +328,7 @@ public class MemberService implements UserDetailsService {
 	}
 
 	@Transactional
+	//특정유저의 활동내역 - 글
 	public List<MemberActivityPostDto.Details> getMemberDetailsPosts(Integer MemberId, String email) {
 		//멤버 가져오기
 		final Member member = memberRepository.findById(MemberId)
@@ -360,6 +353,7 @@ public class MemberService implements UserDetailsService {
 	}
 
 	@Transactional
+	//특정유저의 활동내역 - 댓글
 	public List<MemberActivityCommentDto.Details> getMemberDetailsComments(Integer MemberId, String email) {
 		//멤버 가져오기
 		final Member member = memberRepository.findById(MemberId)
