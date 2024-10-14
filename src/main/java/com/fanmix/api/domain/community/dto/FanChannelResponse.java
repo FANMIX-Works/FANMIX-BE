@@ -22,9 +22,9 @@ public class FanChannelResponse {
 	private int postCount;
 	private LocalDateTime latestPostDate;
 	private Role role;
-	private Boolean isFan = Boolean.FALSE;
+	private Boolean isFollowing;
 
-	public FanChannelResponse(Community community, boolean isFan) {
+	public FanChannelResponse(Community community, boolean isFollowing) {
 		this.communityId = community.getId();
 		this.communityName = community.getName();
 		this.influencerId = community.getInfluencer().getId();
@@ -37,6 +37,6 @@ public class FanChannelResponse {
 		List<Post> list = community.getPostList();
 		this.latestPostDate = list.size() != 0 ? list.get(list.size() - 1).getCrDate() : null;
 		this.role = community.getPriv();
-		this.isFan = isFan;
+		this.isFollowing = isFollowing;
 	}
 }

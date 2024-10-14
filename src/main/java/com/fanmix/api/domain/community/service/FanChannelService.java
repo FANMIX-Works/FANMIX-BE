@@ -9,7 +9,7 @@ import com.fanmix.api.domain.community.exception.CommunityErrorCode;
 import com.fanmix.api.domain.community.exception.CommunityException;
 import com.fanmix.api.domain.community.repository.CommunityRepository;
 import com.fanmix.api.domain.fan.repository.FanRepository;
-import com.fanmix.api.domain.influencer.controller.InfluencerController;
+import com.fanmix.api.domain.influencer.entity.AuthenticationStatus;
 import com.fanmix.api.domain.influencer.entity.Influencer;
 import com.fanmix.api.domain.influencer.exception.InfluencerErrorCode;
 import com.fanmix.api.domain.influencer.exception.InfluencerException;
@@ -62,19 +62,21 @@ public class FanChannelService {
 	// 팬채널 리스트 정렬
 	@Transactional(readOnly = true)
 	public List<FanChannelResponse> fanChannelList(String sort, String email) {
-		Member member = memberRepository.findByEmail(email)
-				.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
+		Member member = memberRepository.findByEmail(email).orElse(null);
+
 		List<Community> fanChannelList = switch (sort) {
 			case "FOLLOWER_COUNT" -> communityRepository.findAllByFollowerCountDesc();
-			case "LATEST_CHANNEL" -> communityRepository.findAllByAuthenticationConfirmDateDesc();
+			case "CONFIRM_STATUS" -> communityRepository.findAllByAuthenticationConfirmDateDesc();
 			default -> communityRepository.findAllOrderByInfluencerName();
 		};
 
 		return fanChannelList.stream()
 				.filter(fanChannel -> fanChannel.getInfluencer() != null)
+				.filter(fanChannel -> fanChannel.getInfluencer().getAuthenticationStatus().equals(AuthenticationStatus.APPROVED))
 				.map(community -> {
-					boolean isFan = fanRepository.existsByInfluencerAndMember(community.getInfluencer(), member);
-					return new FanChannelResponse(community, isFan);
+					boolean isFollowing = fanRepository.existsByInfluencerAndMember(community.getInfluencer(), member);
+					if(member == null) isFollowing = false;
+					return new FanChannelResponse(community, isFollowing);
 				})
 				.collect(Collectors.toList());
 	}
