@@ -2,7 +2,9 @@ package com.fanmix.api.domain.member.service;
 
 import static com.fanmix.api.domain.influencer.exception.InfluencerErrorCode.*;
 import static com.fanmix.api.domain.member.exception.MemberErrorCode.*;
+import static com.fanmix.api.domain.review.dto.enums.Sort.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -32,8 +34,6 @@ import com.fanmix.api.domain.fan.entity.Fan;
 import com.fanmix.api.domain.fan.repository.FanRepository;
 import com.fanmix.api.domain.influencer.dto.response.InfluencerResponseDto;
 import com.fanmix.api.domain.influencer.entity.Influencer;
-import com.fanmix.api.domain.influencer.entity.tag.InfluencerTag;
-import com.fanmix.api.domain.influencer.entity.tag.InfluencerTagMapper;
 import com.fanmix.api.domain.influencer.exception.InfluencerException;
 import com.fanmix.api.domain.influencer.repository.InfluencerRepository;
 import com.fanmix.api.domain.influencer.repository.cache.InfluencerRatingCacheRepository;
@@ -53,10 +53,12 @@ import com.fanmix.api.domain.member.exception.MemberException;
 import com.fanmix.api.domain.member.repository.MemberRepository;
 import com.fanmix.api.domain.post.entity.Post;
 import com.fanmix.api.domain.post.repository.PostRepository;
+import com.fanmix.api.domain.review.dto.response.ReviewResponseDto;
 import com.fanmix.api.domain.review.entity.Review;
 import com.fanmix.api.domain.review.repository.ReviewCommentRepository;
 import com.fanmix.api.domain.review.repository.ReviewLikeDislikeRepository;
 import com.fanmix.api.domain.review.repository.ReviewRepository;
+import com.fanmix.api.domain.review.service.ReviewService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -82,6 +84,8 @@ public class MemberService implements UserDetailsService {
 	private final PostRepository postRepository;
 	@Autowired
 	InfluencerService influencerService;
+	@Autowired
+	ReviewService reviewService;
 
 	@Override
 	//오버라이드한 함수라 함수이름을 변경할수 없어서 username이지만 실제로는 이메일로 식별
@@ -279,52 +283,54 @@ public class MemberService implements UserDetailsService {
 			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 		log.debug("멤버가져오기 완료 : " + member.getId());
 
-		//나의 팬 정보 가져오기
-		final List<Fan> fans = fanRepository.findByMember(member);
-
 		// 인플루언서 가져오기
 		List<Influencer> influencers = new ArrayList<>();
 		List<List<String>> tagLists = new ArrayList<>();
-		List<Review> reviews = new ArrayList<>();
+
 		List<Boolean> isFollowings = new ArrayList<>();
 		//리뷰의 좋아요, 싫어요, 댓글수 저장할 리스트
 		List<Integer> reviewLikeCounts = new ArrayList<>();
 		List<Integer> reviewDislikeCounts = new ArrayList<>();
 		List<Integer> reviewCommentsCounts = new ArrayList<>();
 
-		//나의 팬정보에서 팔로우한 인플루언서들에 대해 반복
-		for (Fan fan : fans) {
-			Influencer influencer = fan.getInfluencer();
-			if (influencer != null) {
-				influencers.add(influencer);
-				List<String> tagList = influencerTagMapperRepository.findByInfluencer(influencer)
-					.stream()
-					.map(InfluencerTagMapper::getInfluencerTag)
-					.map(InfluencerTag::getTagName)
-					.toList();
-				tagLists.add(tagList);
+		List<Review> reviews = new ArrayList<>();
 
-				Review review = reviewRepository.findTopByMemberAndInfluencerAndIsDeletedOrderByCrDateDesc(
-					member, influencer, false).orElse(null);
-
-				//리뷰의 좋아요, 싫어요, 댓글수
-				Long reviewLikeCount = reviewLikeDislikeRepository.countByReviewAndIsLike(review, true);
-				Long reviewDislikeCount = reviewLikeDislikeRepository.countByReviewAndIsLike(review, false);
-				Long reviewCommentsCount = reviewCommentRepository.countByReviewAndIsDeleted(review, false);
-
-				reviewLikeCounts.add(reviewLikeCount.intValue());
-				reviewDislikeCounts.add(reviewDislikeCount.intValue());
-				reviewCommentsCounts.add(reviewCommentsCount.intValue());
-
-				reviews.add(review);
-
-				Boolean isFollowing = fanRepository.existsByInfluencerAndMember(influencer, member);
-				isFollowings.add(isFollowing);
+		//리뷰테이블에서 해당멤버의 리뷰에 대해서 반복
+		List<ReviewResponseDto.ForInfluencerAllReview> reviewDtoList = reviewService.getInfluencerReviewsByMember(
+			member.getEmail(), LATEST);
+		for (ReviewResponseDto.ForInfluencerAllReview reviewDto : reviewDtoList) {
+			Review review = reviewRepository.findById(reviewDto.reviewId())
+				.orElse(null);
+			if (review == null) {
+				continue;
 			}
-		}
+			// 리뷰에 해당하는 인플루언서 가져오기
+			Influencer influencer = review.getInfluencer();
 
+			influencers.add(influencer);
+			List<String> tagList = influencerTagMapperRepository.findByInfluencer(influencer)
+				.stream()
+				.map(mapper -> mapper.getInfluencerTag().getTagName())
+				.toList();
+			tagLists.add(tagList);
+
+			// 리뷰의 좋아요, 싫어요, 댓글수
+			Long reviewLikeCount = reviewLikeDislikeRepository.countByReviewAndIsLike(review, true);
+			Long reviewDislikeCount = reviewLikeDislikeRepository.countByReviewAndIsLike(review, false);
+			Long reviewCommentsCount = reviewCommentRepository.countByReviewAndIsDeleted(review, false);
+
+			reviewLikeCounts.add(reviewLikeCount.intValue());
+			reviewDislikeCounts.add(reviewDislikeCount.intValue());
+			reviewCommentsCounts.add(reviewCommentsCount.intValue());
+
+			reviews.add(review);
+
+			Boolean isFollowing = fanRepository.existsByInfluencerAndMember(influencer, member);
+			isFollowings.add(isFollowing);
+		}
 		return MemberActivityReviewDto.Details.of(influencers, tagLists, reviews, isFollowings,
 			reviewLikeCounts, reviewDislikeCounts, reviewCommentsCounts);
+
 	}
 
 	@Transactional
@@ -395,15 +401,12 @@ public class MemberService implements UserDetailsService {
 				LocalDateTime latestReviewDate = latestReview.map(Review::getCrDate).orElse(null);
 				log.debug("인플루언서에 딸린 최신 리뷰 : " + latestReviewDate);
 
-				// 나의 리뷰 관련 정보
-				double averageRating = 0.0;
-				List<Review> reviews = reviewRepository.findByInfluencerAndMemberAndIsDeletedFalse(influencer, member);
-				log.debug("리뷰갯수 : " + reviews.size());
-				for (Review review : reviews) {
-					log.debug("나의 해당 인플루언서에 대한 리뷰 : " + review);
-					averageRating =
-						(review.getContentsRating() + review.getCommunicationRating() + review.getTrustRating()) / 3.0;
-				}
+				//나의 리뷰가 아니라 모든 리뷰어들중에 최신의 리뷰만 반영해야한다.
+				Object[] averageRatings = reviewRepository.findAverageRatingsByInfluencer(influencer.getId()).get(0);
+				double contentsRating = ((BigDecimal)averageRatings[0]).doubleValue();
+				double communicationRating = ((BigDecimal)averageRatings[1]).doubleValue();
+				double trustRating = ((BigDecimal)averageRatings[2]).doubleValue();
+				Double averageRating = (contentsRating + communicationRating + trustRating) / 3.0;
 
 				// 반환할 객체 생성
 				log.debug("반환할 객체 생성");
