@@ -8,6 +8,7 @@ import static com.fanmix.api.domain.review.entity.QReviewLikeDislike.*;
 import java.util.List;
 
 import com.fanmix.api.domain.influencer.entity.Influencer;
+import com.fanmix.api.domain.member.entity.Member;
 import com.fanmix.api.domain.review.dto.enums.Sort;
 import com.fanmix.api.domain.review.entity.Review;
 import com.querydsl.core.types.OrderSpecifier;
@@ -38,6 +39,17 @@ public class ReviewQuerydslRepositoryImpl implements ReviewQuerydslRepository {
 			.leftJoin(review.reviewLikeDislikes, reviewLikeDislike)
 			.join(review.member, member).fetchJoin()
 			.where(review.isDeleted.eq(false), review.influencer.eq(influencer))
+			.groupBy(review.id)
+			.orderBy(sort(sort))
+			.fetch();
+	}
+
+	@Override
+	public List<Review> findAllReviewsByMemberOrderBySort(Member member, Sort sort) {
+		return queryFactory.selectFrom(review)
+			.leftJoin(review.reviewLikeDislikes, reviewLikeDislike)
+			.join(review.member).fetchJoin()
+			.where(review.isDeleted.eq(false), review.member.eq(member))
 			.groupBy(review.id)
 			.orderBy(sort(sort))
 			.fetch();
