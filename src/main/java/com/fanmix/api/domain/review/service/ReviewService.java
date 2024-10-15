@@ -313,6 +313,48 @@ public class ReviewService {
 		return allReviewsToReturn;
 	}
 
+	public List<ReviewResponseDto.ForInfluencerAllReview> getInfluencerReviewsByMember(
+		String email,
+		Sort sort) {
+
+		List<ReviewResponseDto.ForInfluencerAllReview> allReviewsToReturn = new ArrayList<>();
+
+		final Member member = memberRepository.findByEmail(email)
+			.orElse(null);
+
+		List<Review> allReviews = reviewRepository.findAllReviewsByMemberOrderBySort(member, sort);
+
+		for (Review review : allReviews) {
+			Member reviewer = review.getMember();
+
+			Long reviewLikeCount = reviewLikeDislikeRepository.countByReviewAndIsLike(review, true);
+			Long reviewDislikeCount = reviewLikeDislikeRepository.countByReviewAndIsLike(review, false);
+			Long reviewCommentsCount = reviewCommentRepository.countByReviewAndIsDeleted(review, false);
+
+			boolean isLiked = false;
+			boolean isDisliked = false;
+			boolean isMyReview = false;
+
+			if (member != null) {
+				isMyReview = member.getId() == reviewer.getId();
+				Optional<ReviewLikeDislike> reviewLikeOrDislike =
+					reviewLikeDislikeRepository.findByMemberAndReview(member, review);
+
+				if (reviewLikeOrDislike.isPresent()) {
+					isLiked = reviewLikeOrDislike.get().getIsLike();
+					isDisliked = !isLiked;
+				}
+			}
+
+			allReviewsToReturn.add(
+				ReviewResponseDto.ForInfluencerAllReview.of(reviewer, review, reviewLikeCount, reviewDislikeCount,
+					reviewCommentsCount,
+					isMyReview, isLiked, isDisliked)
+			);
+		}
+		return allReviewsToReturn;
+	}
+
 	public ReviewResponseDto.ForReviewComments getReviewComments(Integer influencerId, Long reviewId, String email) {
 
 		final Member member = memberRepository.findByEmail(email)
