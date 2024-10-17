@@ -10,6 +10,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.fanmix.api.common.conf.JwtExpiredEntryPoint;
@@ -36,6 +37,13 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
 		FilterChain filterChain) throws ServletException, IOException {
+
+		String requestUri = request.getRequestURI();
+		AntPathMatcher matcher = new AntPathMatcher();
+		if (matcher.match("/api/members/{id}", requestUri) && request.getMethod().equals("GET")) {
+			filterChain.doFilter(request, response);
+			return;
+		}
 		final String authorizationHeader = request.getHeader("Authorization");
 		log.debug("필터 들어옴. authorizationHeader : " + authorizationHeader);
 

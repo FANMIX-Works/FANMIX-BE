@@ -9,6 +9,7 @@ import java.io.IOException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 
 import com.fanmix.api.common.response.Response;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,6 +27,13 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
 	@Override
 	public void commence(HttpServletRequest request, HttpServletResponse response,
 		AuthenticationException authException) throws IOException {
+		String requestUri = request.getRequestURI();
+		AntPathMatcher matcher = new AntPathMatcher();
+		if (matcher.match("/api/members/{id}", requestUri) && request.getMethod().equals("GET")) {
+			// 응답 생성하지 않음
+			return;
+		}
+
 		response.setContentType(APPLICATION_JSON_VALUE);
 		response.setCharacterEncoding(UTF_8.name());
 		response.setStatus(UNAUTHORIZED.value());
