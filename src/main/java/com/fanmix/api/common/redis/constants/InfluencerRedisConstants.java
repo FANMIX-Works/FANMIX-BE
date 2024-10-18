@@ -1,6 +1,10 @@
 package com.fanmix.api.common.redis.constants;
 
-public abstract class InfluencerRedisConstants {
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class InfluencerRedisConstants {
 
 	public static final String INFLUENCER_VIEW_REDIS_PREFIX = "influencerView";
 	public static final String INFLUENCER_VIEW_REDIS_VALUE = "viewed";
