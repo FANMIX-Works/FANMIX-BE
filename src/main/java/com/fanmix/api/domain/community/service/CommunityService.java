@@ -1,10 +1,7 @@
 package com.fanmix.api.domain.community.service;
 
 import com.fanmix.api.domain.common.Role;
-import com.fanmix.api.domain.community.dto.AddCommunityRequest;
-import com.fanmix.api.domain.community.dto.CommunityResponse;
-import com.fanmix.api.domain.community.dto.FollowCommunityResponse;
-import com.fanmix.api.domain.community.dto.UpdateCommunityRequest;
+import com.fanmix.api.domain.community.dto.*;
 import com.fanmix.api.domain.community.entity.Community;
 import com.fanmix.api.domain.community.entity.CommunityFollow;
 import com.fanmix.api.domain.community.exception.CommunityErrorCode;
@@ -16,12 +13,15 @@ import com.fanmix.api.domain.member.exception.MemberErrorCode;
 import com.fanmix.api.domain.member.exception.MemberException;
 import com.fanmix.api.domain.member.repository.MemberRepository;
 import com.fanmix.api.domain.post.dto.Top5PostResponse;
+import com.fanmix.api.domain.post.repository.PostRepository;
+import com.fanmix.api.domain.post.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,6 +32,8 @@ public class CommunityService {
 	private final CommunityRepository communityRepository;
 	private final MemberRepository memberRepository;
 	private final CommunityFollowRepository communityFollowRepository;
+	private final PostService postService;
+	private final PostRepository postRepository;
 
 	// 커뮤니티 추가
 	@Transactional
@@ -181,7 +183,20 @@ public class CommunityService {
 				response.add(new FollowCommunityResponse(c, posts));
 			}
 		}
-
 		return response;
 	}
+
+	// 커뮤니티 새 글 여부
+	public List<CommunityNewPostResponse> newPostExists() {
+		return communityRepository.findAll()
+				.stream()
+				.map(community -> {
+							Boolean isPostExists = postRepository.findByCommunityId(community.getId())
+									.stream()
+									.anyMatch(post -> post.getCrDate().toLocalDate().equals(LocalDate.now()));
+
+							return new CommunityNewPostResponse(community, isPostExists);
+						})
+				.collect(Collectors.toList());
+		}
 }
