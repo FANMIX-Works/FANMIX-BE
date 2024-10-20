@@ -1,10 +1,7 @@
 package com.fanmix.api.domain.community.controller;
 
 import com.fanmix.api.common.response.Response;
-import com.fanmix.api.domain.community.dto.AddCommunityRequest;
-import com.fanmix.api.domain.community.dto.CommunityResponse;
-import com.fanmix.api.domain.community.dto.FollowCommunityResponse;
-import com.fanmix.api.domain.community.dto.UpdateCommunityRequest;
+import com.fanmix.api.domain.community.dto.*;
 import com.fanmix.api.domain.community.service.CommunityService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -68,9 +65,16 @@ public class CommunityController {
 		return ResponseEntity.ok(Response.success(communityService.followCommunityList(email, sort)));
 	}
 
+	// 커뮤니티 팔로우
 	@PostMapping("/api/communities/{communityId}/follow")
 	public ResponseEntity<Response<Void>> followCommunity(@PathVariable int communityId, @AuthenticationPrincipal String email) {
 		communityService.followCommunity(communityId, email);
 		return ResponseEntity.ok(Response.success());
+	}
+
+	// 커뮤니티 새 글 여부
+	@GetMapping("/api/communities/posts/newPost")
+	public ResponseEntity<Response<List<CommunityNewPostResponse>>> newPostsCommunity() {
+		return ResponseEntity.ok(Response.success(communityService.newPostExists()));
 	}
 }
