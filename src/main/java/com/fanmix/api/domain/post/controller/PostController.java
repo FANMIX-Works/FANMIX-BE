@@ -32,16 +32,18 @@ public class PostController {
 	// 전체 커뮤니티 종합 글 리스트 조회
 	@GetMapping("/api/communities/posts")
 	public ResponseEntity<Response<List<PostListResponse>>> allCommunityPosts(
+		@AuthenticationPrincipal String email,
 		@RequestParam(value = "sort", defaultValue = "LATEST_POST") String sort) {
-		return ResponseEntity.ok(Response.success(postService.findAllCommunityPosts(sort)));
+		return ResponseEntity.ok(Response.success(postService.findAllCommunityPosts(email, sort)));
 	}
 
 	// 특정 커뮤니티 게시글 리스트 조회
 	@GetMapping("/api/communities/{communityId}/posts")
 	public ResponseEntity<Response<List<PostListResponse>>> communityPosts(
 		@PathVariable int communityId,
+		@AuthenticationPrincipal String email,
 		@RequestParam(value = "sort", defaultValue = "LATEST_POST") String sort) {
-		return ResponseEntity.ok(Response.success(postService.findAllByCommunityId(communityId, sort)));
+		return ResponseEntity.ok(Response.success(postService.findAllByCommunityId(communityId, email, sort)));
 	}
 
 //	// 게시물 목록 조회

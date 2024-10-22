@@ -77,7 +77,9 @@ public class PostService {
 
 	// 전체 커뮤니티 종합 글 리스트 조회
 	@Transactional(readOnly = true)
-	public List<PostListResponse> findAllCommunityPosts(String sort) {
+	public List<PostListResponse> findAllCommunityPosts(String email, String sort) {
+		Member member = memberRepository.findByEmail(email).orElse(null);
+
 		Sort likeCountDesc = Sort.by(
 			Sort.Order.desc("likeCount"),
 			Sort.Order.desc("crDate")
@@ -96,13 +98,19 @@ public class PostService {
 
 		return postList
 			.stream().filter(post -> !post.isDelete())
-			.map(PostListResponse::new)
+			.map(post -> {
+				boolean isMyPosts = postRepository.existsByMember(member);
+				if(member == null) isMyPosts = false;
+				return new PostListResponse(post, isMyPosts);
+			})
 			.collect(Collectors.toList());
 	}
 
 	// 특정 커뮤니티 글 리스트 조회
 	@Transactional(readOnly = true)
-	public List<PostListResponse> findAllByCommunityId(int communityId, String sort) {
+	public List<PostListResponse> findAllByCommunityId(int communityId, String email, String sort) {
+		Member member = memberRepository.findByEmail(email).orElse(null);
+
 		communityRepository.findById(communityId)
 			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
 
@@ -123,7 +131,11 @@ public class PostService {
 
 		return postList
 			.stream().filter(post -> !post.isDelete())
-			.map(PostListResponse::new)
+			.map(post -> {
+				boolean isMyPosts = postRepository.existsByMember(member);
+				if(member == null) isMyPosts = false;
+				return new PostListResponse(post, isMyPosts);
+			})
 			.collect(Collectors.toList());
 	}
 
@@ -252,7 +264,11 @@ public class PostService {
         };
 		return postList
 				.stream()
-				.map(PostListResponse::new)
+				.map(post -> {
+					boolean isMyPosts = postRepository.existsByMember(member);
+					if(member == null) isMyPosts = false;
+					return new PostListResponse(post, isMyPosts);
+				})
 				.collect(Collectors.toList());
 	}
 
