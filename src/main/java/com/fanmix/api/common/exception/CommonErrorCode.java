@@ -15,7 +15,8 @@ public enum CommonErrorCode implements ErrorCode {
 	COMMON_RESOURCE_NOT_FOUND(NOT_FOUND, "0-003", "요청한 리소스를 찾을 수 없습니다. 요청한 URL에 해당하는 리소스가 없거나 삭제되었을 수 있습니다."),
 	METHOD_ARGUMENT_NOT_VALID(BAD_REQUEST, "0-004", null), // 여기서는 메시지가 핸들러에서 만들어짐
 	SENDING_MAIL_FAIL(INTERNAL_SERVER_ERROR, "0-005", "메일 전송이 서버 문제로 실패했습니다."),
-	INVALID_REQUEST(BAD_REQUEST, "0-006", "데이터 요청 형식이 올바르지 않습니다.");
+	INVALID_REQUEST(BAD_REQUEST, "0-006", "데이터 요청 형식이 올바르지 않습니다."),
+	INVALID_API(NOT_FOUND, "0-007", "요청한 API는 없는 API입니다.");
 
 	private final HttpStatus httpStatus;
 	private final String customCode;

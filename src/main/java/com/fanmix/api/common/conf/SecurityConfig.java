@@ -115,7 +115,7 @@ public class SecurityConfig {
 				.permitAll()
 
 				.anyRequest()
-				.authenticated()
+				.permitAll()
 			)
 			//.formLogin(form -> form    //formLogin은 로그인정보를 처리하는 기능까지 포함
 			// 	.loginPage("/login")        //loginPage는 로그인정보를 입력하는 페이지만 제공
