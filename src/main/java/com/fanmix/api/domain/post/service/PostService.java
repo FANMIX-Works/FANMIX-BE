@@ -98,11 +98,7 @@ public class PostService {
 
 		return postList
 			.stream().filter(post -> !post.isDelete())
-			.map(post -> {
-				boolean isMyPosts = postRepository.existsByMember(member);
-				if(member == null) isMyPosts = false;
-				return new PostListResponse(post, isMyPosts);
-			})
+			.map(post -> new PostListResponse(post, member != null && post.getMember().getId() == member.getId()))
 			.collect(Collectors.toList());
 	}
 
@@ -132,9 +128,7 @@ public class PostService {
 		return postList
 			.stream().filter(post -> !post.isDelete())
 			.map(post -> {
-				boolean isMyPosts = postRepository.existsByMember(member);
-				if(member == null) isMyPosts = false;
-				return new PostListResponse(post, isMyPosts);
+				return new PostListResponse(post, member != null && post.getMember().getId() == member.getId());
 			})
 			.collect(Collectors.toList());
 	}
