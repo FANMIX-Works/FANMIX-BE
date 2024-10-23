@@ -127,9 +127,7 @@ public class PostService {
 
 		return postList
 			.stream().filter(post -> !post.isDelete())
-			.map(post -> {
-				return new PostListResponse(post, member != null && post.getMember().getId() == member.getId());
-			})
+			.map(post -> new PostListResponse(post, member != null && post.getMember().getId() == member.getId()))
 			.collect(Collectors.toList());
 	}
 
