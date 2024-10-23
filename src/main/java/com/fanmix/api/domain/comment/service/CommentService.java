@@ -2,6 +2,7 @@ package com.fanmix.api.domain.comment.service;
 
 import java.util.List;
 
+import com.fanmix.api.domain.comment.dto.CommentDetailResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -69,10 +70,16 @@ public class CommentService {
 
 	// 전체 댓글 목록
 	@Transactional(readOnly = true)
-	public List<Comment> findAll(int postId) {
+	public List<CommentDetailResponse> findAll(int postId, String email) {
 		Post post = postRepository.findById(postId)
 			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_EXIST));
-		return post.getComments();
+
+		Member member = memberRepository.findByEmail(email).orElse(null);
+
+		return commentRepository.findAll()
+				.stream()
+				.map(comment -> new CommentDetailResponse(comment, member != null && comment.getMember().getId() == member.getId()))
+				.toList();
 	}
 
 	// 댓글 조회

@@ -77,7 +77,9 @@ public class PostService {
 
 	// 전체 커뮤니티 종합 글 리스트 조회
 	@Transactional(readOnly = true)
-	public List<PostListResponse> findAllCommunityPosts(String sort) {
+	public List<PostListResponse> findAllCommunityPosts(String email, String sort) {
+		Member member = memberRepository.findByEmail(email).orElse(null);
+
 		Sort likeCountDesc = Sort.by(
 			Sort.Order.desc("likeCount"),
 			Sort.Order.desc("crDate")
@@ -96,13 +98,15 @@ public class PostService {
 
 		return postList
 			.stream().filter(post -> !post.isDelete())
-			.map(PostListResponse::new)
+			.map(post -> new PostListResponse(post, member != null && post.getMember().getId() == member.getId()))
 			.collect(Collectors.toList());
 	}
 
 	// 특정 커뮤니티 글 리스트 조회
 	@Transactional(readOnly = true)
-	public List<PostListResponse> findAllByCommunityId(int communityId, String sort) {
+	public List<PostListResponse> findAllByCommunityId(int communityId, String email, String sort) {
+		Member member = memberRepository.findByEmail(email).orElse(null);
+
 		communityRepository.findById(communityId)
 			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
 
@@ -123,7 +127,7 @@ public class PostService {
 
 		return postList
 			.stream().filter(post -> !post.isDelete())
-			.map(PostListResponse::new)
+			.map(post -> new PostListResponse(post, member != null && post.getMember().getId() == member.getId()))
 			.collect(Collectors.toList());
 	}
 
@@ -145,7 +149,7 @@ public class PostService {
 
 	// 게시물 조회
 	@Transactional(readOnly = true)
-	public Post findById(int communityId, int postId) {
+	public PostDetailResponse findById(int communityId, int postId, String email) {
 		communityRepository.findById(communityId)
 			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
 
@@ -156,7 +160,8 @@ public class PostService {
 			throw new PostException(PostErrorCode.POST_NOT_BELONG_TO_COMMUNITY);
 		}
 
-		return postRepository.save(post);
+		Member member = memberRepository.findByEmail(email).orElse(null);
+		return new PostDetailResponse(post, member != null && post.getMember().getId() == member.getId());
 	}
 
 	// 게시물 수정
@@ -252,7 +257,11 @@ public class PostService {
         };
 		return postList
 				.stream()
-				.map(PostListResponse::new)
+				.map(post -> {
+					boolean isMyPosts = postRepository.existsByMember(member);
+					if(member == null) isMyPosts = false;
+					return new PostListResponse(post, isMyPosts);
+				})
 				.collect(Collectors.toList());
 	}
 

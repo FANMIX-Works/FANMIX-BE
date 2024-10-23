@@ -1,7 +1,9 @@
 package com.fanmix.api.domain.comment.service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
+import com.fanmix.api.domain.comment.dto.CommentDetailResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,7 +66,7 @@ public class FanChannelCommentService {
 
 	// 팬채널 댓글 조회
 	@Transactional(readOnly = true)
-	public List<Comment> findFanChannelComments(int postId, String email) {
+	public List<CommentDetailResponse> findFanChannelComments(int postId, String email) {
 		Post post = postRepository.findById(postId)
 			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_EXIST));
 
@@ -74,7 +76,10 @@ public class FanChannelCommentService {
 		if(!member.getRole().equals(Role.COMMUNITY)) {
 			throw new CommentException(CommentErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
-		return post.getComments();
+		return commentRepository.findAll()
+				.stream()
+				.map(comment -> new CommentDetailResponse(comment, comment.getMember().getId() == member.getId()))
+				.collect(Collectors.toList());
 	}
 
 	// 팬채널 댓글 수정
