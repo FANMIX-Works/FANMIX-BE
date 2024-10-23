@@ -59,12 +59,13 @@ public class PostController {
 
 	// 게시물 조회
 	@GetMapping("/api/communities/{communityId}/posts/{postId}")
-	public ResponseEntity<Response<PostResponse>> findPost(
+	public ResponseEntity<Response<PostDetailResponse>> findPost(
 			@PathVariable int communityId,
 			@PathVariable int postId,
+			@AuthenticationPrincipal String email,
 			HttpServletRequest request, HttpServletResponse response) {
 		postService.updateViewCount(postId, request, response);
-		return ResponseEntity.ok(Response.success(new PostResponse(postService.findById(communityId, postId))));
+		return ResponseEntity.ok(Response.success(postService.findById(communityId, postId, email)));
 	}
 
 	// 게시물 수정

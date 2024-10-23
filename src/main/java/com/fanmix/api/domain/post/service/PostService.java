@@ -157,7 +157,7 @@ public class PostService {
 
 	// 게시물 조회
 	@Transactional(readOnly = true)
-	public Post findById(int communityId, int postId) {
+	public PostDetailResponse findById(int communityId, int postId, String email) {
 		communityRepository.findById(communityId)
 			.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
 
@@ -168,7 +168,8 @@ public class PostService {
 			throw new PostException(PostErrorCode.POST_NOT_BELONG_TO_COMMUNITY);
 		}
 
-		return postRepository.save(post);
+		Member member = memberRepository.findByEmail(email).orElse(null);
+		return new PostDetailResponse(post, member != null && post.getMember().getId() == member.getId());
 	}
 
 	// 게시물 수정
