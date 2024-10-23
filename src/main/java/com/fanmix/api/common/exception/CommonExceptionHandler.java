@@ -15,6 +15,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import com.fanmix.api.common.response.Response;
@@ -76,6 +77,13 @@ public class CommonExceptionHandler {
 		log.error("[MaxUploadSizeExceededException] Message: {}", ex.getMessage());
 		return ResponseEntity.badRequest()
 			.body(Response.fail(EXCEED_MAX_SIZE_IMAGE_FILE.getCustomCode(), EXCEED_MAX_SIZE_IMAGE_FILE.getMessage()));
+	}
+
+	@ExceptionHandler(value = NoHandlerFoundException.class)
+	public ResponseEntity<Response<String>> handleNoHandlerFoundException(Exception ex) {
+		log.error("[Exception] Message: {}", ex.getMessage(), ex);
+		return ResponseEntity.status(HttpStatus.NOT_FOUND)  // 404 상태 코드로 변경
+			.body(Response.fail(INVALID_API.getCustomCode(), INVALID_API.getMessage()));
 	}
 
 	@ExceptionHandler(value = Exception.class)
