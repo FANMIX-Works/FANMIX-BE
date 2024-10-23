@@ -9,8 +9,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
@@ -28,7 +26,6 @@ import lombok.NoArgsConstructor;
 @EntityListeners(AuditingEntityListener.class)
 public class InfluencerRatingCache {
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id")
 	private Integer id;
 
@@ -86,10 +83,11 @@ public class InfluencerRatingCache {
 	@Column(name = "updated_at")
 	private LocalDateTime updatedAt;
 
-	private InfluencerRatingCache(String influencerImageUrl, String influencerName, Boolean isAuthenticated,
-		String tag1,
-		String tag2, String tag3, LocalDateTime latestReviewDate, Double averageRating, Double contentsRating,
-		Double communicationRating, Double trustRating, Integer totalViewCount, Influencer influencer) {
+	private InfluencerRatingCache(Integer id, String influencerImageUrl, String influencerName, Boolean isAuthenticated,
+		String tag1, String tag2, String tag3, LocalDateTime latestReviewDate, Double averageRating,
+		Double contentsRating, Double communicationRating, Double trustRating, Integer totalViewCount,
+		Influencer influencer) {
+		this.id = id;
 		this.influencerImageUrl = influencerImageUrl;
 		this.influencerName = influencerName;
 		this.isAuthenticated = isAuthenticated;
@@ -105,13 +103,14 @@ public class InfluencerRatingCache {
 		this.influencer = influencer;
 	}
 
-	public static InfluencerRatingCache createInfluencerCache(String influencerImageUrl, String influencerName,
-		Boolean isAuthenticated, String tag1, String tag2, String tag3, LocalDateTime latestReviewDate,
+	public static InfluencerRatingCache createInfluencerCache(Integer influencerId, String influencerImageUrl,
+		String influencerName, Boolean isAuthenticated,
+		String tag1, String tag2, String tag3, LocalDateTime latestReviewDate,
 		Double averageRating, Double contentsRating, Double communicationRating, Double trustRating,
 		Integer totalViewCount, Influencer influencer) {
-		return new InfluencerRatingCache(influencerImageUrl, influencerName, isAuthenticated, tag1, tag2, tag3,
-			latestReviewDate, averageRating, contentsRating, communicationRating, trustRating, totalViewCount,
-			influencer);
+		return new InfluencerRatingCache(influencerId, influencerImageUrl, influencerName, isAuthenticated,
+			tag1, tag2, tag3, latestReviewDate,
+			averageRating, contentsRating, communicationRating, trustRating, totalViewCount, influencer);
 	}
 
 	public void update(String influencerImageUrl, String influencerName, Boolean isAuthenticated, String tag1,
