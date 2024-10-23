@@ -14,10 +14,7 @@ import com.fanmix.api.domain.member.entity.Member;
 import com.fanmix.api.domain.member.exception.MemberErrorCode;
 import com.fanmix.api.domain.member.exception.MemberException;
 import com.fanmix.api.domain.member.repository.MemberRepository;
-import com.fanmix.api.domain.post.dto.AddPostLikeDislikeRequest;
-import com.fanmix.api.domain.post.dto.AddPostRequest;
-import com.fanmix.api.domain.post.dto.PostListResponse;
-import com.fanmix.api.domain.post.dto.UpdatePostRequest;
+import com.fanmix.api.domain.post.dto.*;
 import com.fanmix.api.domain.post.entity.Post;
 import com.fanmix.api.domain.post.exception.PostErrorCode;
 import com.fanmix.api.domain.post.exception.PostException;
@@ -111,24 +108,24 @@ public class FanChannelPostService {
 
 		return postList
 			.stream()
-			.map(PostListResponse::new)
+			.map(post -> new PostListResponse(post, post.getMember().getId() == member.getId()))
 			.collect(Collectors.toList());
 	}
 
 	// 팬채널 글 조회
 	@Transactional(readOnly = true)
-	public Post findFanChannelPost(int postId, String email) {
+	public PostDetailResponse findFanChannelPost(int postId, String email) {
 		Post post = postRepository.findById(postId)
 			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_EXIST));
 
 		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if(!member.getRole().equals(Role.COMMUNITY)) {
+		if(member.getRole().equals(Role.COMMUNITY)) {
 			throw new PostException(PostErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
-		return postRepository.save(post);
+		return new PostDetailResponse(post,  post.getMember().getId() == member.getId());
 	}
 
 	// 팬채널 글 수정

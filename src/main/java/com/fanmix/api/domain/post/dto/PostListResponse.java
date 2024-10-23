@@ -13,6 +13,7 @@ public class PostListResponse {
 	private String influencerName;
 	private String memberNickName;
 	private String memberImageUrl;
+	private Boolean isMyPosts;
 	private int postId;
 	private String postTitle;
 	private String postContent;
@@ -24,7 +25,7 @@ public class PostListResponse {
 	private LocalDateTime crDate;
 	private LocalDateTime uDate;
 
-	public PostListResponse(Post post) {
+	public PostListResponse(Post post, boolean isMyPosts) {
 		this.communityId = post.getCommunity().getId();
 		this.communityName = post.getCommunity().getName();
 		this.influencerId = post.getCommunity().getInfluencer() == null ? 0 : post.getCommunity().getInfluencer().getId();
@@ -41,5 +42,6 @@ public class PostListResponse {
 		this.commentCount = post.getComments().size();
 		this.crDate = post.getCrDate();
 		this.uDate = post.getUDate();
+		this.isMyPosts = isMyPosts;
 	}
 }

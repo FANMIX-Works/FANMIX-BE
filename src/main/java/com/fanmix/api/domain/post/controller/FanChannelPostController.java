@@ -52,13 +52,13 @@ public class FanChannelPostController {
 
 	// 팬채널 글 조회
 	@GetMapping("/api/fanchannels/posts/{postId}")
-	public ResponseEntity<Response<PostResponse>> fanChannelPost(
+	public ResponseEntity<Response<PostDetailResponse>> fanChannelPost(
 			@PathVariable int postId,
 			@AuthenticationPrincipal String email,
 			HttpServletRequest request,
 			HttpServletResponse response) {
 		postService.updateViewCount(postId, request, response);
-		return ResponseEntity.ok(Response.success(new PostResponse(fanChannelPostService.findFanChannelPost(postId, email))));
+		return ResponseEntity.ok(Response.success(fanChannelPostService.findFanChannelPost(postId, email)));
 	}
 
 	// 팬채널 글 수정

@@ -32,16 +32,18 @@ public class PostController {
 	// 전체 커뮤니티 종합 글 리스트 조회
 	@GetMapping("/api/communities/posts")
 	public ResponseEntity<Response<List<PostListResponse>>> allCommunityPosts(
+		@AuthenticationPrincipal String email,
 		@RequestParam(value = "sort", defaultValue = "LATEST_POST") String sort) {
-		return ResponseEntity.ok(Response.success(postService.findAllCommunityPosts(sort)));
+		return ResponseEntity.ok(Response.success(postService.findAllCommunityPosts(email, sort)));
 	}
 
 	// 특정 커뮤니티 게시글 리스트 조회
 	@GetMapping("/api/communities/{communityId}/posts")
 	public ResponseEntity<Response<List<PostListResponse>>> communityPosts(
 		@PathVariable int communityId,
+		@AuthenticationPrincipal String email,
 		@RequestParam(value = "sort", defaultValue = "LATEST_POST") String sort) {
-		return ResponseEntity.ok(Response.success(postService.findAllByCommunityId(communityId, sort)));
+		return ResponseEntity.ok(Response.success(postService.findAllByCommunityId(communityId, email, sort)));
 	}
 
 //	// 게시물 목록 조회
@@ -57,12 +59,13 @@ public class PostController {
 
 	// 게시물 조회
 	@GetMapping("/api/communities/{communityId}/posts/{postId}")
-	public ResponseEntity<Response<PostResponse>> findPost(
+	public ResponseEntity<Response<PostDetailResponse>> findPost(
 			@PathVariable int communityId,
 			@PathVariable int postId,
+			@AuthenticationPrincipal String email,
 			HttpServletRequest request, HttpServletResponse response) {
 		postService.updateViewCount(postId, request, response);
-		return ResponseEntity.ok(Response.success(new PostResponse(postService.findById(communityId, postId))));
+		return ResponseEntity.ok(Response.success(postService.findById(communityId, postId, email)));
 	}
 
 	// 게시물 수정

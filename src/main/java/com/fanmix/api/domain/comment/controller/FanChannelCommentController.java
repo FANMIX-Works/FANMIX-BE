@@ -2,6 +2,7 @@ package com.fanmix.api.domain.comment.controller;
 
 import java.util.List;
 
+import com.fanmix.api.domain.comment.dto.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,12 +14,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fanmix.api.common.response.Response;
-import com.fanmix.api.domain.comment.dto.AddCommentLikeDislikeRequest;
-import com.fanmix.api.domain.comment.dto.AddCommentRequest;
-import com.fanmix.api.domain.comment.dto.CommentResponse;
-import com.fanmix.api.domain.comment.dto.DeleteCommentResponse;
-import com.fanmix.api.domain.comment.dto.UpdateCommentRequest;
-import com.fanmix.api.domain.comment.entity.Comment;
 import com.fanmix.api.domain.comment.entity.CommentLikeDislike;
 import com.fanmix.api.domain.comment.service.FanChannelCommentService;
 
@@ -40,14 +35,10 @@ public class FanChannelCommentController {
 
 	// 팬채널 댓글 조회
 	@GetMapping("/api/fanchannels/posts/{postId}/comments")
-	public ResponseEntity<Response<List<CommentResponse>>> findFanChannelComments(
+	public ResponseEntity<Response<List<CommentDetailResponse>>> findFanChannelComments(
 		@PathVariable int postId,
 		@AuthenticationPrincipal String email) {
-		List<CommentResponse> comments = fanChannelCommentService.findFanChannelComments(postId, email)
-			.stream()
-			.map(CommentResponse::new)
-			.toList();
-		return ResponseEntity.ok(Response.success(comments));
+		return ResponseEntity.ok(Response.success(fanChannelCommentService.findFanChannelComments(postId, email)));
 	}
 
 	// 팬채널 댓글 수정
