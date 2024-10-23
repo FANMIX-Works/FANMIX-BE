@@ -1,10 +1,7 @@
 package com.fanmix.api.domain.comment.controller;
 
 import com.fanmix.api.common.response.Response;
-import com.fanmix.api.domain.comment.dto.AddCommentLikeDislikeRequest;
-import com.fanmix.api.domain.comment.dto.AddCommentRequest;
-import com.fanmix.api.domain.comment.dto.CommentResponse;
-import com.fanmix.api.domain.comment.dto.UpdateCommentRequest;
+import com.fanmix.api.domain.comment.dto.*;
 import com.fanmix.api.domain.comment.entity.Comment;
 import com.fanmix.api.domain.comment.entity.CommentLikeDislike;
 import com.fanmix.api.domain.comment.service.CommentService;
@@ -31,14 +28,10 @@ public class CommentController {
 
 	// 댓글 목록 조회
 	@GetMapping("/api/communities/posts/{postId}/comments")
-	public ResponseEntity<Response<List<CommentResponse>>> findAllComment(
-		@PathVariable int postId
-	) {
-		List<CommentResponse> comments = commentService.findAll(postId)
-			.stream()
-			.map(CommentResponse::new)
-			.toList();
-		return ResponseEntity.ok(Response.success(comments));
+	public ResponseEntity<Response<List<CommentDetailResponse>>> findAllComment(
+		@PathVariable int postId,
+		@AuthenticationPrincipal String email) {
+		return ResponseEntity.ok(Response.success(commentService.findAll(postId, email)));
 	}
 
 	// 선택한 게시물의 댓글 조회

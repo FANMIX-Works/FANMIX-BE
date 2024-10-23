@@ -2,6 +2,7 @@ package com.fanmix.api.domain.post.repository;
 
 import java.util.List;
 
+import com.fanmix.api.domain.member.entity.Member;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -25,4 +26,6 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
 	List<Post> findTop5ByOrderByViewCountDescCrDateDesc();
 
 	List<Post> findTop5ByOrderById(Sort sort);
+
+	Boolean existsByMember(Member member);
 }
