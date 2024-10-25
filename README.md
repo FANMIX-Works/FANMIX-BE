@@ -3,7 +3,6 @@
 <img width="800" alt="Offispace-Info" src="https://github.com/user-attachments/assets/85b61bd8-ea5b-4ebe-b5f8-2b0067b575ec">
 
 <br/>
-<br/>
 
 ## 🔗 프로젝트 링크
 [FANMIX 바로가기](https://fanmix.vercel.app/)
@@ -18,7 +17,11 @@
 
 ## 🖼️ 아키텍쳐 다이어그램
 <img width="800" alt="Offispace-Info" src="https://github.com/user-attachments/assets/b0b57386-59c5-461f-916e-97523d606555">
-
+  <br />
+  
+## 🖼️ ERD
+<img width="800" alt="Offispace-Info" src="https://github.com/user-attachments/assets/e7f85291-7e3d-430d-b8e6-b66d0167f982">
+  <br />
 
 ## 📖 프로젝트 소개
 
