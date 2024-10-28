@@ -1,11 +1,11 @@
 package com.fanmix.api.domain.post.service;
 
 import com.fanmix.api.common.image.service.ImageService;
-import com.fanmix.api.domain.common.Role;
 import com.fanmix.api.domain.community.entity.Community;
 import com.fanmix.api.domain.community.exception.CommunityErrorCode;
 import com.fanmix.api.domain.community.exception.CommunityException;
 import com.fanmix.api.domain.community.repository.CommunityRepository;
+import com.fanmix.api.domain.fan.repository.FanRepository;
 import com.fanmix.api.domain.influencer.entity.Influencer;
 import com.fanmix.api.domain.influencer.exception.InfluencerErrorCode;
 import com.fanmix.api.domain.influencer.exception.InfluencerException;
@@ -41,6 +41,7 @@ public class FanChannelPostService {
 	private final PostLikeDisLikeRepository postLikeDisLikeRepository;
 	private final ImageService imageService;
 	private final InfluencerRepository influencerRepository;
+	private final FanRepository fanRepository;
 
 	// 팬채널 글 추가
 	@Transactional
@@ -55,8 +56,8 @@ public class FanChannelPostService {
 		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if (!member.getRole().equals(Role.COMMUNITY)) {
-			throw new PostException(PostErrorCode.NOT_EXISTS_AUTHORIZATION);
+		if(!fanRepository.existsByInfluencerAndMember(community.getInfluencer(), member)) {
+			throw new CommunityException(CommunityErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
 		Post post = request.toEntity(community, member);
@@ -87,8 +88,8 @@ public class FanChannelPostService {
 		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if(!member.getRole().equals(Role.COMMUNITY)) {
-			throw new PostException(PostErrorCode.NOT_EXISTS_AUTHORIZATION);
+		if(!fanRepository.existsByInfluencerAndMember(community.getInfluencer(), member)) {
+			throw new CommunityException(CommunityErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
 		Sort likeCountDesc = Sort.by(
@@ -121,8 +122,8 @@ public class FanChannelPostService {
 		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if(member.getRole().equals(Role.COMMUNITY)) {
-			throw new PostException(PostErrorCode.NOT_EXISTS_AUTHORIZATION);
+		if(!fanRepository.existsByInfluencerAndMember(post.getCommunity().getInfluencer(), member)) {
+			throw new CommunityException(CommunityErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
 		return new PostDetailResponse(post,  post.getMember().getId() == member.getId());
@@ -137,8 +138,8 @@ public class FanChannelPostService {
 		Member member = memberRepository.findByEmail(email)
 				.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if(!member.getRole().equals(Role.COMMUNITY)) {
-			throw new PostException(PostErrorCode.NOT_EXISTS_AUTHORIZATION);
+		if(!fanRepository.existsByInfluencerAndMember(post.getCommunity().getInfluencer(), member)) {
+			throw new CommunityException(CommunityErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
 		if(image != null && !image.isEmpty()) {
@@ -162,8 +163,8 @@ public class FanChannelPostService {
 		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if(!member.getRole().equals(Role.COMMUNITY)) {
-			throw new PostException(PostErrorCode.NOT_EXISTS_AUTHORIZATION);
+		if(!fanRepository.existsByInfluencerAndMember(post.getCommunity().getInfluencer(), member)) {
+			throw new CommunityException(CommunityErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 		post.updateByIsDelete();
 	}
@@ -177,8 +178,8 @@ public class FanChannelPostService {
 		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if(!member.getRole().equals(Role.COMMUNITY)) {
-			throw new PostException(PostErrorCode.NOT_EXISTS_AUTHORIZATION);
+		if(!fanRepository.existsByInfluencerAndMember(post.getCommunity().getInfluencer(), member)) {
+			throw new CommunityException(CommunityErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
 		if(!postLikeDisLikeRepository.existsByMemberAndPost(member, post)) {
