@@ -229,6 +229,7 @@ public class PostService {
 
 		return popularList
 			.stream()
+			.filter(post -> !post.isDelete())
 			.map(PopularPostsResponse::new)
 			.collect(Collectors.toList());
 	}
@@ -260,6 +261,7 @@ public class PostService {
         };
 		return postList
 				.stream()
+				.filter(post -> !post.isDelete())
 				.map(post -> {
 					boolean isMyPosts = postRepository.existsByMember(member);
 					if(member == null) isMyPosts = false;
