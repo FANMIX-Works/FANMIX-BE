@@ -22,10 +22,11 @@ public class PostListResponse {
 	private int likeCount;
 	private int dislikeCount;
 	private int commentCount;
+	private Boolean isEditable;
 	private LocalDateTime crDate;
 	private LocalDateTime uDate;
 
-	public PostListResponse(Post post, boolean isMyPosts) {
+	public PostListResponse(Post post, boolean isMyPosts, boolean isEditable) {
 		this.communityId = post.getCommunity().getId();
 		this.communityName = post.getCommunity().getName();
 		this.influencerId = post.getCommunity().getInfluencer() == null ? 0 : post.getCommunity().getInfluencer().getId();
@@ -43,5 +44,6 @@ public class PostListResponse {
 		this.crDate = post.getCrDate();
 		this.uDate = post.getUDate();
 		this.isMyPosts = isMyPosts;
+		this.isEditable = isEditable;
 	}
 }
