@@ -87,11 +87,10 @@ public class FanChannelService {
 		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if(!member.getRole().equals(Role.COMMUNITY)) {
-			throw new CommunityException(CommunityErrorCode.NOT_EXISTS_AUTHORIZATION);
-		}
 		Community community = communityRepository.findById(communityId)
 				.orElseThrow(() -> new CommunityException(CommunityErrorCode.COMMUNITY_NOT_EXIST));
+
+		if(communityId <= 12) throw new CommunityException(CommunityErrorCode.NOT_A_FANCHANNEL);
 
 		Boolean isFan = fanRepository.existsByInfluencerAndMember(community.getInfluencer(), member);
 		return new FanChannelResponse(community, isFan);
