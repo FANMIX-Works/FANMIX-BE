@@ -110,6 +110,7 @@ public class FanChannelPostService {
 
 		return postList
 			.stream()
+			.filter(post -> !post.isDelete())
 			.map(post -> new PostListResponse(post, post.getMember().getId() == member.getId(),
 					post.getCrDate().isAfter(LocalDateTime.now().minusHours(3))))
 			.collect(Collectors.toList());
