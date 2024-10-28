@@ -17,6 +17,7 @@ public class CommentDetailResponse {
     private String memberImageUrl;
     private Boolean isMyComments;
     private String contents;
+    private Boolean isDelete;
     private int likeCount;
     private int dislikeCount;
     private int commentCount;
@@ -34,6 +35,7 @@ public class CommentDetailResponse {
         this.memberImageUrl = comment.getMember().getProfileImgUrl();
         this.isMyComments = isMyComments;
         this.contents = comment.getContents();
+        this.isDelete = comment.getIsDelete();
         this.likeCount = comment.getLikeCount();
         this.dislikeCount = comment.getDislikeCount();
         this.commentCount = comment.getComments() != null ? comment.getComments().size() : 0;
