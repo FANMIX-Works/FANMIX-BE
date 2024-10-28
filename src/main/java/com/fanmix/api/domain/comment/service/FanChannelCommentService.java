@@ -1,21 +1,17 @@
 package com.fanmix.api.domain.comment.service;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import com.fanmix.api.domain.comment.dto.CommentDetailResponse;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.fanmix.api.domain.comment.dto.AddCommentLikeDislikeRequest;
 import com.fanmix.api.domain.comment.dto.AddCommentRequest;
+import com.fanmix.api.domain.comment.dto.CommentDetailResponse;
 import com.fanmix.api.domain.comment.dto.UpdateCommentRequest;
 import com.fanmix.api.domain.comment.entity.Comment;
 import com.fanmix.api.domain.comment.exception.CommentErrorCode;
 import com.fanmix.api.domain.comment.exception.CommentException;
 import com.fanmix.api.domain.comment.repository.CommentLikeDislikeRepository;
 import com.fanmix.api.domain.comment.repository.CommentRepository;
-import com.fanmix.api.domain.common.Role;
+import com.fanmix.api.domain.community.exception.CommunityErrorCode;
+import com.fanmix.api.domain.community.exception.CommunityException;
+import com.fanmix.api.domain.fan.repository.FanRepository;
 import com.fanmix.api.domain.member.entity.Member;
 import com.fanmix.api.domain.member.exception.MemberErrorCode;
 import com.fanmix.api.domain.member.exception.MemberException;
@@ -24,8 +20,12 @@ import com.fanmix.api.domain.post.entity.Post;
 import com.fanmix.api.domain.post.exception.PostErrorCode;
 import com.fanmix.api.domain.post.exception.PostException;
 import com.fanmix.api.domain.post.repository.PostRepository;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +34,7 @@ public class FanChannelCommentService {
 	private final CommentRepository commentRepository;
 	private final MemberRepository memberRepository;
 	private final CommentLikeDislikeRepository commentLikeDislikeRepository;
+	private final FanRepository fanRepository;
 
 	// 팬채널 댓글 작성
 	@Transactional
@@ -44,8 +45,8 @@ public class FanChannelCommentService {
 		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if(!member.getRole().equals(Role.COMMUNITY)) {
-			throw new CommentException(CommentErrorCode.NOT_EXISTS_AUTHORIZATION);
+		if(!fanRepository.existsByInfluencerAndMember(post.getCommunity().getInfluencer(), member)) {
+			throw new CommunityException(CommunityErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
 		Comment parentComment = null;
@@ -73,9 +74,10 @@ public class FanChannelCommentService {
 		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if(!member.getRole().equals(Role.COMMUNITY)) {
-			throw new CommentException(CommentErrorCode.NOT_EXISTS_AUTHORIZATION);
+		if(!fanRepository.existsByInfluencerAndMember(post.getCommunity().getInfluencer(), member)) {
+			throw new CommunityException(CommunityErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
+
 		return commentRepository.findAll()
 				.stream()
 				.map(comment -> new CommentDetailResponse(comment, comment.getMember().getId() == member.getId()))
@@ -85,7 +87,7 @@ public class FanChannelCommentService {
 	// 팬채널 댓글 수정
 	@Transactional
 	public Comment updateFanChannelComment(int postId, int commentId, UpdateCommentRequest request, String email) {
-		postRepository.findById(postId)
+		Post post = postRepository.findById(postId)
 			.orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_EXIST));
 
 		Comment comment = commentRepository.findById(commentId)
@@ -94,8 +96,8 @@ public class FanChannelCommentService {
 		Member member = memberRepository.findByEmail(email)
 				.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if(!member.getRole().equals(Role.COMMUNITY)) {
-			throw new CommentException(CommentErrorCode.NOT_EXISTS_AUTHORIZATION);
+		if(!fanRepository.existsByInfluencerAndMember(post.getCommunity().getInfluencer(), member)) {
+			throw new CommunityException(CommunityErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
 		comment.update(request.getContents());
@@ -115,8 +117,8 @@ public class FanChannelCommentService {
 		Member member = memberRepository.findByEmail(email)
 				.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if(!member.getRole().equals(Role.COMMUNITY)) {
-			throw new CommentException(CommentErrorCode.NOT_EXISTS_AUTHORIZATION);
+		if(!fanRepository.existsByInfluencerAndMember(post.getCommunity().getInfluencer(), member)) {
+			throw new CommunityException(CommunityErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
 		comment.delete();
@@ -133,8 +135,8 @@ public class FanChannelCommentService {
 		Member member = memberRepository.findByEmail(email)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.NO_USER_EXIST));
 
-		if(!member.getRole().equals(Role.COMMUNITY)) {
-			throw new CommentException(CommentErrorCode.NOT_EXISTS_AUTHORIZATION);
+		if(!fanRepository.existsByInfluencerAndMember(post.getCommunity().getInfluencer(), member)) {
+			throw new CommunityException(CommunityErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
 		if(!commentLikeDislikeRepository.existsByMemberAndComment(member, comment)) {

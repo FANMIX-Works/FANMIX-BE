@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -98,7 +99,8 @@ public class PostService {
 
 		return postList
 			.stream().filter(post -> !post.isDelete())
-			.map(post -> new PostListResponse(post, member != null && post.getMember().getId() == member.getId()))
+			.map(post -> new PostListResponse(post, member != null && post.getMember().getId() == member.getId(),
+					post.getCrDate().isAfter(LocalDateTime.now().minusHours(3))))
 			.collect(Collectors.toList());
 	}
 
@@ -127,7 +129,8 @@ public class PostService {
 
 		return postList
 			.stream().filter(post -> !post.isDelete())
-			.map(post -> new PostListResponse(post, member != null && post.getMember().getId() == member.getId()))
+			.map(post -> new PostListResponse(post, member != null && post.getMember().getId() == member.getId(),
+					post.getCrDate().isAfter(LocalDateTime.now().minusHours(3))))
 			.collect(Collectors.toList());
 	}
 
@@ -260,7 +263,8 @@ public class PostService {
 				.map(post -> {
 					boolean isMyPosts = postRepository.existsByMember(member);
 					if(member == null) isMyPosts = false;
-					return new PostListResponse(post, isMyPosts);
+					boolean isEditable = post.getCrDate().isAfter(LocalDateTime.now().minusHours(3));
+					return new PostListResponse(post, isMyPosts, isEditable);
 				})
 				.collect(Collectors.toList());
 	}
