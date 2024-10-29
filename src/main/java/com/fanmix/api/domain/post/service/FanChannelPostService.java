@@ -16,6 +16,7 @@ import com.fanmix.api.domain.member.exception.MemberException;
 import com.fanmix.api.domain.member.repository.MemberRepository;
 import com.fanmix.api.domain.post.dto.*;
 import com.fanmix.api.domain.post.entity.Post;
+import com.fanmix.api.domain.post.entity.PostLikeDislike;
 import com.fanmix.api.domain.post.exception.PostErrorCode;
 import com.fanmix.api.domain.post.exception.PostException;
 import com.fanmix.api.domain.post.repository.PostLikeDisLikeRepository;
@@ -129,7 +130,16 @@ public class FanChannelPostService {
 			throw new CommunityException(CommunityErrorCode.NOT_EXISTS_AUTHORIZATION);
 		}
 
-		return new PostDetailResponse(post,  post.getMember().getId() == member.getId());
+		PostLikeDislike postLikeDislike = postLikeDisLikeRepository.findByMemberAndPost(member, post);
+
+		boolean isLiked = false;
+		boolean isDisliked = false;
+		if (postLikeDislike != null && member != null) {
+			isLiked = postLikeDislike.getIsLike();
+			isDisliked = !isLiked;
+		}
+
+		return new PostDetailResponse(post,  isLiked, isDisliked, post.getMember().getId() == member.getId());
 	}
 
 	// 팬채널 글 수정

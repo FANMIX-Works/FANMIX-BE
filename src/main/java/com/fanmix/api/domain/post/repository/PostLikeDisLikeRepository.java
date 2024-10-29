@@ -10,4 +10,6 @@ import com.fanmix.api.domain.post.entity.PostLikeDislike;
 @Repository
 public interface PostLikeDisLikeRepository extends JpaRepository<PostLikeDislike, Integer> {
 	boolean existsByMemberAndPost(Member member, Post post);
+
+	PostLikeDislike findByMemberAndPost(Member member, Post post);
 }
