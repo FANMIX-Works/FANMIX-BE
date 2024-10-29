@@ -15,6 +15,7 @@ import com.fanmix.api.domain.member.exception.MemberException;
 import com.fanmix.api.domain.member.repository.MemberRepository;
 import com.fanmix.api.domain.post.dto.*;
 import com.fanmix.api.domain.post.entity.Post;
+import com.fanmix.api.domain.post.entity.PostLikeDislike;
 import com.fanmix.api.domain.post.exception.PostErrorCode;
 import com.fanmix.api.domain.post.exception.PostException;
 import com.fanmix.api.domain.post.repository.PostLikeDisLikeRepository;
@@ -163,9 +164,19 @@ public class PostService {
 			throw new PostException(PostErrorCode.POST_NOT_BELONG_TO_COMMUNITY);
 		}
 
-		Member member = memberRepository.findByEmail(email).orElse(null);
-		return new PostDetailResponse(post, member != null && post.getMember().getId() == member.getId());
-	}
+        Member member = memberRepository.findByEmail(email).orElse(null);
+
+        PostLikeDislike postLikeDislike = postLikeDisLikeRepository.findByMemberAndPost(member, post);
+
+		boolean isLiked = false;
+		boolean isDisliked = false;
+        if (postLikeDislike != null && member != null) {
+			isLiked = postLikeDislike.getIsLike();
+			isDisliked = !isLiked;
+        }
+
+        return new PostDetailResponse(post, isLiked,  isDisliked, member != null && post.getMember().getId() == member.getId());
+    }
 
 	// 게시물 수정
 	@Transactional
