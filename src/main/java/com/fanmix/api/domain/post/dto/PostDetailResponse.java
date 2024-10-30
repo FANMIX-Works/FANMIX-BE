@@ -11,6 +11,7 @@ public class PostDetailResponse {
     private String communityName;
     private int postId;
     private Boolean isMyPosts;
+    private String memberId;
     private String memberName;
     private String memberImageUrl;
     private String title;
@@ -31,6 +32,7 @@ public class PostDetailResponse {
         this.communityName = post.getCommunity().getName();
         this.postId = post.getId();
         this.isMyPosts = isMyPosts;
+        this.memberId = post.getMember().getEmail();
         this.memberName = post.getMember().getName();
         this.memberImageUrl = post.getMember().getProfileImgUrl();
         this.title = post.getTitle();
