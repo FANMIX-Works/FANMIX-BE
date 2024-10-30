@@ -10,6 +10,7 @@ public class PostResponse {
 	private int communityId;
 	private String communityName;
 	private int postId;
+	private String memberId;
 	private String memberName;
 	private String memberImageUrl;
 	private String title;
@@ -27,6 +28,7 @@ public class PostResponse {
 		this.communityId = post.getCommunity().getId();
 		this.communityName = post.getCommunity().getName();
 		this.postId = post.getId();
+		this.memberId = post.getMember().getEmail();
 		this.memberName = post.getMember().getName();
 		this.memberImageUrl = post.getMember().getProfileImgUrl();
 		this.title = post.getTitle();

@@ -13,7 +13,7 @@ public class FanChannelPostResponse {
 	private String communityName;
 	private String influencerName;
 	private int postId;
-	private int memberId;
+	private String memberId;
 	private String memberName;
 	private String memberImageUrl;
 	private String title;
@@ -31,7 +31,7 @@ public class FanChannelPostResponse {
 		this.communityName = post.getCommunity().getName();
 		this.influencerName = post.getCommunity().getInfluencer().getInfluencerName();
 		this.postId = post.getId();
-		this.memberId = post.getMember().getId();
+		this.memberId = post.getMember().getEmail();
 		this.memberName = post.getMember().getName();
 		this.memberImageUrl = post.getMember().getProfileImgUrl();
 		this.title = post.getTitle();
