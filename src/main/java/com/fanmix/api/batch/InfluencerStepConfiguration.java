@@ -16,7 +16,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Sort;
 import org.springframework.retry.backoff.ExponentialBackOffPolicy;
-import org.springframework.transaction.PlatformTransactionManager;
 
 import com.fanmix.api.batch.processor.ExistingInfluencerProcessor;
 import com.fanmix.api.batch.processor.NewInfluencerProcessor;
@@ -36,7 +35,7 @@ public class InfluencerStepConfiguration {
 	private static final int CHUNK_SIZE = 30;
 
 	private final JobRepository jobRepository;
-	private final PlatformTransactionManager transactionManager;
+	private final CustomTransactionManager customTransactionManager;
 	private final EntityManagerFactory entityManagerFactory;
 	private final InfluencerRatingCacheRepository influencerRatingCacheRepository;
 	private final InfluencerRepository influencerRepository;
@@ -51,7 +50,7 @@ public class InfluencerStepConfiguration {
 		backOffPolicy.setInitialInterval(1000);
 
 		return new StepBuilder("updateStep", jobRepository)
-			.<InfluencerRatingCache, InfluencerRatingCache>chunk(CHUNK_SIZE, transactionManager)
+			.<InfluencerRatingCache, InfluencerRatingCache>chunk(CHUNK_SIZE, customTransactionManager)
 			.reader(existingInfluencerReader)
 			.processor(existingInfluencerProcessor)
 			.writer(existingInfluencerWriter)
@@ -77,7 +76,7 @@ public class InfluencerStepConfiguration {
 		backOffPolicy.setInitialInterval(1000);
 
 		return new StepBuilder("insertStep", jobRepository)
-			.<Influencer, InfluencerRatingCache>chunk(CHUNK_SIZE, transactionManager)
+			.<Influencer, InfluencerRatingCache>chunk(CHUNK_SIZE, customTransactionManager)
 			.reader(newInfluencerReader)
 			.processor(newInfluencerProcessor)
 			.writer(newInfluencerWriter)
