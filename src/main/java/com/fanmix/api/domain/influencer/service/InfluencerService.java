@@ -76,11 +76,11 @@ public class InfluencerService {
 			.map(InfluencerTag::getTagName)
 			.toList();
 
-		final Optional<Review> latestReview = reviewRepository.findFirstByInfluencerAndIsDeletedOrderByCrDateDesc(
-			influencer, false);
+		final Optional<Review> latestReview = reviewRepository.findFirstByInfluencerAndIsDeletedFalseOrderByCrDateDesc(
+			influencer);
 		LocalDateTime latestReviewDate = latestReview.map(Review::getCrDate).orElse(null);
 
-		Object[] averageRatings = reviewRepository.findAverageRatingsByInfluencer(influencer.getId()).get(0);
+		Object[] averageRatings = reviewRepository.findAverageRatingsByInfluencerId(influencer.getId()).get(0);
 		Long totalReviewCount = reviewRepository.countByInfluencerAndIsDeleted(influencer, false);
 
 		boolean isFollowing = false;
@@ -130,11 +130,11 @@ public class InfluencerService {
 			.map(InfluencerTag::getTagName)
 			.toList();
 
-		final Optional<Review> latestReview = reviewRepository.findFirstByInfluencerAndIsDeletedOrderByCrDateDesc(
-			influencer, false);
+		final Optional<Review> latestReview = reviewRepository.findFirstByInfluencerAndIsDeletedFalseOrderByCrDateDesc(
+			influencer);
 		LocalDateTime latestReviewDate = latestReview.map(Review::getCrDate).orElse(null);
 
-		Object[] averageRatings = reviewRepository.findAverageRatingsByInfluencer(influencer.getId()).get(0);
+		Object[] averageRatings = reviewRepository.findAverageRatingsByInfluencerId(influencer.getId()).get(0);
 		Long totalReviewCount = reviewRepository.countByInfluencerAndIsDeleted(influencer, false);
 
 		boolean isFollowing = false;
@@ -199,12 +199,12 @@ public class InfluencerService {
 		List<InfluencerRatingCache> influencersInCache = new ArrayList<>();
 
 		if (searchType.equals(SearchType.INFLUENCER_NAME)) {
-			influencersInCache = influencerRatingCacheRepository.findByInfluencerNameFromMainSearch(keyword, sort);
+			influencersInCache = influencerRatingCacheRepository.findByInfluencerNameFromSearch(keyword, sort);
 		} else if (searchType.equals(SearchType.TAG)) {
 			if (keyword.length() < 2) {
 				throw new InfluencerException(TAG_KEYWORD_LENGTH_LIMIT);
 			}
-			influencersInCache = influencerRatingCacheRepository.findByInfluencerTagFromMainSearch(keyword, sort);
+			influencersInCache = influencerRatingCacheRepository.findByInfluencerTagFromSearch(keyword, sort);
 		}
 
 		return influencersInCache
