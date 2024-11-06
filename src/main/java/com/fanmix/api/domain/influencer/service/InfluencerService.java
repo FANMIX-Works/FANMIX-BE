@@ -199,12 +199,12 @@ public class InfluencerService {
 		List<InfluencerRatingCache> influencersInCache = new ArrayList<>();
 
 		if (searchType.equals(SearchType.INFLUENCER_NAME)) {
-			influencersInCache = influencerRatingCacheRepository.findByInfluencerNameFromMainSearch(keyword, sort);
+			influencersInCache = influencerRatingCacheRepository.findByInfluencerNameFromSearch(keyword, sort);
 		} else if (searchType.equals(SearchType.TAG)) {
 			if (keyword.length() < 2) {
 				throw new InfluencerException(TAG_KEYWORD_LENGTH_LIMIT);
 			}
-			influencersInCache = influencerRatingCacheRepository.findByInfluencerTagFromMainSearch(keyword, sort);
+			influencersInCache = influencerRatingCacheRepository.findByInfluencerTagFromSearch(keyword, sort);
 		}
 
 		return influencersInCache
