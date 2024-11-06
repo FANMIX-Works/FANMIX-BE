@@ -15,7 +15,7 @@ import com.fanmix.api.domain.member.entity.Member;
 import com.fanmix.api.domain.review.entity.Review;
 
 public interface ReviewRepository extends JpaRepository<Review, Long>, ReviewQuerydslRepository {
-	Optional<Review> findFirstByInfluencerAndIsDeletedOrderByCrDateDesc(Influencer influencer, Boolean isDeleted);
+	Optional<Review> findFirstByInfluencerAndIsDeletedFalseOrderByCrDateDesc(Influencer influencer);
 
 	//findTopBy는 전체결과를 가져온다음 필터를 걸고 첫번째 행을 반환
 	Optional<Review> findTopByMemberAndInfluencerAndIsDeletedOrderByCrDateDesc(Member member, Influencer influencer,
@@ -45,7 +45,7 @@ public interface ReviewRepository extends JpaRepository<Review, Long>, ReviewQue
 		+ "AND r.cr_date = latest_reviews.latest_date "
 		+ "WHERE r.influencer_id = :influencerId "
 		+ "AND r.is_deleted = false", nativeQuery = true)
-	List<Object[]> findAverageRatingsByInfluencer(Integer influencerId);
+	List<Object[]> findAverageRatingsByInfluencerId(Integer influencerId);
 
 	Long countByInfluencerAndIsDeleted(Influencer influencer, Boolean isDeleted);
 

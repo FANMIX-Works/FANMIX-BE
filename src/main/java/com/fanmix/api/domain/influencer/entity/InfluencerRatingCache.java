@@ -9,8 +9,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
@@ -28,7 +26,6 @@ import lombok.NoArgsConstructor;
 @EntityListeners(AuditingEntityListener.class)
 public class InfluencerRatingCache {
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id")
 	private Integer id;
 
@@ -86,10 +83,12 @@ public class InfluencerRatingCache {
 	@Column(name = "updated_at")
 	private LocalDateTime updatedAt;
 
-	private InfluencerRatingCache(String influencerImageUrl, String influencerName, Boolean isAuthenticated,
-		String tag1,
-		String tag2, String tag3, LocalDateTime latestReviewDate, Double averageRating, Double contentsRating,
-		Double communicationRating, Double trustRating, Integer totalViewCount, Influencer influencer) {
+	private InfluencerRatingCache(Integer id, Influencer influencer,
+		String influencerImageUrl, String influencerName, Boolean isAuthenticated,
+		String tag1, String tag2, String tag3, LocalDateTime latestReviewDate, Double averageRating,
+		Double contentsRating, Double communicationRating, Double trustRating, Integer totalViewCount) {
+		this.id = id;
+		this.influencer = influencer;
 		this.influencerImageUrl = influencerImageUrl;
 		this.influencerName = influencerName;
 		this.isAuthenticated = isAuthenticated;
@@ -102,20 +101,21 @@ public class InfluencerRatingCache {
 		this.communicationRating = communicationRating;
 		this.trustRating = trustRating;
 		this.totalViewCount = totalViewCount;
-		this.influencer = influencer;
 	}
 
-	public static InfluencerRatingCache createInfluencerCache(String influencerImageUrl, String influencerName,
-		Boolean isAuthenticated, String tag1, String tag2, String tag3, LocalDateTime latestReviewDate,
+	public static InfluencerRatingCache createInfluencerCache(Integer influencerId, Influencer influencer,
+		String influencerImageUrl, String influencerName, Boolean isAuthenticated,
+		String tag1, String tag2, String tag3, LocalDateTime latestReviewDate,
 		Double averageRating, Double contentsRating, Double communicationRating, Double trustRating,
-		Integer totalViewCount, Influencer influencer) {
-		return new InfluencerRatingCache(influencerImageUrl, influencerName, isAuthenticated, tag1, tag2, tag3,
-			latestReviewDate, averageRating, contentsRating, communicationRating, trustRating, totalViewCount,
-			influencer);
+		Integer totalViewCount) {
+		return new InfluencerRatingCache(influencerId, influencer, influencerImageUrl, influencerName, isAuthenticated,
+			tag1, tag2, tag3, latestReviewDate,
+			averageRating, contentsRating, communicationRating, trustRating, totalViewCount);
 	}
 
-	public void update(String influencerImageUrl, String influencerName, Boolean isAuthenticated, String tag1,
-		String tag2, String tag3, LocalDateTime latestReviewDate, Double averageRating, Double contentsRating,
+	public InfluencerRatingCache update(String influencerImageUrl, String influencerName, Boolean isAuthenticated,
+		String tag1, String tag2, String tag3,
+		LocalDateTime latestReviewDate, Double averageRating, Double contentsRating,
 		Double communicationRating, Double trustRating, Integer totalViewCount) {
 		this.influencerImageUrl = influencerImageUrl;
 		this.influencerName = influencerName;
@@ -129,5 +129,6 @@ public class InfluencerRatingCache {
 		this.communicationRating = communicationRating;
 		this.trustRating = trustRating;
 		this.totalViewCount = totalViewCount;
+		return this;
 	}
 }

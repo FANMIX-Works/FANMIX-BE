@@ -24,4 +24,5 @@ public interface InfluencerRepository extends JpaRepository<Influencer, Integer>
 
 	Slice<Influencer> findAllByOrderByWeeklyViewCountDesc(Pageable pageable);
 
+	Slice<Influencer> findByIdGreaterThan(Integer lastInfluencerId, Pageable pageable);
 }
