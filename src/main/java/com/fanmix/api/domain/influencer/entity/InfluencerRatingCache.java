@@ -83,11 +83,12 @@ public class InfluencerRatingCache {
 	@Column(name = "updated_at")
 	private LocalDateTime updatedAt;
 
-	private InfluencerRatingCache(Integer id, String influencerImageUrl, String influencerName, Boolean isAuthenticated,
+	private InfluencerRatingCache(Integer id, Influencer influencer,
+		String influencerImageUrl, String influencerName, Boolean isAuthenticated,
 		String tag1, String tag2, String tag3, LocalDateTime latestReviewDate, Double averageRating,
-		Double contentsRating, Double communicationRating, Double trustRating, Integer totalViewCount,
-		Influencer influencer) {
+		Double contentsRating, Double communicationRating, Double trustRating, Integer totalViewCount) {
 		this.id = id;
+		this.influencer = influencer;
 		this.influencerImageUrl = influencerImageUrl;
 		this.influencerName = influencerName;
 		this.isAuthenticated = isAuthenticated;
@@ -100,21 +101,21 @@ public class InfluencerRatingCache {
 		this.communicationRating = communicationRating;
 		this.trustRating = trustRating;
 		this.totalViewCount = totalViewCount;
-		this.influencer = influencer;
 	}
 
-	public static InfluencerRatingCache createInfluencerCache(Integer influencerId, String influencerImageUrl,
-		String influencerName, Boolean isAuthenticated,
+	public static InfluencerRatingCache createInfluencerCache(Integer influencerId, Influencer influencer,
+		String influencerImageUrl, String influencerName, Boolean isAuthenticated,
 		String tag1, String tag2, String tag3, LocalDateTime latestReviewDate,
 		Double averageRating, Double contentsRating, Double communicationRating, Double trustRating,
-		Integer totalViewCount, Influencer influencer) {
-		return new InfluencerRatingCache(influencerId, influencerImageUrl, influencerName, isAuthenticated,
+		Integer totalViewCount) {
+		return new InfluencerRatingCache(influencerId, influencer, influencerImageUrl, influencerName, isAuthenticated,
 			tag1, tag2, tag3, latestReviewDate,
-			averageRating, contentsRating, communicationRating, trustRating, totalViewCount, influencer);
+			averageRating, contentsRating, communicationRating, trustRating, totalViewCount);
 	}
 
-	public void update(String influencerImageUrl, String influencerName, Boolean isAuthenticated, String tag1,
-		String tag2, String tag3, LocalDateTime latestReviewDate, Double averageRating, Double contentsRating,
+	public InfluencerRatingCache update(String influencerImageUrl, String influencerName, Boolean isAuthenticated,
+		String tag1, String tag2, String tag3,
+		LocalDateTime latestReviewDate, Double averageRating, Double contentsRating,
 		Double communicationRating, Double trustRating, Integer totalViewCount) {
 		this.influencerImageUrl = influencerImageUrl;
 		this.influencerName = influencerName;
@@ -128,5 +129,6 @@ public class InfluencerRatingCache {
 		this.communicationRating = communicationRating;
 		this.trustRating = trustRating;
 		this.totalViewCount = totalViewCount;
+		return this;
 	}
 }
