@@ -396,13 +396,13 @@ public class MemberService implements UserDetailsService {
 				log.debug("인플루언서의 팬채널id : " + fanChannelId);
 
 				//해당 인플루언서의 최신 리뷰
-				final Optional<Review> latestReview = reviewRepository.findFirstByInfluencerAndIsDeletedOrderByCrDateDesc(
-					influencer, false);
+				final Optional<Review> latestReview = reviewRepository.findFirstByInfluencerAndIsDeletedFalseOrderByCrDateDesc(
+					influencer);
 				LocalDateTime latestReviewDate = latestReview.map(Review::getCrDate).orElse(null);
 				log.debug("인플루언서에 딸린 최신 리뷰 : " + latestReviewDate);
 
 				//나의 리뷰가 아니라 모든 리뷰어들중에 최신의 리뷰만 반영해야한다.
-				Object[] averageRatings = reviewRepository.findAverageRatingsByInfluencer(influencer.getId()).get(0);
+				Object[] averageRatings = reviewRepository.findAverageRatingsByInfluencerId(influencer.getId()).get(0);
 				double contentsRating = ((BigDecimal)averageRatings[0]).doubleValue();
 				double communicationRating = ((BigDecimal)averageRatings[1]).doubleValue();
 				double trustRating = ((BigDecimal)averageRatings[2]).doubleValue();
