@@ -10,9 +10,7 @@ import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.data.RepositoryItemReader;
 import org.springframework.batch.item.data.builder.RepositoryItemReaderBuilder;
-import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.batch.item.database.builder.JpaItemWriterBuilder;
-import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,9 +36,9 @@ public class InfluencerStepConfiguration {
 	private static final int CHUNK_SIZE = 30;
 
 	private final JobRepository jobRepository;
-	private final InfluencerRatingCacheRepository influencerRatingCacheRepository;
 	private final PlatformTransactionManager transactionManager;
 	private final EntityManagerFactory entityManagerFactory;
+	private final InfluencerRatingCacheRepository influencerRatingCacheRepository;
 	private final InfluencerRepository influencerRepository;
 
 	@Bean
@@ -71,7 +69,7 @@ public class InfluencerStepConfiguration {
 
 	@Bean
 	public Step insertStep(
-		RepositoryItemReader<Influencer> newInfluencerReader,
+		ItemReader<Influencer> newInfluencerReader,
 		NewInfluencerProcessor newInfluencerProcessor,
 		ItemWriter<InfluencerRatingCache> newInfluencerWriter
 	) {
@@ -92,16 +90,15 @@ public class InfluencerStepConfiguration {
 
 	@Bean
 	@StepScope
-	public JpaPagingItemReader<InfluencerRatingCache> existingInfluencerReader(
+	public RepositoryItemReader<InfluencerRatingCache> existingInfluencerReader(
 		@Value("#{jobParameters['lastInfluencerId']}") Long lastInfluencerId) {
-		return new JpaPagingItemReaderBuilder<InfluencerRatingCache>()
-			.name("jpaPagingItemReader")
-			.entityManagerFactory(entityManagerFactory)
-			.queryString(
-				"SELECT i FROM InfluencerRatingCache i JOIN FETCH i.influencer WHERE i.id <= :lastInfluencerId"
-			)
-			.parameterValues(Map.of("lastInfluencerId", lastInfluencerId))
+		return new RepositoryItemReaderBuilder<InfluencerRatingCache>()
+			.name("repositoryItemReader")
+			.repository(influencerRatingCacheRepository)
+			.methodName("findByIdLessThanEqual")
+			.arguments(lastInfluencerId.intValue())
 			.pageSize(CHUNK_SIZE)
+			.sorts(Map.of("id", Sort.Direction.ASC))
 			.build();
 	}
 
