@@ -8,6 +8,7 @@ import com.fanmix.api.domain.influencer.dto.enums.Sort;
 import com.fanmix.api.domain.influencer.entity.InfluencerRatingCache;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import lombok.RequiredArgsConstructor;
@@ -17,15 +18,22 @@ public class InfluencerCacheQuerydslRepositoryImpl implements InfluencerCacheQue
 	private final JPAQueryFactory queryFactory;
 
 	@Override
-	public List<InfluencerRatingCache> findByInfluencerNameFromMainSearch(String keyword, Sort sort) {
+	public List<InfluencerRatingCache> findByInfluencerNameFromSearch(String keyword, Sort sort) {
 		return queryFactory.selectFrom(influencerRatingCache)
-			.where(influencerRatingCache.influencerName.contains(keyword))
+			.where(searchByKeywordCondition(keyword))
 			.orderBy(sort(sort))
 			.fetch();
 	}
 
+	private BooleanExpression searchByKeywordCondition(String keyword) {
+		if (keyword == null || keyword.isEmpty()) {
+			return null;
+		}
+		return influencerRatingCache.influencerName.contains(keyword);
+	}
+
 	@Override
-	public List<InfluencerRatingCache> findByInfluencerTagFromMainSearch(String keyword, Sort sort) {
+	public List<InfluencerRatingCache> findByInfluencerTagFromSearch(String keyword, Sort sort) {
 		return queryFactory.selectFrom(influencerRatingCache)
 			// 이 부분도 나중에 캐싱 통해 성능 최적화 여지 있음
 			.where(influencerRatingCache.tag1.contains(keyword)

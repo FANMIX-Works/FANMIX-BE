@@ -36,7 +36,7 @@ public class InfluencerController {
 
 	@GetMapping("/search")
 	public ResponseEntity<Response<List<InfluencerResponseDto.Search>>> searchInfluencers(
-		@RequestParam SearchType searchType, @RequestParam String keyword, @RequestParam Sort sort) {
+		@RequestParam SearchType searchType, @RequestParam(required = false) String keyword, @RequestParam Sort sort) {
 		return ResponseEntity.ok(Response.success(influencerService.searchInfluencers(searchType, keyword, sort)));
 	}
 
